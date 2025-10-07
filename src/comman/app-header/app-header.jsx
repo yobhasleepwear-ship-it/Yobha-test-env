@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { LogIn, Menu, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { LogIn, Menu, X, User, ShoppingCart } from "lucide-react";
 
 const HeaderWithSidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -7,9 +7,18 @@ const HeaderWithSidebar = () => {
   const menuItems = ["Home", "Collections", "About", "Contact"];
   const collectionItems = ["Nightwear", "Loungewear", "Couple Sets", "Silk Series"];
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY >= 1);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-lg bg-gradient-to-b from-[#1a1a1a]/40 via-[#1f1b1a]/30 to-transparent border-b border-rose-200/20">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    <header className={`${isScrolled ? "bg-white-100 border-b border-rose-200/30 shadow-[0_2px_24px_rgba(20,20,20,0.06)]" : "backdrop-blur-lg bg-gradient-to-b from-[#1a1a1a]/40 via-[#1f1b1a]/30 to-transparent border-b border-rose-200/20"} fixed top-0 left-0 w-full z-50 transition-colors duration-300`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between pl-6 pr-6 md:pr-8 py-4">
 
         <div className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer">
           YOBHA
@@ -20,7 +29,7 @@ const HeaderWithSidebar = () => {
             <div key={item} className="relative group">
               <a
                 href="#"
-                className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 tracking-wide"
+                className={`${isScrolled ? "text-neutral-700" : "text-[#fefefe]/90 hover:text-[#f5c1b1]"} transition-all duration-300 tracking-wide`}
               >
                 {item}
               </a>
@@ -44,13 +53,19 @@ const HeaderWithSidebar = () => {
         </nav>
 
 
-        <div className="flex items-center gap-4">
-          <div className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 cursor-pointer">
+        <div className="flex items-center gap-5">
+          <button className={`${isScrolled ? "text-neutral-700" : "text-white/90 hover:text-[#f5c1b1]"} transition-all duration-300`} aria-label="User">
+            <User size={22} />
+          </button>
+          <button className={`${isScrolled ? "text-neutral-700" : "text-white/90 hover:text-[#f5c1b1]"} transition-all duration-300`} aria-label="Cart">
+            <ShoppingCart size={22} />
+          </button>
+          <button className={`${isScrolled ? "text-neutral-700" : "text-white/90 hover:text-[#f5c1b1]"} transition-all duration-300`} aria-label="Login">
             <LogIn size={22} />
-          </div>
+          </button>
 
           <button
-            className="md:hidden text-white focus:outline-none hover:text-[#f5c1b1] transition"
+            className={`md:hidden ${isScrolled ? "text-neutral-700" : "text-white"} focus:outline-none hover:opacity-80 transition`}
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={24} />
