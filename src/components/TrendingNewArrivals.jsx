@@ -7,7 +7,7 @@ const SAMPLE_PRODUCTS = [
     title: "Silk Night Shirt",
     description: "Hand-finished mulberry silk with mother-of-pearl buttons",
     price: "₹4,990",
-    image: "https://www.shutterstock.com/image-photo/young-man-going-sleep-isolated-260nw-1936624705.jpg",
+    image: "https://i.etsystatic.com/19870219/r/il/9939a4/3877887290/il_fullxfull.3877887290_o82x.jpg",
     badge: "New",
   },
   {
@@ -138,10 +138,10 @@ const TrendingNewArrivals = () => {
                   )}
                 </div>
                 <div className="p-4 flex flex-col flex-1">
-                  <h3 className="text-neutral-900 font-semibold">{p.title}</h3>
-                  <p className="text-neutral-600 text-sm mt-1 line-clamp-2 flex-1">{p.description}</p>
+                  <h3 className="text-[#8b5f4b] font-semibold">{p.title}</h3>
+                  <p className="text-black text-sm mt-1 line-clamp-2 flex-1">{p.description}</p>
                   <div className="mt-3">
-                    <span className="text-[#a2786b] font-semibold">{p.price}</span>
+                    <span className="text-[#8b5f4b] font-semibold">{p.price}</span>
                   </div>
                 </div>
               </article>
