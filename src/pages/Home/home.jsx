@@ -1,9 +1,11 @@
 import React from "react";
 import heroImage from "../../assets/heroImage.jpg";
+import GenderGrid from "../../components/GenderGrid";
+import TrendingNewArrivals from "../../components/TrendingNewArrivals";
 
 const HomePage = () => {
   return (
-    <div className="relative min-h-screen bg-black">
+    <div className="relative min-h-screen bg-[#FAF6F2]">
    
 
       <section className="relative h-screen w-full flex items-center justify-center text-center overflow-hidden">
@@ -26,11 +28,16 @@ const HomePage = () => {
             Premium Sleepwear for Your Ultimate Comfort and Luxury
           </p>
 
-          <button className="mt-8 px-8 py-3 rounded-full bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-black font-semibold text-lg shadow-lg hover:scale-105 transform transition-all duration-300">
+          <button className="mt-8 px-8 py-3 rounded-full bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-white font-semibold text-lg shadow-lg hover:scale-105 transform transition-all duration-300">
             Shop Now
           </button>
+
+  
         </div>
       </section>
+      {/* Render Trending arrivals and Gender grid below the hero */}
+      <TrendingNewArrivals />
+      <GenderGrid />
     </div>
   );
 };

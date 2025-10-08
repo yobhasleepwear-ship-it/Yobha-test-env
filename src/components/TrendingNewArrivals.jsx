@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
-import SILK_NIGHT_DRESS from "../assets/silk night dress.png";
+import React, { useMemo, useRef, useState, useLayoutEffect } from "react";
+
 
 const SAMPLE_PRODUCTS = [
   {
@@ -7,7 +7,7 @@ const SAMPLE_PRODUCTS = [
     title: "Silk Night Shirt",
     description: "Hand-finished mulberry silk with mother-of-pearl buttons",
     price: "₹4,990",
-    image: SILK_NIGHT_DRESS,
+    image: "https://www.shutterstock.com/image-photo/young-man-going-sleep-isolated-260nw-1936624705.jpg",
     badge: "New",
   },
   {
@@ -15,7 +15,7 @@ const SAMPLE_PRODUCTS = [
     title: "Cashmere Lounge Set",
     description: "Featherlight knit with breathable comfort",
     price: "₹6,450",
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
+    image: "https://i.ebayimg.com/images/g/F8gAAOSw5RldMuSB/s-l400.jpg",
     badge: "Trending",
   },
   {
@@ -23,7 +23,7 @@ const SAMPLE_PRODUCTS = [
     title: "Satin Camisole",
     description: "Lustrous drape with adjustable straps",
     price: "₹2,490",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlDdRDL3DAbUYYbvbijqJDG6btkfNZYECbz2IG3Y1hCknNZrt01pYWKCofaaUiCX-DVKM&usqp=CAU",
     badge: "Bestseller",
   },
   {
@@ -31,22 +31,68 @@ const SAMPLE_PRODUCTS = [
     title: "Velour Robe",
     description: "Ultra-plush warmth, hotel-grade finish",
     price: "₹5,290",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop",
+    image: "https://i.pinimg.com/236x/7e/6d/a5/7e6da53be4b66e464fd76766878c9b7c.jpg",
     badge: "New",
   },
 ];
 
 const TrendingNewArrivals = () => {
   const [index, setIndex] = useState(0);
-  const visibleDesktop = 3;
-  const clampedIndex = useMemo(() => Math.max(0, Math.min(index, Math.max(0, SAMPLE_PRODUCTS.length - visibleDesktop))), [index]);
-  const trackRef = useRef(null);
+  // visibleCount adapts to screen size: 1 on mobile, 3 on md and up (tailwind default md = 768px)
+  const [visibleCount, setVisibleCount] = useState(() => (typeof window !== "undefined" && window.innerWidth >= 768 ? 3 : 1));
 
-  const next = () => setIndex((i) => Math.min(i + 1, SAMPLE_PRODUCTS.length - visibleDesktop));
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handle = (e) => setVisibleCount(e.matches ? 3 : 1);
+    // call initially
+    handle(mq);
+    // add listener (support both modern and older APIs)
+    if (mq.addEventListener) mq.addEventListener("change", handle);
+    else mq.addListener(handle);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", handle);
+      else mq.removeListener(handle);
+    };
+  }, []);
+
+  const maxIndex = Math.max(0, SAMPLE_PRODUCTS.length - visibleCount);
+  const clampedIndex = useMemo(() => Math.max(0, Math.min(index, maxIndex)), [index, maxIndex]);
+  const trackRef = useRef(null);
+  const [cardWidth, setCardWidth] = useState(0);
+  const [gapPx, setGapPx] = useState(0);
+
+  const next = () => setIndex((i) => Math.min(i + 1, maxIndex));
   const prev = () => setIndex((i) => Math.max(i - 1, 0));
 
+  // Measure the first card width and the grid gap so we can translate in px
+  useLayoutEffect(() => {
+    if (!trackRef.current) return;
+    const measure = () => {
+      const first = trackRef.current.querySelector("article");
+      if (!first) {
+        setCardWidth(0);
+        setGapPx(0);
+        return;
+      }
+      const rect = first.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const cs = window.getComputedStyle(trackRef.current);
+      // columnGap is used for grid layouts; fallback to gap
+      const gapStr = cs.columnGap || cs.gap || "0px";
+      const gap = Math.round(parseFloat(gapStr) || 0);
+      setCardWidth(w);
+      setGapPx(gap);
+    };
+
+    // measure after a microtask to allow layout to settle
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [visibleCount]);
+
   return (
-    <section className="relative max-w-7xl mx-auto px-6 py-12 md:py-16">
+  <section className="relative max-w-7xl mx-auto px-6 py-12 md:py-16 bg-[#FAF6F2]">
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-2xl md:text-3xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a]">Trending Collections</h2>
@@ -70,11 +116,19 @@ const TrendingNewArrivals = () => {
         <div className="overflow-hidden md:px-4">
           <div
             ref={trackRef}
-            className="grid grid-flow-col auto-cols-[100%] sm:auto-cols-[85%] md:auto-cols-[calc((100%-40px)/3)] gap-5 transition-transform duration-500"
-            style={{ transform: `translateX(-${clampedIndex * (100 / visibleDesktop)}%)` }}
+            className="grid grid-flow-col auto-cols-[100%] sm:auto-cols-[85%] md:auto-cols-[calc((100%-40px)/3)] bg-[#FAF6F2] gap-5 transition-transform duration-500"
+            style={{ transform: cardWidth ? `translateX(-${clampedIndex * (cardWidth + gapPx)}px)` : `translateX(-${clampedIndex * (100 / visibleCount)}%)` }}
           >
             {SAMPLE_PRODUCTS.map((p) => (
-              <article key={p.id} className="group bg-white border border-[#e7bfb3]/30 rounded-2xl overflow-hidden shadow-[0_6px_26px_rgba(15,15,15,0.06)]">
+              <article 
+                key={p.id} 
+                className="group bg-white border border-[#e7bfb3]/30 rounded-2xl overflow-hidden shadow-[0_6px_26px_rgba(15,15,15,0.06)] flex flex-col h-full cursor-pointer hover:border-[#e7bfb3]/50 transition-all duration-300"
+                onClick={() => {
+                  // Navigate to product detail page
+                  console.log(`Clicked product: ${p.id}`);
+                  // You can add navigation here: navigate(`/product/${p.id}`)
+                }}
+              >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img src={p.image} alt={p.title} className="h-full w-full object-cover group-hover:scale-105 transition" />
                   {p.badge && (
@@ -83,12 +137,11 @@ const TrendingNewArrivals = () => {
                     </span>
                   )}
                 </div>
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-neutral-900 font-semibold">{p.title}</h3>
-                  <p className="text-neutral-600 text-sm mt-1 line-clamp-2">{p.description}</p>
-                  <div className="mt-3 flex items-center justify-between">
+                  <p className="text-neutral-600 text-sm mt-1 line-clamp-2 flex-1">{p.description}</p>
+                  <div className="mt-3">
                     <span className="text-[#a2786b] font-semibold">{p.price}</span>
-                    <button className="text-sm px-3 py-1.5 rounded-full bg-neutral-900/5 hover:bg-neutral-900/10 text-neutral-900 border border-neutral-900/10">View</button>
                   </div>
                 </div>
               </article>

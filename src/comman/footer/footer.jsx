@@ -1,9 +1,10 @@
 import React from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-t from-[#1a1a1a]/90 via-[#2b1e1e]/80 to-[#1a1a1a]/90 text-white relative z-50">
+  <footer className="bg-gradient-to-t from-[#1a1a1a]/90 via-[#2b1e1e]/80 to-[#1a1a1a]/90 text-white relative z-10">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
 
         {/* Brand & About */}
@@ -21,16 +22,16 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4 text-[#f6d6cb]">Quick Links</h3>
           <ul className="space-y-2 text-sm text-[#fefefe]/90">
             <li>
-              <a href="#!" className="hover:text-[#e7bfb3] transition-colors">Home</a>
+              <Link to="/" className="hover:text-[#e7bfb3] transition-colors">Home</Link>
             </li>
             <li>
               <a href="#!" className="hover:text-[#e7bfb3] transition-colors">Collections</a>
             </li>
             <li>
-              <a href="#!" className="hover:text-[#e7bfb3] transition-colors">About</a>
+              <Link to="/about" className="hover:text-[#e7bfb3] transition-colors">About</Link>
             </li>
             <li>
-              <a href="#!" className="hover:text-[#e7bfb3] transition-colors">Contact</a>
+              <Link to="/contact" className="hover:text-[#e7bfb3] transition-colors">Contact</Link>
             </li>
           </ul>
         </div>
@@ -55,15 +56,15 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-4 text-[#f6d6cb]">Follow Us</h3>
           <div className="flex items-center gap-4">
-            <a href="#!" className="hover:text-[#f6d6cb] transition-colors">
+            <button aria-label="Facebook" className="hover:text-[#f6d6cb] transition-colors">
               <Facebook size={20} />
-            </a>
-            <a href="#!" className="hover:text-[#f6d6cb] transition-colors">
+            </button>
+            <button aria-label="Twitter" className="hover:text-[#f6d6cb] transition-colors">
               <Twitter size={20} />
-            </a>
-            <a href="#!" className="hover:text-[#f6d6cb] transition-colors">
+            </button>
+            <button aria-label="Instagram" className="hover:text-[#f6d6cb] transition-colors">
               <Instagram size={20} />
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -72,8 +73,8 @@ const Footer = () => {
       <div className="border-t border-[#e7bfb3]/20 py-4 mt-6 text-sm text-[#fefefe]/70 flex flex-col md:flex-row items-center justify-between px-6">
         <p>© 2025 YOBHA. All rights reserved.</p>
         <div className="flex gap-6 mt-2 md:mt-0">
-          <a href="#!" className="hover:text-[#f6d6cb] transition-colors">Privacy</a>
-          <a href="#!" className="hover:text-[#f6d6cb] transition-colors">Terms</a>
+          <Link to="/privacy" className="hover:text-[#f6d6cb] transition-colors">Privacy</Link>
+          <Link to="/terms" className="hover:text-[#f6d6cb] transition-colors">Terms</Link>
         </div>
       </div>
     </footer>

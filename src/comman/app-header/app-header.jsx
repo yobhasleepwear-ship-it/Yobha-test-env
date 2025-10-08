@@ -1,16 +1,42 @@
-import React, { useState } from "react";
-import { LogIn, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom"; // <-- import Link
+import React, { useState, useEffect } from "react";
+import {  LogOut, Menu, X, User, ShoppingCart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { LocalStorageKeys } from "../../constants/localStorageKeys";
+import * as localStorageService from "../../service/localStorageService";
 
 const HeaderWithSidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   const menuItems = ["Home", "Collections", "About", "Contact"];
   const collectionItems = ["Nightwear", "Loungewear", "Couple Sets", "Silk Series"];
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorageService.getValue(LocalStorageKeys.AuthToken);
+      setIsAuthenticated(!!token);
+    };
+    
+    checkAuth();
+    // Optional: Listen to storage changes to update auth status
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
+  
+
   return (
-    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-lg bg-gradient-to-b from-[#1a1a1a]/40 via-[#1f1b1a]/30 to-transparent border-b border-rose-200/20">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+  <header className={`bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between pl-6 pr-6 md:pr-8 py-4">
 
         <div className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer">
           YOBHA
@@ -19,46 +45,33 @@ const HeaderWithSidebar = () => {
         <nav className="hidden md:flex space-x-8 text-[15px] font-medium">
           {menuItems.map((item) => (
             <div key={item} className="relative group">
-              {item === "Home" ? (
+              {item === "Collections" ? (
+                <button className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 tracking-wide">
+                  {item}
+                </button>
+              ) : (
                 <Link
-                  to="/"
-                  className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 tracking-wide"
+                  to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                  className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 tracking-wide"
                 >
                   {item}
                 </Link>
-              ) : item === "About" ? (
-                <Link
-                  to="/about"
-                  className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 tracking-wide"
-                >
-                  {item}
-                </Link>
-              ) : item === "Contact" ? (
-                <Link
-                  to="/contact"
-                  className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 tracking-wide"
-                >
-                  {item}
-                </Link>
-              ) : item === "Collections" ? (
-                <span className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300 tracking-wide cursor-pointer">
-                  {item}
-                </span>
-              ) : null}
-
+              )}
               <span className="absolute left-0 bottom-[-4px] w-0 h-[2px] bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] transition-all duration-500 group-hover:w-full rounded-full"></span>
 
               {item === "Collections" && (
-                <div className="absolute top-8 left-0 right-0 opacity-0 invisible group-hover:visible transition-all duration-300 delay-150 flex flex-col md:flex-row md:justify-center items-start md:items-center p-4 min-w-full rounded-xl shadow-2xl text-white space-y-2 md:space-y-0 md:space-x-6 animate-slideDown">
-                  {collectionItems.map((cat) => (
-                    <Link
-                      key={cat}
-                      to={`/collections/${cat.toLowerCase().replace(/\s/g, "-")}`}
-                      className="px-3 py-2 rounded-lg hover:bg-[#f6d6cb]/10 transition-colors duration-300 text-sm text-[#fefefe]/90 hover:text-[#f6d6cb]"
-                    >
-                      {cat}
-                    </Link>
-                  ))}
+                <div className="absolute top-8 left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 delay-150 bg-white rounded-xl p-4 min-w-[200px] animate-slideDown">
+                  <div className="flex flex-col space-y-2">
+                    {collectionItems.map((cat) => (
+                      <Link
+                        key={cat}
+                        to={`/collections/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                        className="px-4 py-2 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                      >
+                        {cat}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -67,13 +80,26 @@ const HeaderWithSidebar = () => {
      
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link to="/login" className="text-[#fefefe]/90 hover:text-[#f5c1b1] transition-all duration-300">
-            <LogIn size={22} />
+
+  <div className="flex items-center gap-5 ml-4 md:ml-6">
+          <Link to="/login" className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 ml-3`} aria-label="User">
+            <User size={22} />
           </Link>
+          <button className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300`} aria-label="Cart">
+            <ShoppingCart size={22} />
+          </button>
+          {isAuthenticated && (
+            <button 
+              onClick={handleLogout}
+              className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300`} 
+              aria-label="Logout"
+            >
+              <LogOut size={22} />
+            </button>
+          )}
 
           <button
-            className="md:hidden text-white focus:outline-none hover:text-[#f5c1b1] transition"
+            className={`md:hidden text-[#a2786b] focus:outline-none hover:opacity-80 transition`}
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={24} />
@@ -84,32 +110,32 @@ const HeaderWithSidebar = () => {
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           ></div>
 
-          <div className="relative w-64 bg-[#1a1a1a]/95 backdrop-blur-md shadow-2xl animate-slideInLeft">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-rose-200/20">
-              <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a]">
+          <div className="relative w-72 bg-gradient-to-b from-[#f8ede3] via-[#fdf4ee] to-[#fdf7f2] shadow-2xl animate-slideInLeft">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#e7bfb3]/30">
+              <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d9a79a] via-[#e7bfb3] to-[#f6d6cb] drop-shadow-sm">
                 YOBHA
               </div>
               <button
-                className="text-white hover:text-[#f5c1b1] transition"
+                className="text-[#a2786b] hover:text-[#d9a79a] transition-all duration-300"
                 onClick={() => setSidebarOpen(false)}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <nav className="flex flex-col p-6 space-y-4 text-white text-sm">
+            <nav className="flex flex-col p-6 space-y-3 text-[#7a5650] text-base">
               {menuItems.map((item) => (
                 <div key={item} className="w-full">
                   {item === "Collections" ? (
-                    <span className="block w-full text-white/90">{item}</span>
+                    <span className="block w-full text-[#8b5f4b] font-semibold">{item}</span>
                   ) : item === "Home" ? (
                     <Link
                       to="/"
-                      className="block w-full text-white/90 hover:text-[#f6d6cb] transition"
+                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item}
@@ -117,7 +143,7 @@ const HeaderWithSidebar = () => {
                   ) : item === "About" ? (
                     <Link
                       to="/about"
-                      className="block w-full text-white/90 hover:text-[#f6d6cb] transition"
+                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item}
@@ -125,7 +151,7 @@ const HeaderWithSidebar = () => {
                   ) : item === "Contact" ? (
                     <Link
                       to="/contact"
-                      className="block w-full text-white/90 hover:text-[#f6d6cb] transition"
+                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item}
@@ -133,12 +159,12 @@ const HeaderWithSidebar = () => {
                   ) : null}
 
                   {item === "Collections" && (
-                    <div className="pl-4 mt-2 space-y-2">
+                    <div className="pl-4 mt-3 space-y-2">
                       {collectionItems.map((cat) => (
                         <Link
                           key={cat}
                           to={`/collections/${cat.toLowerCase().replace(/\s/g, "-")}`}
-                          className="block text-white/70 hover:text-[#f6d6cb] transition"
+                          className="block text-[#7a5650] hover:text-[#e7bfb3] transition-colors duration-300 py-1"
                           onClick={() => setSidebarOpen(false)}
                         >
                           {cat}
@@ -149,14 +175,28 @@ const HeaderWithSidebar = () => {
                 </div>
               ))}
 
-              {/* Sidebar Login */}
-              <Link
-                to="/login"
-                className="block mt-4 text-white/90 hover:text-[#f6d6cb] transition"
-                onClick={() => setSidebarOpen(false)}
-              >
-                Login
-              </Link>
+              {/* Sidebar Login/Logout */}
+              <div className="pt-4 border-t border-[#e7bfb3]/30 mt-2">
+                {!isAuthenticated ? (
+                  <Link
+                    to="/login"
+                    className="block text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-semibold"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    Login
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setSidebarOpen(false);
+                      handleLogout();
+                    }}
+                    className="block text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 text-left w-full font-semibold"
+                  >
+                    Logout
+                  </button>
+                )}
+              </div>
             </nav>
           </div>
         </div>

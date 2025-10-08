@@ -19,7 +19,7 @@ const Router = () => {
           <Route
             key={index}
             path={path}
-            element={<AppLayout>{element}</AppLayout>}
+            element={path === "/login" ? element : <AppLayout>{element}</AppLayout>}
           />
         ))}
       </Routes>
