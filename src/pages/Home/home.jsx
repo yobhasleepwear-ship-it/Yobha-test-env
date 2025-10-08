@@ -1,8 +1,7 @@
 import React from "react";
 import heroImage from "../../assets/heroImage.jpg";
-import GenderGrid from "../../components/GenderGrid";
-import TrendingNewArrivals from "../../components/TrendingNewArrivals";
-
+import TrendingNewArrivals from './components/TrendingNewArrivals'
+import GenderGrid from './components/GenderGrid'
 const HomePage = () => {
   return (
     <div className="relative min-h-screen bg-[#FAF6F2]">

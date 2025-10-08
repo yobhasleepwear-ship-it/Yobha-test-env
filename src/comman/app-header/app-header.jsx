@@ -65,7 +65,7 @@ const HeaderWithSidebar = () => {
                     {collectionItems.map((cat) => (
                       <Link
                         key={cat}
-                        to={`/collections/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                        to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
                         className="px-4 py-2 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
                       >
                         {cat}
@@ -163,7 +163,7 @@ const HeaderWithSidebar = () => {
                       {collectionItems.map((cat) => (
                         <Link
                           key={cat}
-                          to={`/collections/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                          to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
                           className="block text-[#7a5650] hover:text-[#e7bfb3] transition-colors duration-300 py-1"
                           onClick={() => setSidebarOpen(false)}
                         >
