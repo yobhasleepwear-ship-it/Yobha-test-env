@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {  LogOut, Menu, X, User, ShoppingCart } from "lucide-react";
+import { LogOut, Menu, X, User, ShoppingCart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
@@ -18,30 +18,29 @@ const HeaderWithSidebar = () => {
       const token = localStorageService.getValue(LocalStorageKeys.AuthToken);
       setIsAuthenticated(!!token);
     };
-    
+
     checkAuth();
-    // Optional: Listen to storage changes to update auth status
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    window.addEventListener("storage", checkAuth); // update if storage changes
+    return () => window.removeEventListener("storage", checkAuth);
   }, []);
 
   // Logout function
   const handleLogout = () => {
-    localStorage.clear();
+    localStorageService.clearAll(); // clear all keys
     setIsAuthenticated(false);
     navigate("/login");
   };
 
-  
-
   return (
-  <header className={`bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300`}>
+    <header className="bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between pl-6 pr-6 md:pr-8 py-4">
 
+        {/* Logo */}
         <div className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer">
           YOBHA
         </div>
 
+        {/* Desktop Nav */}
         <nav className="hidden md:flex space-x-8 text-[15px] font-medium">
           {menuItems.map((item) => (
             <div key={item} className="relative group">
@@ -57,49 +56,45 @@ const HeaderWithSidebar = () => {
                   {item}
                 </Link>
               )}
-              <span className="absolute left-0 bottom-[-4px] w-0 h-[2px] bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] transition-all duration-500 group-hover:w-full rounded-full"></span>
-
               {item === "Collections" && (
                 <div className="absolute top-8 left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 delay-150 bg-white rounded-xl p-4 min-w-[200px] animate-slideDown">
-                  <div className="flex flex-col space-y-2">
-                    {collectionItems.map((cat) => (
-                      <Link
-                        key={cat}
-                        to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
-                        className="px-4 py-2 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
-                      >
-                        {cat}
-                      </Link>
-                    ))}
-                  </div>
+                  {collectionItems.map((cat) => (
+                    <Link
+                      key={cat}
+                      to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                      className="block px-4 py-2 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
           ))}
-
-     
         </nav>
 
-
-  <div className="flex items-center gap-5 ml-4 md:ml-6">
-          <Link to="/login" className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 ml-3`} aria-label="User">
-            <User size={22} />
-          </Link>
-          <button className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300`} aria-label="Cart">
+        {/* Right Actions */}
+        <div className="flex items-center gap-5 ml-4 md:ml-6">
+          {!isAuthenticated && (
+            <Link to="/login" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
+              <User size={22} />
+            </Link>
+          )}
+          <button className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
             <ShoppingCart size={22} />
           </button>
           {isAuthenticated && (
-            <button 
+            <button
               onClick={handleLogout}
-              className={`text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300`} 
-              aria-label="Logout"
+              className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300"
             >
               <LogOut size={22} />
             </button>
           )}
 
+          {/* Mobile menu toggle */}
           <button
-            className={`md:hidden text-[#a2786b] focus:outline-none hover:opacity-80 transition`}
+            className="md:hidden text-[#a2786b] focus:outline-none hover:opacity-80 transition"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={24} />
@@ -107,6 +102,7 @@ const HeaderWithSidebar = () => {
         </div>
       </div>
 
+      {/* Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div
@@ -132,32 +128,15 @@ const HeaderWithSidebar = () => {
                 <div key={item} className="w-full">
                   {item === "Collections" ? (
                     <span className="block w-full text-[#8b5f4b] font-semibold">{item}</span>
-                  ) : item === "Home" ? (
+                  ) : (
                     <Link
-                      to="/"
+                      to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
                       className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item}
                     </Link>
-                  ) : item === "About" ? (
-                    <Link
-                      to="/about"
-                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      {item}
-                    </Link>
-                  ) : item === "Contact" ? (
-                    <Link
-                      to="/contact"
-                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      {item}
-                    </Link>
-                  ) : null}
-
+                  )}
                   {item === "Collections" && (
                     <div className="pl-4 mt-3 space-y-2">
                       {collectionItems.map((cat) => (

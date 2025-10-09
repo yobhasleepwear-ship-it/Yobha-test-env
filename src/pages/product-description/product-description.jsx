@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 
-// Dummy product data
-
-
 const ProductDetailPage = () => {
   const { productId } = useParams();
   const [product,setProduct] = useState({

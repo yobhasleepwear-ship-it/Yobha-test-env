@@ -2,16 +2,14 @@ import axios from "axios";
 import * as localStorageService from "./localStorageService";
 import { LocalStorageKeys } from "../constants/localStorageKeys";
 
-
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_COMMON_AUTH_API_URL,
+  baseURL: "http://65.2.184.190/api",
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Attach auth token to every request
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorageService.getValue(LocalStorageKeys.AuthToken);
@@ -21,41 +19,25 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Reusable HTTP Methods
+
 export const Get = async (url, params = {}, config = {}) => {
-  try {
-    const response = await apiClient.get(url, { params, ...config });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.get(url, { params, ...config });
+  return response;
 };
 
 export const Post = async (url, data = {}, config = {}) => {
-  try {
-    const response = await apiClient.post(url, data, config);
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.post(url, data, config);
+  return response;
 };
 
 export const Put = async (url, data = {}, config = {}) => {
-  try {
-    const response = await apiClient.put(url, data, config);
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.put(url, data, config);
+  return response;
 };
 
 export const Delete = async (url, config = {}) => {
-  try {
-    const response = await apiClient.delete(url, config);
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.delete(url, config);
+  return response;
 };
 
 export default apiClient;

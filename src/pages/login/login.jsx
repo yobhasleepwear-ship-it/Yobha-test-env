@@ -1,23 +1,92 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaInstagram, FaFacebookF, FaTwitter } from "react-icons/fa";
+import { LoginUser, RegisterUser , sendOtp, verifyOtp} from "../../service/login";
+
+import * as localStorageService from "../../service/localStorageService";
+import { LocalStorageKeys } from "../../constants/localStorageKeys";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("email");
   const [isSignup, setIsSignup] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-
-  const handlePhoneContinue = (e) => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [otp, setOtp] = useState("");
+  const handleSignup = async (e) => {
     e.preventDefault();
-    if (phoneNumber.trim()) {
-      setShowOtpModal(true);
+    try {
+      const payload = { fullName, email, password, phoneNumber };
+      const response = await RegisterUser(payload); // call signup API
+
+      console.log("Signup successful:", response);
+
+      const { token, refreshToken, user } = response.data;
+      console.log(token, "token")
+   
+      localStorageService.setValue(LocalStorageKeys.AuthToken, token);
+      localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
+      localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
+
+      navigate("/");
+    } catch (err) {
+      console.error("Signup failed:", err);
+      alert("Signup failed. Try again.");
     }
   };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { email, password };
+      const response = await LoginUser(payload);
+      console.log("Login successful:", response);
+
+  
+      const { token, refreshToken, user } = response.data;
+      console.log(token, "token");
+
+      
+      localStorageService.setValue(LocalStorageKeys.AuthToken, token);
+      localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
+      localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
+
+    
+      navigate("/"); 
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert(err.response?.data?.message || "Login failed. Try again.");
+    }
+  };
+const handlePhoneContinue = async (e) => {
+  e.preventDefault();
+  if (phoneNumber.trim()) {
+    try {
+      await sendOtp(`${countryCode}${phoneNumber}`);
+      setShowOtpModal(true);
+      alert("OTP sent successfully!");
+    } catch (err) {
+      console.error("Send OTP failed:", err);
+      alert(err.response?.data?.message || "Failed to send OTP");
+    }
+  } else {
+    alert("Please enter phone number");
+  }
+};
+const handleGoogleLogin = () => {
+ 
+  const returnUrl = "http://localhost:3000/home"; 
+  window.location.href = `http://65.2.184.190/api/GoogleAuth/google/redirect?params=${encodeURIComponent(returnUrl)}`;
+};
+
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#FAF6F2]">
-      {/* Left Side - Premium Welcome Panel */}
       <div className="hidden md:flex w-1/2 p-20 flex-col justify-center items-start space-y-6 bg-gradient-to-b from-[#FDF7F2] via-[#F8EDE3] to-[#FDF4EE]">
         <h1 className="text-6xl font-extrabold text-[#B76E79] tracking-wide">
           Welcome Back
@@ -46,38 +115,40 @@ const LoginPage = () => {
               <div className="flex justify-around mb-6 md:mb-8 border-b border-[#B76E79]/20">
                 <button
                   onClick={() => setActiveTab("email")}
-                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${
-                    activeTab === "email"
-                      ? "border-b-2 border-[#B76E79] text-[#B76E79]"
-                      : "text-[#A46B60] hover:text-[#B76E79]"
-                  }`}
+                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${activeTab === "email"
+                    ? "border-b-2 border-[#B76E79] text-[#B76E79]"
+                    : "text-[#A46B60] hover:text-[#B76E79]"
+                    }`}
                 >
                   Email
                 </button>
                 <button
                   onClick={() => setActiveTab("phone")}
-                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${
-                    activeTab === "phone"
-                      ? "border-b-2 border-[#B76E79] text-[#B76E79]"
-                      : "text-[#A46B60] hover:text-[#B76E79]"
-                  }`}
+                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${activeTab === "phone"
+                    ? "border-b-2 border-[#B76E79] text-[#B76E79]"
+                    : "text-[#A46B60] hover:text-[#B76E79]"
+                    }`}
                 >
                   Phone
                 </button>
               </div>
 
               {/* Login Form */}
-              <form className="space-y-4 md:space-y-5" onSubmit={activeTab === "phone" ? handlePhoneContinue : (e) => e.preventDefault()}>
+              <form className="space-y-4 md:space-y-5" onSubmit={activeTab === "phone" ? handlePhoneContinue : handleLogin}>
                 {activeTab === "email" ? (
                   <>
                     <input
                       type="email"
                       placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                     />
                     <input
                       type="password"
                       placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                     />
                   </>
@@ -107,7 +178,7 @@ const LoginPage = () => {
               </div>
 
               {/* Google Login */}
-              <button className="w-full flex items-center justify-center gap-3 md:gap-4 py-3 md:py-4 border border-[#B76E79]/20 rounded-2xl hover:bg-[#FFF1E0]/30 transition-all text-[#5A3A36] font-medium shadow-sm text-sm md:text-base">
+              <button  onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 md:gap-4 py-3 md:py-4 border border-[#B76E79]/20 rounded-2xl hover:bg-[#FFF1E0]/30 transition-all text-[#5A3A36] font-medium text-sm md:text-base">
                 <FcGoogle size={22} />
                 Continue with Google
               </button>
@@ -129,20 +200,33 @@ const LoginPage = () => {
               <h2 className="text-center text-2xl md:text-3xl font-bold text-[#B76E79] mb-6 md:mb-8">
                 Create Account
               </h2>
-              <form className="space-y-4 md:space-y-5">
+              <form className="space-y-4 md:space-y-5" onSubmit={handleSignup}>
                 <input
                   type="text"
                   placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                 />
                 <input
                   type="email"
                   placeholder="Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                 />
                 <input
                   type="password"
                   placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                 />
                 <button
@@ -167,33 +251,79 @@ const LoginPage = () => {
       </div>
 
       {/* OTP Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-3xl p-8 md:p-10 w-11/12 max-w-sm shadow-lg">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#B76E79] mb-4 md:mb-6 text-center">Enter OTP</h2>
-            <p className="text-center text-[#7A5650] mb-4 md:mb-6 text-sm md:text-base">
-              We sent an OTP to <span className="font-semibold">{phoneNumber}</span>
-            </p>
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner mb-4 md:mb-5 text-sm md:text-base"
-            />
-            <button
-              className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
-              onClick={() => setShowOtpModal(false)}
-            >
-              Verify OTP
-            </button>
-            <p
-              className="text-center text-[#B76E79] mt-3 md:mt-4 cursor-pointer hover:text-[#E6B7A9] text-sm md:text-base"
-              onClick={() => setShowOtpModal(false)}
-            >
-              Cancel
-            </p>
-          </div>
-        </div>
-      )}
+     {showOtpModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="bg-white rounded-3xl p-8 md:p-10 w-11/12 max-w-sm shadow-lg">
+      <h2 className="text-2xl md:text-3xl font-bold text-[#B76E79] mb-4 md:mb-6 text-center">
+        Enter OTP
+      </h2>
+      <p className="text-center text-[#7A5650] mb-4 md:mb-6 text-sm md:text-base">
+        We sent an OTP to <span className="font-semibold">{countryCode}{phoneNumber}</span>
+      </p>
+
+      {/* Country Code Selector + Phone */}
+      <div className="flex space-x-2 mb-4 md:mb-5">
+        <select
+          value={countryCode}
+          onChange={(e) => setCountryCode(e.target.value)}
+          className="px-3 py-2 rounded-2xl border border-[#B76E79]/30 bg-white/30 text-[#5A3A36] backdrop-blur-sm focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none"
+        >
+          <option value="+91">+91 (India)</option>
+          <option value="+1">+1 (USA)</option>
+          <option value="+44">+44 (UK)</option>
+          <option value="+61">+61 (Australia)</option>
+          {/* Add more as needed */}
+        </select>
+        <input
+          type="tel"
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="flex-grow px-4 py-2 rounded-2xl border border-[#B76E79]/30 bg-white/30 text-[#5A3A36] backdrop-blur-sm focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none"
+        />
+      </div>
+
+      <input
+        type="text"
+        placeholder="Enter OTP"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+        className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner mb-4 md:mb-5 text-sm md:text-base"
+      />
+      <button
+        className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
+        onClick={async () => {
+          try {
+            const response = await verifyOtp(`${countryCode}${phoneNumber}`, otp);
+            console.log("OTP verified:", response);
+
+            // Save tokens if returned
+            const { token, refreshToken, user } = response?.data;
+            localStorageService.setValue(LocalStorageKeys.AuthToken, token);
+            localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
+            localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
+
+            
+            setShowOtpModal(false);
+            navigate("/");
+          } catch (err) {
+            console.error("OTP verification failed:", err);
+           
+          }
+        }}
+      >
+        Verify OTP
+      </button>
+      <p
+        className="text-center text-[#B76E79] mt-3 md:mt-4 cursor-pointer hover:text-[#E6B7A9] text-sm md:text-base"
+        onClick={() => setShowOtpModal(false)}
+      >
+        Cancel
+      </p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
