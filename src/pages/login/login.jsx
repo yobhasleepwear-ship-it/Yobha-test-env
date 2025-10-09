@@ -157,13 +157,49 @@ const handleGoogleLogin = () => {
                     />
                   </>
                 ) : (
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-20 sm:w-24 md:w-28 px-2 sm:px-3 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-xs sm:text-sm md:text-base font-semibold cursor-pointer"
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+61">🇦🇺 +61</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+65">🇸🇬 +65</option>
+                      <option value="+86">🇨🇳 +86</option>
+                      <option value="+81">🇯🇵 +81</option>
+                      <option value="+82">🇰🇷 +82</option>
+                      <option value="+33">🇫🇷 +33</option>
+                      <option value="+49">🇩🇪 +49</option>
+                      <option value="+39">🇮🇹 +39</option>
+                      <option value="+34">🇪🇸 +34</option>
+                      <option value="+7">🇷🇺 +7</option>
+                      <option value="+55">🇧🇷 +55</option>
+                      <option value="+52">🇲🇽 +52</option>
+                      <option value="+27">🇿🇦 +27</option>
+                      <option value="+234">🇳🇬 +234</option>
+                      <option value="+20">🇪🇬 +20</option>
+                      <option value="+60">🇲🇾 +60</option>
+                      <option value="+62">🇮🇩 +62</option>
+                      <option value="+63">🇵🇭 +63</option>
+                      <option value="+66">🇹🇭 +66</option>
+                      <option value="+84">🇻🇳 +84</option>
+                      <option value="+92">🇵🇰 +92</option>
+                      <option value="+880">🇧🇩 +880</option>
+                      <option value="+94">🇱🇰 +94</option>
+                      <option value="+977">🇳🇵 +977</option>
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                    />
+                  </div>
                 )}
 
                 <button
@@ -226,13 +262,49 @@ const handleGoogleLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
                 />
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="w-20 sm:w-24 md:w-28 px-2 sm:px-3 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-xs sm:text-sm md:text-base font-semibold cursor-pointer"
+                  >
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+65">🇸🇬 +65</option>
+                    <option value="+86">🇨🇳 +86</option>
+                    <option value="+81">🇯🇵 +81</option>
+                    <option value="+82">🇰🇷 +82</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+39">🇮🇹 +39</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+7">🇷🇺 +7</option>
+                    <option value="+55">🇧🇷 +55</option>
+                    <option value="+52">🇲🇽 +52</option>
+                    <option value="+27">🇿🇦 +27</option>
+                    <option value="+234">🇳🇬 +234</option>
+                    <option value="+20">🇪🇬 +20</option>
+                    <option value="+60">🇲🇾 +60</option>
+                    <option value="+62">🇮🇩 +62</option>
+                    <option value="+63">🇵🇭 +63</option>
+                    <option value="+66">🇹🇭 +66</option>
+                    <option value="+84">🇻🇳 +84</option>
+                    <option value="+92">🇵🇰 +92</option>
+                    <option value="+880">🇧🇩 +880</option>
+                    <option value="+94">🇱🇰 +94</option>
+                    <option value="+977">🇳🇵 +977</option>
+                  </select>
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                  />
+                </div>
                 <button
                   type="submit"
                   className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
@@ -256,43 +328,30 @@ const handleGoogleLogin = () => {
 
       {/* OTP Modal */}
      {showOtpModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="bg-white rounded-3xl p-8 md:p-10 w-11/12 max-w-sm shadow-lg">
-      <h2 className="text-2xl md:text-3xl font-bold text-[#B76E79] mb-4 md:mb-6 text-center">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#B76E79]/20">
+      <h2 className="text-2xl md:text-3xl font-bold text-[#B76E79] mb-3 md:mb-4 text-center">
         Enter OTP
       </h2>
-      <p className="text-center text-[#7A5650] mb-4 md:mb-6 text-sm md:text-base">
-        We sent an OTP to <span className="font-semibold">{countryCode}{phoneNumber}</span>
+      <p className="text-center text-[#7A5650] mb-6 text-sm md:text-base">
+        We sent a verification code to
       </p>
-
-      {/* Country Code Selector + Phone */}
-      <div className="flex space-x-2 mb-4 md:mb-5">
-        <select
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-          className="px-3 py-2 rounded-2xl border border-[#B76E79]/30 bg-white/30 text-[#5A3A36] backdrop-blur-sm focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none"
-        >
-          <option value="+91">+91 (India)</option>
-          <option value="+1">+1 (USA)</option>
-          <option value="+44">+44 (UK)</option>
-          <option value="+61">+61 (Australia)</option>
-          {/* Add more as needed */}
-        </select>
-        <input
-          type="tel"
-          placeholder="Phone Number"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="flex-grow px-4 py-2 rounded-2xl border border-[#B76E79]/30 bg-white/30 text-[#5A3A36] backdrop-blur-sm focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none"
-        />
+      
+      {/* Phone Number Display */}
+      <div className="bg-gradient-to-r from-[#FDF7F2] to-[#F8EDE3] rounded-xl p-3 mb-6 text-center border border-[#B76E79]/20">
+        <p className="text-[#B76E79] font-bold text-base md:text-lg break-all">
+          {countryCode} {phoneNumber}
+        </p>
       </div>
 
+      {/* OTP Input */}
       <input
         type="text"
-        placeholder="Enter OTP"
+        placeholder="Enter 6-digit OTP"
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
-        className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner mb-4 md:mb-5 text-sm md:text-base"
+        maxLength="6"
+        className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-2 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner mb-5 text-center text-lg md:text-xl font-semibold tracking-widest"
       />
       <button
         className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
@@ -318,12 +377,31 @@ const handleGoogleLogin = () => {
       >
         Verify OTP
       </button>
-      <p
-        className="text-center text-[#B76E79] mt-3 md:mt-4 cursor-pointer hover:text-[#E6B7A9] text-sm md:text-base"
+      
+      {/* Resend OTP */}
+      <p className="text-center text-[#7A5650] mt-4 text-sm">
+        Didn't receive code?{" "}
+        <button
+          onClick={async () => {
+            try {
+              await sendOtp(`${countryCode}${phoneNumber}`);
+              // Show success message
+            } catch (error) {
+              console.error("Resend OTP error:", error);
+            }
+          }}
+          className="text-[#B76E79] font-semibold hover:text-[#E6B7A9] transition-colors underline"
+        >
+          Resend OTP
+        </button>
+      </p>
+
+      <button
+        className="text-center text-[#A46B60] mt-3 cursor-pointer hover:text-[#B76E79] text-sm w-full transition-colors"
         onClick={() => setShowOtpModal(false)}
       >
         Cancel
-      </p>
+      </button>
     </div>
   </div>
 )}
