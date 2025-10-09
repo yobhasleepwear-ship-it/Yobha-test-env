@@ -33,7 +33,7 @@ const HeaderWithSidebar = () => {
 
   return (
     <header className="bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto flex items-center justify-between pl-6 pr-6 md:pr-8 py-4">
+      <div className="w-full flex items-center justify-between pl-4 pr-2 md:pr-3 py-4">
 
         {/* Logo */}
         <div className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer">
@@ -74,19 +74,24 @@ const HeaderWithSidebar = () => {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-5 ml-4 md:ml-6">
-          {!isAuthenticated && (
-            <Link to="/login" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
-              <User size={22} />
-            </Link>
-          )}
+        <div className="flex items-center gap-4 md:gap-6">
+          {/* Cart Icon - Always visible */}
           <button className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
             <ShoppingCart size={22} />
           </button>
+
+          {/* User Icon - Only when authenticated */}
+          {isAuthenticated && (
+            <Link to="/profile" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
+              <User size={22} />
+            </Link>
+          )}
+
+          {/* Logout Icon - Only when authenticated and on desktop */}
           {isAuthenticated && (
             <button
               onClick={handleLogout}
-              className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300"
+              className="hidden md:block text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300"
             >
               <LogOut size={22} />
             </button>
@@ -170,9 +175,10 @@ const HeaderWithSidebar = () => {
                       setSidebarOpen(false);
                       handleLogout();
                     }}
-                    className="block text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 text-left w-full font-semibold"
+                    className="flex items-center gap-3 text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 text-left w-full font-semibold"
                   >
-                    Logout
+                    <LogOut size={20} />
+                    <span>Logout</span>
                   </button>
                 )}
               </div>

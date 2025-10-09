@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaInstagram, FaFacebookF, FaTwitter } from "react-icons/fa";
 import { LoginUser, RegisterUser , sendOtp, verifyOtp} from "../../service/login";
+import HeaderWithSidebar from "../../comman/app-header/app-header";
+import Footer from "../../comman/footer/footer";
 
 import * as localStorageService from "../../service/localStorageService";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
@@ -86,7 +88,9 @@ const handleGoogleLogin = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#FAF6F2]">
+    <>
+      <HeaderWithSidebar />
+      <div className="min-h-screen flex flex-col md:flex-row bg-[#FAF6F2] pt-16">
       <div className="hidden md:flex w-1/2 p-20 flex-col justify-center items-start space-y-6 bg-gradient-to-b from-[#FDF7F2] via-[#F8EDE3] to-[#FDF4EE]">
         <h1 className="text-6xl font-extrabold text-[#B76E79] tracking-wide">
           Welcome Back
@@ -325,6 +329,8 @@ const handleGoogleLogin = () => {
 )}
 
     </div>
+    <Footer />
+    </>
   );
 };
 
