@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ProductCard from "../product/components/product-card";
-import { Filter, X, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { Filter, X, ChevronDown, ChevronUp, SlidersHorizontal, Package } from "lucide-react";
 
 const ProductsPage = () => {
   const { category } = useParams();
@@ -151,7 +151,14 @@ const ProductsPage = () => {
       segment: "women",
       subCategory: "sleepwear-sets",
       img: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
+        "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600"
+      ],
       badge: "New",
+      rating: 4.5,
+      reviewCount: 128
     },
     {
       id: 2,
@@ -161,6 +168,12 @@ const ProductsPage = () => {
       segment: "men",
       subCategory: "coord-sets",
       img: "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"
+      ],
+      rating: 4.8,
+      reviewCount: 89
     },
     {
       id: 3,
@@ -170,7 +183,14 @@ const ProductsPage = () => {
       segment: "women",
       subCategory: "robes",
       img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600"
+      ],
       badge: "Bestseller",
+      rating: 4.9,
+      reviewCount: 245
     },
     {
       id: 4,
@@ -180,6 +200,11 @@ const ProductsPage = () => {
       segment: "kids",
       subCategory: "pajama-sets",
       img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600"
+      ],
+      rating: 4.6,
+      reviewCount: 52
     },
     {
       id: 5,
@@ -189,7 +214,13 @@ const ProductsPage = () => {
       segment: "couple",
       subCategory: "coord-sets",
       img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
+        "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600"
+      ],
       badge: "Premium",
+      rating: 4.7,
+      reviewCount: 76
     },
     {
       id: 6,
@@ -199,6 +230,11 @@ const ProductsPage = () => {
       segment: "women",
       subCategory: "scrunchies",
       img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600"
+      ],
+      rating: 4.3,
+      reviewCount: 34
     },
     {
       id: 7,
@@ -208,7 +244,12 @@ const ProductsPage = () => {
       segment: "women",
       subCategory: "slippers",
       img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600"
+      ],
       badge: "New",
+      rating: 4.4,
+      reviewCount: 41
     },
     {
       id: 8,
@@ -218,6 +259,12 @@ const ProductsPage = () => {
       segment: "women",
       subCategory: "nightgowns",
       img: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
+      images: [
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600"
+      ],
+      rating: 4.6,
+      reviewCount: 92
     },
   ]);
 
@@ -278,32 +325,32 @@ const ProductsPage = () => {
 
   // Accordion Component
   const FilterAccordion = ({ title, isOpen, onToggle, children }) => (
-    <div className="border-b border-[#e7bfb3]/30">
+    <div className="border-b border-[#e7bfb3]/20 last:border-0">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-3 px-4 hover:bg-[#faf6f2]/50 transition-colors"
+        className="w-full flex items-center justify-between py-4 px-5 hover:bg-[#faf6f2]/50 transition-colors group"
       >
-        <span className="font-semibold text-[#8b5f4b] text-sm uppercase tracking-wide">
+        <span className="font-bold text-[#8b5f4b] text-sm uppercase tracking-wider group-hover:text-[#d9a79a] transition-colors">
           {title}
         </span>
         {isOpen ? (
-          <ChevronUp size={18} className="text-[#8b5f4b]" />
+          <ChevronUp size={18} className="text-[#d9a79a]" />
         ) : (
-          <ChevronDown size={18} className="text-[#8b5f4b]" />
+          <ChevronDown size={18} className="text-[#8b5f4b] group-hover:text-[#d9a79a] transition-colors" />
         )}
       </button>
-      {isOpen && <div className="px-4 pb-4">{children}</div>}
+      {isOpen && <div className="px-5 pb-5">{children}</div>}
     </div>
   );
 
   // Filter Sidebar Component
   const FilterSidebar = ({ showHeader = true }) => (
-    <div className="bg-white rounded-lg shadow-md border border-[#e7bfb3]/30 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-[#e7bfb3]/20 overflow-hidden">
       {/* Sidebar Header - Only show when showHeader is true (desktop) */}
       {showHeader && (
-        <div className="px-4 py-4 bg-gradient-to-r from-[#fdf7f2] to-[#f8ede3] border-b border-[#e7bfb3]/30 flex items-center justify-between">
-          <h2 className="font-bold text-[#8b5f4b] uppercase tracking-wide flex items-center gap-2">
-            <Filter size={20} />
+        <div className="px-5 py-4 bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] border-b border-[#e7bfb3]/30 flex items-center justify-between">
+          <h2 className="font-bold text-[#8b5f4b] text-base uppercase tracking-wide flex items-center gap-2">
+            <Filter size={20} className="text-[#d9a79a]" />
             Filters
           </h2>
           {(selectedSegment !== 'all' || selectedCategories.length > 0 || selectedSubCategories.length > 0) && (
@@ -314,7 +361,7 @@ const ProductsPage = () => {
                 setSelectedSubCategories([]);
                 setLastSelectedCategory(null);
               }}
-              className="text-xs text-[#d9a79a] hover:text-[#8b5f4b] font-semibold uppercase"
+              className="text-xs text-[#d9a79a] hover:text-[#8b5f4b] font-bold uppercase transition-colors"
             >
               Clear All
             </button>
@@ -328,21 +375,23 @@ const ProductsPage = () => {
         isOpen={openAccordion === "gender"}
         onToggle={() => toggleAccordion("gender")}
       >
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {segments.map((segment) => (
             <label
               key={segment}
-              className="flex items-center gap-3 cursor-pointer hover:bg-[#faf6f2] p-2 rounded transition-colors group"
+              className="flex items-center gap-3 cursor-pointer hover:bg-gradient-to-r hover:from-[#faf6f2] hover:to-transparent p-2.5 rounded-lg transition-all group"
             >
               <input
                 type="radio"
                 name="segment"
                 checked={selectedSegment === segment.toLowerCase()}
                 onChange={() => setSelectedSegment(segment.toLowerCase())}
-                className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#e7bfb3] cursor-pointer accent-[#d9a79a]"
+                className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
               <span className={`text-sm transition-colors ${
-                selectedSegment === segment.toLowerCase() ? "text-[#d9a79a] font-semibold" : "text-[#7a5650] group-hover:text-[#8b5f4b]"
+                selectedSegment === segment.toLowerCase() 
+                  ? "text-[#d9a79a] font-bold" 
+                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
               }`}>
                 {segment}
               </span>
@@ -357,20 +406,22 @@ const ProductsPage = () => {
         isOpen={openAccordion === "categories"}
         onToggle={() => toggleAccordion("categories")}
       >
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {categories.map((cat) => (
             <label
               key={cat.id}
-              className="flex items-center gap-3 cursor-pointer hover:bg-[#faf6f2] p-2 rounded transition-colors group"
+              className="flex items-center gap-3 cursor-pointer hover:bg-gradient-to-r hover:from-[#faf6f2] hover:to-transparent p-2.5 rounded-lg transition-all group"
             >
               <input
                 type="checkbox"
                 checked={selectedCategories.includes(cat.id)}
                 onChange={() => handleCategoryToggle(cat.id)}
-                className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#e7bfb3] cursor-pointer accent-[#d9a79a]"
+                className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
               <span className={`text-sm transition-colors ${
-                selectedCategories.includes(cat.id) ? "text-[#d9a79a] font-semibold" : "text-[#7a5650] group-hover:text-[#8b5f4b]"
+                selectedCategories.includes(cat.id) 
+                  ? "text-[#d9a79a] font-bold" 
+                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
               }`}>
                 {cat.name}
               </span>
@@ -386,23 +437,25 @@ const ProductsPage = () => {
           isOpen={openAccordion === "styles"}
           onToggle={() => toggleAccordion("styles")}
         >
-          <p className="text-xs text-[#a2786b] mb-3 italic">
-            For: <span className="font-semibold text-[#d9a79a]">{getCategoryName(lastSelectedCategory)}</span>
+          <p className="text-xs text-[#a2786b] mb-3 italic bg-[#faf6f2] px-3 py-2 rounded-lg">
+            For: <span className="font-bold text-[#d9a79a]">{getCategoryName(lastSelectedCategory)}</span>
           </p>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {getAvailableSubCategories().map((subCat) => (
               <label
                 key={subCat.id}
-                className="flex items-center gap-3 cursor-pointer hover:bg-[#faf6f2] p-2 rounded transition-colors group"
+                className="flex items-center gap-3 cursor-pointer hover:bg-gradient-to-r hover:from-[#faf6f2] hover:to-transparent p-2.5 rounded-lg transition-all group"
               >
                 <input
                   type="checkbox"
                   checked={selectedSubCategories.includes(subCat.id)}
                   onChange={() => handleSubCategoryToggle(subCat.id)}
-                  className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#e7bfb3] cursor-pointer accent-[#d9a79a]"
+                  className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
                 />
                 <span className={`text-sm transition-colors ${
-                  selectedSubCategories.includes(subCat.id) ? "text-[#d9a79a] font-semibold" : "text-[#7a5650] group-hover:text-[#8b5f4b]"
+                  selectedSubCategories.includes(subCat.id) 
+                    ? "text-[#d9a79a] font-bold" 
+                    : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
                 }`}>
                   {subCat.name}
                 </span>
@@ -418,21 +471,23 @@ const ProductsPage = () => {
         isOpen={openAccordion === "sort"}
         onToggle={() => toggleAccordion("sort")}
       >
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {sortOptions.map((option) => (
             <label
               key={option.id}
-              className="flex items-center gap-3 cursor-pointer hover:bg-[#faf6f2] p-2 rounded transition-colors group"
+              className="flex items-center gap-3 cursor-pointer hover:bg-gradient-to-r hover:from-[#faf6f2] hover:to-transparent p-2.5 rounded-lg transition-all group"
             >
               <input
                 type="radio"
                 name="sortBy"
                 checked={sortBy === option.id}
                 onChange={() => setSortBy(option.id)}
-                className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#e7bfb3] cursor-pointer accent-[#d9a79a]"
+                className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
               <span className={`text-sm transition-colors ${
-                sortBy === option.id ? "text-[#d9a79a] font-semibold" : "text-[#7a5650] group-hover:text-[#8b5f4b]"
+                sortBy === option.id 
+                  ? "text-[#d9a79a] font-bold" 
+                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
               }`}>
                 {option.name}
               </span>
@@ -444,18 +499,18 @@ const ProductsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdf7f2] via-[#faf6f2] to-[#f8ede3] h-screen overflow-hidden ">
+    <div className="min-h-screen bg-gradient-to-br from-white via-[#fdfbf9] to-[#faf6f2] h-screen overflow-hidden">
       {/* Mobile Filter Sidebar */}
       {showMobileFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => setShowMobileFilters(false)}
           ></div>
           
           {/* Sidebar */}
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl overflow-y-auto animate-slideInLeft scrollbar-hide">
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl overflow-y-auto animate-slideInLeft scrollbar-hide border-r border-[#e7bfb3]/20">
             <div className="sticky top-0 bg-gradient-to-r from-[#fdf7f2] to-[#f8ede3] z-10 px-4 py-4 border-b border-[#e7bfb3]/30">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="font-bold text-[#8b5f4b] uppercase tracking-wide flex items-center gap-2">
@@ -491,43 +546,55 @@ const ProductsPage = () => {
 
       {/* Two-Column Layout: Filters + Products */}
       <div className="flex h-full overflow-hidden">
-        {/* Left Column: Filter Sidebar - 1/5th width */}
-        <aside className="hidden lg:block lg:w-1/5 overflow-y-auto bg-gradient-to-br from-[#fdf7f2] to-[#f8ede3] border-r border-[#e7bfb3]/30 scrollbar-hide">
-          <div >
+        {/* Left Column: Filter Sidebar */}
+        <aside className="hidden lg:block lg:w-64 xl:w-72 overflow-y-auto bg-white/50 backdrop-blur-sm border-r border-[#e7bfb3]/20 scrollbar-hide">
+          <div className="p-6">
             <FilterSidebar />
           </div>
         </aside>
 
-        {/* Right Column: Title, Description & Products - 4/5th width */}
-        <main id="products-main" className="flex-1 lg:w-4/5 overflow-y-auto scrollbar-hide px-3 sm:px-4 lg:px-6 py-4 lg:py-6">
-          {/* Title & Description (Scrolls with Products) */}
-          <div className="mb-6 text-center">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d9a79a] via-[#e7bfb3] to-[#f6d6cb] mb-2 sm:mb-3">
-              {category ? `${category} Collection` : "Discover YOBHA"}
-            </h1>
-            <p className="text-[#7a5650] text-xs sm:text-sm md:text-base max-w-3xl mx-auto">
-              Timeless essentials crafted for serene nights and refined comfort
-            </p>
-          </div>
-          {/* Mobile Filter Toggle */}
-          <div className="flex items-center justify-between mb-4 lg:hidden">
+        {/* Right Column: Products */}
+        <main id="products-main" className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
+            
+            {/* Page Header */}
+            <div className="mb-8 lg:mb-10">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#8b5f4b] mb-3 tracking-tight">
+                  {category ? `${category} Collection` : "Discover YOBHA"}
+                </h1>
+                <p className="text-[#a2786b] text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed">
+                  Timeless essentials crafted for serene nights and refined comfort
+                </p>
+              </div>
+              
+              {/* Decorative Divider */}
+              <div className="flex items-center justify-center gap-3">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#e7bfb3]"></div>
+                <div className="w-2 h-2 rounded-full bg-[#d9a79a]"></div>
+                <div className="h-px w-12 bg-gradient-to-l from-transparent to-[#e7bfb3]"></div>
+              </div>
+            </div>
+
+          {/* Mobile Filter Toggle & Product Count */}
+          <div className="flex items-center justify-between mb-6 lg:mb-8">
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg shadow-md border border-[#e7bfb3]/30 text-[#8b5f4b] font-semibold"
+              className="lg:hidden flex items-center gap-2 bg-white px-5 py-3 rounded-xl shadow-md border border-[#e7bfb3]/30 text-[#8b5f4b] font-bold hover:shadow-lg transition-all"
             >
               <SlidersHorizontal size={20} />
               <span>Filters</span>
             </button>
-            <div className="text-[#8b5f4b] font-semibold text-sm">
+            <div className="hidden lg:block text-[#8b5f4b] font-semibold text-base">
               {filteredProducts.length} Product{filteredProducts.length !== 1 ? 's' : ''}
             </div>
           </div>
 
           {/* Selected Filters Display */}
           {(selectedSegment !== 'all' || selectedCategories.length > 0 || selectedSubCategories.length > 0) && (
-            <div className="bg-white rounded-xl p-3 sm:p-4 mb-4 border border-[#e7bfb3]/30 shadow-sm">
+            <div className="bg-white rounded-xl p-4 sm:p-5 mb-6 border border-[#e7bfb3]/20 shadow-md">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs sm:text-sm font-semibold text-[#8b5f4b]">Applied Filters:</span>
+                <span className="text-sm font-bold text-[#8b5f4b]">Active Filters:</span>
                 
                 {/* Segment Filter */}
                 {selectedSegment !== 'all' && (
@@ -588,14 +655,16 @@ const ProductsPage = () => {
           )}
 
           {/* Products Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {displayedProducts.length > 0 ? (
               displayedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
               ))
             ) : !isLoading ? (
-              <div className="col-span-full text-center py-16">
-                <p className="text-[#a2786b] text-lg">No products found matching your filters.</p>
+              <div className="col-span-full text-center py-20">
+                <Package size={64} className="mx-auto text-[#e7bfb3] mb-4" />
+                <p className="text-[#8b5f4b] text-xl font-semibold mb-2">No products found</p>
+                <p className="text-[#a2786b] mb-6">Try adjusting your filters</p>
                 <button
                   onClick={() => {
                     setSelectedSegment("all");
@@ -603,9 +672,9 @@ const ProductsPage = () => {
                     setSelectedSubCategories([]);
                     setLastSelectedCategory(null);
                   }}
-                  className="mt-4 text-[#e7bfb3] hover:text-[#d9a79a] font-medium underline"
+                  className="bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b] px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
                 >
-                  Clear all filters
+                  Clear All Filters
                 </button>
               </div>
             ) : null}
@@ -613,20 +682,20 @@ const ProductsPage = () => {
 
           {/* Loading Indicator */}
           {isLoading && (
-            <div className="col-span-full flex justify-center items-center py-8">
+            <div className="flex justify-center items-center py-12">
               <div className="relative">
-                <div className="w-12 h-12 rounded-full border-4 border-[#e7bfb3]/30 border-t-[#d9a79a] animate-spin"></div>
-                <p className="text-[#8b5f4b] text-sm mt-3 text-center font-medium">Loading...</p>
-      </div>
+                <div className="w-16 h-16 rounded-full border-4 border-[#faf6f2] border-t-[#d9a79a] animate-spin"></div>
+                <p className="text-[#8b5f4b] text-sm mt-4 text-center font-semibold">Loading...</p>
+              </div>
             </div>
           )}
 
           {/* Load More Button */}
           {!isLoading && hasMore && displayedProducts.length > 0 && (
-            <div className="flex justify-center mt-8 mb-4">
+            <div className="flex justify-center mt-12 mb-8">
               <button
                 onClick={loadMoreProducts}
-                className="bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                className="bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-base"
               >
                 Load More Products
               </button>
@@ -635,10 +704,13 @@ const ProductsPage = () => {
 
           {/* End of Products Message */}
           {!hasMore && displayedProducts.length > 0 && (
-            <div className="text-center py-8">
-              <p className="text-[#a2786b] text-sm">You've reached the end of the collection</p>
+            <div className="text-center py-12">
+              <div className="inline-block px-6 py-3 bg-gradient-to-r from-[#faf6f2] to-[#fef9f5] rounded-full border border-[#e7bfb3]/30">
+                <p className="text-[#a2786b] text-sm font-medium">You've viewed all products in this collection</p>
+              </div>
             </div>
           )}
+          </div>
         </main>
       </div>
 
