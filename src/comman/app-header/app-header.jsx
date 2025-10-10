@@ -76,9 +76,9 @@ const HeaderWithSidebar = () => {
         {/* Right Actions */}
         <div className="flex items-center gap-4 md:gap-6">
           {/* Cart Icon - Always visible */}
-          <button className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
+          <Link to="/cart" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
             <ShoppingCart size={22} />
-          </button>
+          </Link>
 
           {/* User Icon - Only when authenticated */}
           {isAuthenticated && (

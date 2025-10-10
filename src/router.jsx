@@ -7,13 +7,18 @@ const Home = lazy(() => import("./pages/Home/home"));
 const Login = lazy(() => import("./pages/login/login"))
 const ProductsPage = lazy(() => import("./pages/product/product"));
 const ProductDescription = lazy(()=>import("./pages/product-description/product-description"))
+const Cart = lazy(() => import("./pages/cart/cart"));
+const Checkout = lazy(() => import("./pages/checkout/checkout"));
+
 const Router = () => {
   const routes = [
     { path: "/", element: <Navigate to="/home" replace /> },
     { path: "/home", element: <Home /> },
     { path: '/login', element: <Login /> },
     { path: "/products/:category?", element: <ProductsPage /> },
-    {path:"/productDetail/:id?",element:<ProductDescription/>}
+    { path: "/productDetail/:id?", element: <ProductDescription /> },
+    { path: "/cart", element: <Cart /> },
+    { path: "/checkout", element: <Checkout /> }
   ];
 
   return (
