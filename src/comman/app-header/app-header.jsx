@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { LogOut, Menu, X, User, ShoppingCart } from "lucide-react";
+import { LogOut, Menu, X, User, Heart, Package } from "lucide-react";
+import { BsBag } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
@@ -33,12 +34,15 @@ const HeaderWithSidebar = () => {
 
   return (
     <header className="bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300">
-      <div className="w-full flex items-center justify-between pl-4 pr-2 md:pr-3 py-4">
+      <div className="max-w-[1600px] mx-auto flex items-center justify-between px-6 md:px-8 lg:px-12 py-4">
 
         {/* Logo */}
-        <div className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer">
+        <Link 
+          to="/" 
+          className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer hover:opacity-90 transition-opacity"
+        >
           YOBHA
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex space-x-8 text-[15px] font-medium">
@@ -74,26 +78,71 @@ const HeaderWithSidebar = () => {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-4 md:gap-6">
-          {/* Cart Icon - Always visible */}
-          <Link to="/cart" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
-            <ShoppingCart size={22} />
-          </Link>
-
-          {/* User Icon - Only when authenticated */}
-          {isAuthenticated && (
-            <Link to="/profile" className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300">
-              <User size={22} />
+        <div className="flex items-center gap-8 md:gap-10">
+          {/* User Account Icon with Dropdown */}
+          {isAuthenticated ? (
+            <div className="relative group">
+              <button 
+                className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center cursor-pointer"
+                title="My Account"
+              >
+                <User size={22} strokeWidth={1.8} />
+              </button>
+              
+              {/* User Dropdown Menu */}
+              <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="bg-white rounded-xl shadow-xl border border-[#e7bfb3]/20 p-2 min-w-[200px]">
+                  <Link
+                    to="/account"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                  >
+                    <User size={16} />
+                    <span>My Account</span>
+                  </Link>
+                  <Link
+                    to="/orders"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                  >
+                    <Package size={16} />
+                    <span>Orders</span>
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                  >
+                    <Heart size={16} />
+                    <span>Wishlist</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Link 
+              to="/login"
+              className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center"
+              title="Login"
+            >
+              <User size={22} strokeWidth={1.8} />
             </Link>
           )}
+
+          {/* Cart Icon - Always visible with unique design */}
+          <Link 
+            to="/cart" 
+            className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center"
+            title="Shopping Cart"
+          >
+            <BsBag size={22} />
+          </Link>
 
           {/* Logout Icon - Only when authenticated and on desktop */}
           {isAuthenticated && (
             <button
               onClick={handleLogout}
-              className="hidden md:block text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300"
+              className="hidden md:flex items-center text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300"
+              title="Logout"
             >
-              <LogOut size={22} />
+              <LogOut size={20} strokeWidth={1.8} />
             </button>
           )}
 

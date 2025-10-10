@@ -9,6 +9,9 @@ const ProductsPage = lazy(() => import("./pages/product/product"));
 const ProductDescription = lazy(()=>import("./pages/product-description/product-description"))
 const Cart = lazy(() => import("./pages/cart/cart"));
 const Checkout = lazy(() => import("./pages/checkout/checkout"));
+const Wishlist = lazy(() => import("./pages/wishlist/wishlist"));
+const Orders = lazy(() => import("./pages/orders/orders"));
+const Account = lazy(() => import("./pages/account/account"));
 
 const Router = () => {
   const routes = [
@@ -18,7 +21,10 @@ const Router = () => {
     { path: "/products/:category?", element: <ProductsPage /> },
     { path: "/productDetail/:id?", element: <ProductDescription /> },
     { path: "/cart", element: <Cart /> },
-    { path: "/checkout", element: <Checkout /> }
+    { path: "/checkout", element: <Checkout /> },
+    { path: "/wishlist", element: <Wishlist /> },
+    { path: "/orders", element: <Orders /> },
+    { path: "/account", element: <Account /> }
   ];
 
   return (
