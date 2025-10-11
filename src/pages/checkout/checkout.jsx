@@ -1,420 +1,491 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  MapPin, Plus, Edit3, Trash2, CreditCard, 
-  Wallet, Building2, Smartphone, Shield, ArrowLeft, CheckCircle2
+  ArrowLeft, MapPin, CreditCard, Smartphone, Wallet, 
+  Building2, Banknote, Truck, RotateCcw, Shield
 } from "lucide-react";
+
+/**
+ * Helper function to format checkout data for API
+ * Prepares data with null checks for order placement
+ */
+// eslint-disable-next-line no-unused-vars
+const prepareCheckoutData = (address, paymentMethod, cartSummary) => {
+  if (!address || !paymentMethod) return null;
+
+  return {
+    shippingAddress: {
+      fullName: address?.fullName || '',
+      phone: address?.phone || '',
+      addressLine1: address?.addressLine1 || '',
+      addressLine2: address?.addressLine2 || '',
+      city: address?.city || '',
+      state: address?.state || '',
+      pincode: address?.pincode || '',
+      country: address?.country || 'India',
+      landmark: address?.landmark || '',
+    },
+    paymentMethod: {
+      type: paymentMethod?.id || '',
+      provider: paymentMethod?.name || '',
+    },
+    orderSummary: {
+      subTotal: cartSummary?.subTotal || 0,
+      shipping: cartSummary?.shipping || 0,
+      tax: cartSummary?.tax || 0,
+      discount: cartSummary?.discount || 0,
+      grandTotal: cartSummary?.grandTotal || 0,
+      currency: cartSummary?.currency || 'INR',
+    }
+  };
+};
+
+/**
+ * Validate address form
+ */
+const validateAddress = (address) => {
+  const errors = {};
+
+  if (!address.fullName || address.fullName.trim() === '') {
+    errors.fullName = 'Full name is required';
+  }
+
+  if (!address.phone || address.phone.trim() === '') {
+    errors.phone = 'Phone number is required';
+  } else if (!/^[0-9]{10}$/.test(address.phone.replace(/\D/g, ''))) {
+    errors.phone = 'Please enter a valid 10-digit phone number';
+  }
+
+  if (!address.addressLine1 || address.addressLine1.trim() === '') {
+    errors.addressLine1 = 'Address is required';
+  }
+
+  if (!address.city || address.city.trim() === '') {
+    errors.city = 'City is required';
+  }
+
+  if (!address.state || address.state.trim() === '') {
+    errors.state = 'State is required';
+  }
+
+  if (!address.pincode || address.pincode.trim() === '') {
+    errors.pincode = 'Pincode is required';
+  } else if (!/^[0-9]{6}$/.test(address.pincode)) {
+    errors.pincode = 'Please enter a valid 6-digit pincode';
+  }
+
+  return errors;
+};
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
 
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      name: "Home",
-      fullName: "Priya Sharma",
-      address: "123, MG Road, Bangalore",
-      city: "Bangalore",
-      state: "Karnataka",
-      pincode: "560001",
-      phone: "+91 9876543210",
-    },
-    {
-      id: 2,
-      name: "Office",
-      fullName: "Priya Sharma",
-      address: "456, Sector 18, Noida",
-      city: "Noida",
-      state: "Uttar Pradesh",
-      pincode: "201301",
-      phone: "+91 9876543210",
-    },
-  ]);
-
-  const [selectedAddress, setSelectedAddress] = useState(null);
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [editingAddress, setEditingAddress] = useState(null);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  
-  const [addressForm, setAddressForm] = useState({
-    name: "",
-    fullName: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    phone: "",
+  // Address State
+  const [address, setAddress] = useState({
+    fullName: '',
+    phone: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    country: 'India',
+    landmark: '',
   });
+  const [addressErrors, setAddressErrors] = useState({});
 
+  // Payment State
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // Order State
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Payment Methods
   const paymentMethods = [
     { 
       id: "upi", 
       name: "UPI", 
       icon: Smartphone, 
-      description: "Google Pay, PhonePe, Paytm & more",
+      description: "Google Pay, PhonePe, Paytm",
       popular: true
     },
     { 
       id: "card", 
       name: "Credit / Debit Card", 
       icon: CreditCard, 
-      description: "Visa, Mastercard, Amex, Rupay"
+      description: "Visa, Mastercard, Amex, RuPay"
     },
     { 
       id: "netbanking", 
       name: "Net Banking", 
       icon: Building2, 
-      description: "All major banks supported"
+      description: "All major banks"
     },
     { 
       id: "wallet", 
-      name: "Wallets", 
+      name: "Digital Wallets", 
       icon: Wallet, 
       description: "Paytm, PhonePe, Amazon Pay"
     },
     { 
       id: "cod", 
       name: "Cash on Delivery", 
-      icon: Shield, 
+      icon: Banknote, 
       description: "Pay when you receive"
     },
   ];
 
-  // Order summary (would come from cart in real app)
-  const orderSummary = {
-    subtotal: 15488,
-    discount: 4501,
-    couponDiscount: 0,
-    deliveryCharges: 0,
-    total: 10987
+  // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
+  const TESTING_CART_SUMMARY = {
+    totalItems: 3,
+    distinctItems: 2,
+    subTotal: 4597.00,
+    shipping: 0.00,
+    tax: 0.00,
+    discount: 300.00,
+    grandTotal: 4297.00,
+    currency: "INR"
   };
+  const [cartSummary] = useState(TESTING_CART_SUMMARY);
+  // ============ END TESTING DUMMY DATA ============
 
-  const removeAddress = (id) => {
-    setAddresses(addresses.filter(addr => addr.id !== id));
-    if (selectedAddress === id) {
-      setSelectedAddress(null);
-    }
-  };
-
-  const editAddress = (id) => {
-    const addr = addresses.find(a => a.id === id);
-    if (addr) {
-      setAddressForm(addr);
-      setEditingAddress(id);
-      setShowAddressForm(true);
-    }
-  };
-
-  const handleSaveAddress = () => {
-    if (editingAddress) {
-      setAddresses(addresses.map(addr => 
-        addr.id === editingAddress ? { ...addressForm, id: editingAddress } : addr
-      ));
-    } else {
-      const newAddress = {
-        ...addressForm,
-        id: Date.now()
-      };
-      setAddresses([...addresses, newAddress]);
-    }
-    setShowAddressForm(false);
-    setEditingAddress(null);
-    setAddressForm({
-      name: "",
-      fullName: "",
-      address: "",
-      city: "",
-      state: "",
-      pincode: "",
-      phone: "",
-    });
-  };
-
-  const handlePlaceOrder = () => {
-    if (!selectedAddress) {
-      alert("Please select a delivery address");
-      return;
-    }
-    if (!selectedPayment) {
-      alert("Please select a payment method");
-      return;
-    }
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddress(prev => ({ ...prev, [name]: value }));
     
-    // Handle order placement
-    alert("Order placed successfully!");
-    navigate("/");
+    // Clear error for this field
+    if (addressErrors[name]) {
+      setAddressErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Place Order
+  const handlePlaceOrder = async () => {
+    // Validate address
+    const errors = validateAddress(address);
+    if (Object.keys(errors).length > 0) {
+      setAddressErrors(errors);
+      return;
+    }
+
+    if (!selectedPayment) {
+      alert('Please select a payment method');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
+    setTimeout(() => {
+      alert('Order placed successfully! (Test Mode)');
+      navigate('/orders');
+      setIsProcessing(false);
+    }, 1500);
+    return;
+    // ============ END TESTING MODE ============
+
+    // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
+    /*
+    try {
+      const checkoutData = prepareCheckoutData(address, selectedPayment, cartSummary);
+      
+      // Call your API to place order
+      const response = await placeOrder(checkoutData);
+      
+      if (response && response.success) {
+        // Navigate to order confirmation or orders page
+        navigate(`/orders/${response.data.orderId}`);
+      } else {
+        alert('Failed to place order. Please try again.');
+      }
+    } catch (error) {
+      console.error('Order placement failed:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+    */
+    // ============ END PRODUCTION API CODE ============
+  };
+
+  // Format price
+  const formatPrice = (price) => {
+    if (typeof price !== 'number') return '₹0';
+    return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-[#fdfbf9] to-[#faf6f2] pt-4 lg:pt-4 pb-12">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2 lg:py-4">
+    <div 
+      className="min-h-screen bg-premium-cream"
+      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+    >
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 md:py-12">
         
-        {/* Back Button & Page Title */}
-        <div className="mb-4 sm:mb-6">
+        {/* Back Button & Page Header */}
+        <div className="mb-8 md:mb-12">
           <button
             onClick={() => navigate("/cart")}
-            className="flex items-center gap-2 text-[#8b5f4b] hover:text-[#d9a79a] mb-3 transition-colors"
+            className="flex items-center gap-2 text-text-medium hover:text-black mb-4 transition-colors"
           >
-            <ArrowLeft size={20} />
-            <span className="font-medium">Back to Cart</span>
+            <ArrowLeft size={20} strokeWidth={1.5} />
+            <span className="text-sm uppercase tracking-wider">Back to Cart</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#8b5f4b] mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black uppercase tracking-wide mb-2 md:mb-3">
             Checkout
           </h1>
-          <p className="text-sm sm:text-base text-[#a2786b]">
+          <p className="text-text-medium text-sm md:text-base">
             Complete your order details
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           
           {/* Left Column - Address & Payment */}
           <div className="lg:col-span-2 space-y-6">
             
             {/* Delivery Address Section */}
-            <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-lg overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 sm:py-5 border-b border-[#e7bfb3]/30 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b] flex items-center gap-2">
-                    <MapPin size={20} className="text-[#d9a79a]" />
-                    Delivery Address
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#a2786b] mt-1">Select where to deliver your order</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowAddressForm(!showAddressForm);
-                    setEditingAddress(null);
-                    setAddressForm({
-                      name: "",
-                      fullName: "",
-                      address: "",
-                      city: "",
-                      state: "",
-                      pincode: "",
-                      phone: "",
-                    });
-                  }}
-                  className="bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] hover:shadow-lg text-[#8b5f4b] px-3 sm:px-4 py-2 rounded-lg font-semibold flex items-center gap-1.5 transition-all text-xs sm:text-sm shadow-sm"
-                >
-                  <Plus size={16} />
-                  <span className="hidden sm:inline">Add New</span>
-                  <span className="sm:hidden">Add</span>
-                </button>
+            <div className="bg-white border border-text-light/20">
+              <div className="px-4 md:px-6 py-4 md:py-5 border-b border-text-light/20">
+                <h2 className="text-base md:text-lg font-bold text-black uppercase tracking-wider flex items-center gap-2">
+                  <MapPin size={20} strokeWidth={1.5} />
+                  Delivery Address
+                </h2>
+                <p className="text-xs md:text-sm text-text-medium mt-1">
+                  Enter delivery details
+                </p>
               </div>
 
-              <div className="p-4 sm:p-6">
-                {/* Address List */}
-                {addresses.length > 0 ? (
-                  <div className="space-y-3 mb-4">
-                    {addresses.map((addr) => (
-                      <label
-                        key={addr.id}
-                        className={`block p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all shadow-sm ${
-                          selectedAddress === addr.id
-                            ? "border-[#d9a79a] bg-gradient-to-br from-[#fdf7f2] to-[#fef9f5] shadow-md"
-                            : "border-[#e7bfb3]/20 hover:border-[#e7bfb3] hover:shadow-md bg-white"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="address"
-                          checked={selectedAddress === addr.id}
-                          onChange={() => setSelectedAddress(addr.id)}
-                          className="hidden"
-                        />
-                        <div className="flex justify-between items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                              <span className="font-bold text-[#8b5f4b] text-sm sm:text-base">{addr.name}</span>
-                              {selectedAddress === addr.id && (
-                                <CheckCircle2 size={16} className="text-[#d9a79a] flex-shrink-0" />
-                              )}
-                            </div>
-                            <p className="text-xs sm:text-sm text-[#7a5650] font-medium">{addr.fullName}</p>
-                            <p className="text-xs sm:text-sm text-[#7a5650]">{addr.address}</p>
-                            <p className="text-xs sm:text-sm text-[#7a5650]">
-                              {addr.city}, {addr.state} - {addr.pincode}
-                            </p>
-                            <p className="text-xs sm:text-sm text-[#7a5650] mt-1">Phone: {addr.phone}</p>
-                          </div>
+              <div className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={address.fullName}
+                      onChange={handleInputChange}
+                      placeholder="Enter your full name"
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.fullName
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.fullName && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.fullName}</p>
+                    )}
+                  </div>
 
-                          {/* Edit & Remove Buttons */}
-                          <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                editAddress(addr.id);
-                              }}
-                              className="p-2 rounded-lg border border-[#e7bfb3]/30 hover:bg-[#faf6f2] hover:border-[#d9a79a]/30 transition-all"
-                              title="Edit Address"
-                            >
-                              <Edit3 size={14} className="text-[#d9a79a]" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                removeAddress(addr.id);
-                              }}
-                              className="p-2 rounded-lg border border-[#e7bfb3]/30 hover:bg-red-50 hover:border-red-300 transition-all"
-                              title="Remove Address"
-                            >
-                              <Trash2 size={14} className="text-red-400 hover:text-red-500" />
-                            </button>
-                          </div>
-                        </div>
-                      </label>
-                    ))}
+                  {/* Phone */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={address.phone}
+                      onChange={handleInputChange}
+                      placeholder="10-digit mobile number"
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.phone
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.phone && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.phone}</p>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <MapPin size={48} className="mx-auto text-[#e7bfb3] mb-3" />
-                    <p className="text-[#7a5650] mb-4">No saved addresses</p>
-                  </div>
-                )}
 
-                {/* Add/Edit Address Form */}
-                {showAddressForm && (
-                  <div className="mt-4 p-4 sm:p-5 bg-gradient-to-br from-[#faf6f2] to-[#fef9f5] rounded-xl border border-[#e7bfb3]/30 shadow-sm">
-                    <h3 className="font-bold text-[#8b5f4b] mb-3 sm:mb-4 text-sm sm:text-base">
-                      {editingAddress ? "Edit Address" : "Add New Address"}
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <input
-                        type="text"
-                        placeholder="Address Label (e.g., Home, Office)"
-                        value={addressForm.name}
-                        onChange={(e) => setAddressForm({...addressForm, name: e.target.value})}
-                        className="sm:col-span-2 px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Full Name"
-                        value={addressForm.fullName}
-                        onChange={(e) => setAddressForm({...addressForm, fullName: e.target.value})}
-                        className="sm:col-span-2 px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={addressForm.phone}
-                        onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
-                        className="sm:col-span-2 px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Address (House No, Building, Street)"
-                        value={addressForm.address}
-                        onChange={(e) => setAddressForm({...addressForm, address: e.target.value})}
-                        className="sm:col-span-2 px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="City"
-                        value={addressForm.city}
-                        onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
-                        className="px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="State"
-                        value={addressForm.state}
-                        onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
-                        className="px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Pincode"
-                        value={addressForm.pincode}
-                        onChange={(e) => setAddressForm({...addressForm, pincode: e.target.value})}
-                        className="sm:col-span-2 px-4 py-2.5 sm:py-3 rounded-lg border border-[#e7bfb3]/30 focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none text-sm bg-white shadow-sm transition-all"
-                      />
-                      <div className="sm:col-span-2 flex gap-3 pt-2">
-                        <button 
-                          onClick={handleSaveAddress}
-                          className="flex-1 bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] hover:shadow-lg text-[#8b5f4b] font-bold py-3 rounded-lg transition-all text-sm"
-                        >
-                          {editingAddress ? "Update Address" : "Save Address"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAddressForm(false);
-                            setEditingAddress(null);
-                            setAddressForm({
-                              name: "",
-                              fullName: "",
-                              address: "",
-                              city: "",
-                              state: "",
-                              pincode: "",
-                              phone: "",
-                            });
-                          }}
-                          className="px-6 bg-white border-2 border-[#e7bfb3]/30 hover:bg-[#faf6f2] hover:border-[#e7bfb3] text-[#7a5650] font-semibold py-3 rounded-lg transition-all text-sm"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
+                  {/* Address Line 1 */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Address Line 1 *
+                    </label>
+                    <input
+                      type="text"
+                      name="addressLine1"
+                      value={address.addressLine1}
+                      onChange={handleInputChange}
+                      placeholder="House No., Building Name, Street"
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.addressLine1
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.addressLine1 && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.addressLine1}</p>
+                    )}
                   </div>
-                )}
+
+                  {/* Address Line 2 */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Address Line 2 (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="addressLine2"
+                      value={address.addressLine2}
+                      onChange={handleInputChange}
+                      placeholder="Area, Colony, Sector"
+                      className="w-full px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm transition-colors"
+                    />
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      City *
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={address.city}
+                      onChange={handleInputChange}
+                      placeholder="City"
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.city
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.city && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.city}</p>
+                    )}
+                  </div>
+
+                  {/* State */}
+                  <div>
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      State *
+                    </label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={address.state}
+                      onChange={handleInputChange}
+                      placeholder="State"
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.state
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.state && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.state}</p>
+                    )}
+                  </div>
+
+                  {/* Pincode */}
+                  <div>
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Pincode *
+                    </label>
+                    <input
+                      type="text"
+                      name="pincode"
+                      value={address.pincode}
+                      onChange={handleInputChange}
+                      placeholder="6-digit PIN"
+                      maxLength={6}
+                      className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                        addressErrors.pincode
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-text-light/30 focus:border-black'
+                      }`}
+                    />
+                    {addressErrors.pincode && (
+                      <p className="text-xs text-red-500 mt-1">{addressErrors.pincode}</p>
+                    )}
+                  </div>
+
+                  {/* Landmark */}
+                  <div>
+                    <label className="block text-xs font-semibold text-black uppercase tracking-wider mb-2">
+                      Landmark (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="landmark"
+                      value={address.landmark}
+                      onChange={handleInputChange}
+                      placeholder="Nearby landmark"
+                      className="w-full px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Payment Method Section */}
-            <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-lg overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 sm:py-5 border-b border-[#e7bfb3]/30">
-                <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b] flex items-center gap-2">
-                  <CreditCard size={20} className="text-[#d9a79a]" />
+            <div className="bg-white border border-text-light/20">
+              <div className="px-4 md:px-6 py-4 md:py-5 border-b border-text-light/20">
+                <h2 className="text-base md:text-lg font-bold text-black uppercase tracking-wider flex items-center gap-2">
+                  <CreditCard size={20} strokeWidth={1.5} />
                   Payment Method
                 </h2>
-                <p className="text-xs sm:text-sm text-[#a2786b] mt-1">Choose how you'd like to pay</p>
+                <p className="text-xs md:text-sm text-text-medium mt-1">
+                  Choose your payment option
+                </p>
               </div>
 
-              <div className="p-4 sm:p-6">
+              <div className="p-4 md:p-6">
                 <div className="space-y-3">
                   {paymentMethods.map((method) => {
                     const IconComponent = method.icon;
                     return (
                       <label
                         key={method.id}
-                        className={`block p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all shadow-sm ${
-                          selectedPayment === method.id
-                            ? "border-[#d9a79a] bg-gradient-to-br from-[#fdf7f2] to-[#fef9f5] shadow-md"
-                            : "border-[#e7bfb3]/20 hover:border-[#e7bfb3] hover:shadow-md bg-white"
+                        className={`block p-4 border-2 cursor-pointer transition-all ${
+                          selectedPayment?.id === method.id
+                            ? "border-black bg-premium-beige"
+                            : "border-text-light/20 hover:border-text-dark bg-white"
                         }`}
                       >
                         <input
                           type="radio"
                           name="payment"
-                          checked={selectedPayment === method.id}
-                          onChange={() => setSelectedPayment(method.id)}
+                          checked={selectedPayment?.id === method.id}
+                          onChange={() => setSelectedPayment(method)}
                           className="hidden"
                         />
                         <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-lg ${
-                            selectedPayment === method.id 
-                              ? "bg-[#d9a79a]/10 text-[#d9a79a]" 
-                              : "bg-[#faf6f2] text-[#8b5f4b]"
+                          <div className={`p-3 ${
+                            selectedPayment?.id === method.id 
+                              ? "bg-black text-white" 
+                              : "bg-premium-beige text-black"
                           }`}>
-                            <IconComponent size={24} />
+                            <IconComponent size={22} strokeWidth={1.5} />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-[#8b5f4b] text-sm sm:text-base">{method.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-black text-sm md:text-base">
+                                {method.name}
+                              </span>
                               {method.popular && (
-                                <span className="text-xs bg-[#d9a79a] text-white px-2 py-0.5 rounded-full font-semibold">
+                                <span className="text-xs bg-black text-white px-2 py-0.5 uppercase tracking-wider">
                                   Popular
                                 </span>
                               )}
-                              {selectedPayment === method.id && (
-                                <CheckCircle2 size={16} className="text-[#d9a79a] ml-auto" />
-                              )}
                             </div>
-                            <p className="text-xs sm:text-sm text-[#7a5650] mt-0.5">{method.description}</p>
+                            <p className="text-xs md:text-sm text-text-medium mt-1">
+                              {method.description}
+                            </p>
                           </div>
+                          {selectedPayment?.id === method.id && (
+                            <div className="flex-shrink-0">
+                              <div className="w-5 h-5 border-2 border-black bg-black flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white"></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </label>
                     );
@@ -422,76 +493,112 @@ const CheckoutPage = () => {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-lg overflow-hidden lg:sticky lg:top-24">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 border-b border-[#e7bfb3]/30">
-                <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b]">Order Summary</h2>
-                <p className="text-xs sm:text-sm text-[#a2786b] mt-1">Review your order</p>
+            <div className="bg-white border border-text-light/20 lg:sticky lg:top-24">
+              <div className="p-4 md:p-6 border-b border-text-light/20">
+                <h2 className="text-base md:text-lg font-bold text-black uppercase tracking-wider mb-1">
+                  Order Summary
+                </h2>
+                <p className="text-xs md:text-sm text-text-medium">
+                  {cartSummary?.distinctItems || 0} {(cartSummary?.distinctItems || 0) === 1 ? 'item' : 'items'}
+                </p>
               </div>
 
-              <div className="p-4 sm:p-6">
-                <div className="space-y-3 pb-4 border-b border-[#e7bfb3]/20">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[#7a5650]">Subtotal</span>
-                    <span className="text-[#8b5f4b] font-semibold">₹{orderSummary.subtotal.toLocaleString()}</span>
+              <div className="p-4 md:p-6">
+                {/* Price Breakdown */}
+                <div className="space-y-3 pb-4 border-b border-text-light/10">
+                  <div className="flex justify-between text-xs md:text-sm">
+                    <span className="text-text-medium">Subtotal</span>
+                    <span className="text-black font-semibold">
+                      {formatPrice(cartSummary?.subTotal || 0)}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[#7a5650]">Discount</span>
-                    <span className="text-[#d9a79a] font-bold">-₹{orderSummary.discount.toLocaleString()}</span>
-                  </div>
-                  {orderSummary.couponDiscount > 0 && (
-                    <div className="flex justify-between text-sm bg-gradient-to-r from-[#fdf7f2] to-transparent px-2 py-1.5 rounded-lg -mx-2">
-                      <span className="text-[#7a5650]">Coupon Discount</span>
-                      <span className="text-[#d9a79a] font-bold">-₹{orderSummary.couponDiscount}</span>
+
+                  {(cartSummary?.discount || 0) > 0 && (
+                    <div className="flex justify-between text-xs md:text-sm">
+                      <span className="text-text-medium">Savings</span>
+                      <span className="text-luxury-rose-gold font-semibold">
+                        -{formatPrice(cartSummary.discount)}
+                      </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[#7a5650]">Delivery Charges</span>
-                    {orderSummary.deliveryCharges === 0 ? (
-                      <span className="text-[#d9a79a] font-bold">FREE</span>
+
+                  <div className="flex justify-between text-xs md:text-sm">
+                    <span className="text-text-medium">Shipping</span>
+                    {(cartSummary?.shipping || 0) === 0 ? (
+                      <span className="text-black font-semibold">FREE</span>
                     ) : (
-                      <span className="text-[#8b5f4b] font-semibold">₹{orderSummary.deliveryCharges}</span>
+                      <span className="text-black font-semibold">
+                        {formatPrice(cartSummary.shipping)}
+                      </span>
                     )}
                   </div>
+
+                  {(cartSummary?.tax || 0) > 0 && (
+                    <div className="flex justify-between text-xs md:text-sm">
+                      <span className="text-text-medium">Tax</span>
+                      <span className="text-black font-semibold">
+                        {formatPrice(cartSummary.tax)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex justify-between pt-4 pb-5 bg-gradient-to-br from-[#fdf9f6] to-transparent -mx-6 px-6 mb-6">
-                  <span className="text-lg font-bold text-[#8b5f4b]">Total Amount</span>
-                  <span className="text-lg font-bold text-[#8b5f4b]">₹{orderSummary.total.toLocaleString()}</span>
+                {/* Total */}
+                <div className="flex justify-between pt-4 pb-4 md:pb-6 border-b border-text-light/20">
+                  <span className="text-base md:text-lg font-bold text-black uppercase tracking-wider">
+                    Total
+                  </span>
+                  <span className="text-xl md:text-2xl font-bold text-black">
+                    {formatPrice(cartSummary?.grandTotal || 0)}
+                  </span>
+                </div>
+
+                {/* Shipping & Return Info */}
+                <div className="space-y-3 py-4 border-b border-text-light/20">
+                  <div className="flex items-start gap-3">
+                    <Truck size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm font-medium text-black">Free Shipping</p>
+                      <p className="text-xs text-text-medium">Delivery in 3-5 business days</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <RotateCcw size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
+                      <p className="text-xs text-text-medium">30-day return policy</p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Place Order Button */}
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={!selectedAddress || !selectedPayment}
-                  className={`w-full py-4 rounded-xl font-bold text-white transition-all text-base shadow-lg flex items-center justify-center gap-2 ${
-                    selectedAddress && selectedPayment
-                      ? "bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] hover:shadow-xl hover:scale-[1.02] cursor-pointer"
-                      : "bg-[#e7bfb3]/50 cursor-not-allowed"
-                  }`}
+                  disabled={isProcessing}
+                  className="w-full bg-black text-white py-3 md:py-4 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs md:text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed mt-6"
                 >
-                  <Shield size={20} />
-                  Place Order
+                  {isProcessing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Shield size={18} strokeWidth={1.5} />
+                      <span>Place Order</span>
+                    </>
+                  )}
                 </button>
 
-                {(!selectedAddress || !selectedPayment) && (
-                  <p className="text-xs text-[#a2786b] text-center mt-3">
-                    {!selectedAddress && "Please select a delivery address"}
-                    {!selectedAddress && !selectedPayment && " and "}
-                    {!selectedPayment && "Please select a payment method"}
-                  </p>
-                )}
-
                 {/* Security Badge */}
-                <div className="mt-6 pt-6 border-t border-[#e7bfb3]/20">
-                  <div className="flex items-center gap-2 text-xs text-[#7a5650] justify-center">
-                    <Shield size={16} className="text-[#d9a79a]" />
-                    <span>100% Secure & Safe Checkout</span>
+                <div className="mt-6 pt-4 border-t border-text-light/10">
+                  <div className="flex items-center gap-2 text-xs text-text-medium justify-center">
+                    <Shield size={14} strokeWidth={1.5} />
+                    <span>100% Secure Payment</span>
                   </div>
                 </div>
               </div>
@@ -505,4 +612,3 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
-

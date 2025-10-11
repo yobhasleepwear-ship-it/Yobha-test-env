@@ -1,597 +1,799 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   ShoppingBag,
   Heart,
-  Share2,
-  Star,
   ChevronLeft,
   ChevronRight,
-  Grid3x3,
-  Image as ImageIcon,
   Minus,
   Plus,
+  Star,
+  Truck,
+  RotateCcw,
 } from "lucide-react";
-import { getFilteredProducts } from "../../service/productAPI";
+
+/**
+ * Helper function to safely format product data from API
+ * Handles null checks and provides fallbacks
+ */
+// eslint-disable-next-line no-unused-vars
+const formatProductData = (apiData) => {
+  if (!apiData) return null;
+
+  const data = apiData.data || apiData;
+
+  return {
+    id: data?.id || data?.productId || '',
+    productId: data?.productId || data?.id || '',
+    name: data?.name || 'Untitled Product',
+    slug: data?.slug || '',
+    description: data?.description || '',
+    
+    // Images with null checks
+    images: Array.isArray(data?.images) && data.images.length > 0
+      ? data.images.map(img => ({
+          url: img?.url || 'https://via.placeholder.com/800x800?text=No+Image',
+          thumbnailUrl: img?.thumbnailUrl || img?.url || 'https://via.placeholder.com/150x150?text=No+Image',
+          alt: img?.alt || 'Product image',
+        }))
+      : [{
+          url: 'https://via.placeholder.com/800x800?text=No+Image',
+          thumbnailUrl: 'https://via.placeholder.com/150x150?text=No+Image',
+          alt: 'Product image',
+        }],
+
+    // Pricing with null checks
+    price: data?.prices?.IN || data?.prices?.default || 0,
+    compareAtPrice: data?.compareAtPrice || null,
+    
+    // Variants and inventory
+    variants: Array.isArray(data?.variants) ? data.variants.filter(v => v?.isActive !== false) : [],
+    inventory: Array.isArray(data?.inventory) ? data.inventory : [],
+    
+    // Product attributes
+    colors: Array.isArray(data?.colors) && data.colors.length > 0 ? data.colors : [],
+    sizes: Array.isArray(data?.sizeOfProduct) && data.sizeOfProduct.length > 0 
+      ? data.sizeOfProduct 
+      : [],
+    fabricType: Array.isArray(data?.fabricType) ? data.fabricType : [],
+    
+    // Categories
+    productMainCategory: data?.productMainCategory || '',
+    productCategory: data?.productCategory || '',
+    productSubCategory: data?.productSubCategory || '',
+    
+    // Ratings and reviews
+    averageRating: typeof data?.averageRating === 'number' ? data.averageRating : 0,
+    reviewCount: typeof data?.reviewCount === 'number' ? data.reviewCount : 0,
+    reviews: Array.isArray(data?.reviews) 
+      ? data.reviews.filter(r => r?.approved !== false) 
+      : [],
+    
+    // Additional info
+    isFeatured: data?.isFeatured === true,
+    salesCount: data?.salesCount || 0,
+    isActive: data?.isActive !== false,
+    
+    // Specifications
+    specifications: data?.specifications || {},
+    keyFeatures: Array.isArray(data?.keyFeatures) ? data.keyFeatures : [],
+    careInstructions: Array.isArray(data?.careInstructions) ? data.careInstructions : [],
+    
+    // Metadata
+    createdAt: data?.createdAt || null,
+    updatedAt: data?.updatedAt || null,
+  };
+};
+
+/**
+ * Get available quantity for a specific color/size combination
+ */
+const getAvailableQuantity = (inventory, color, size) => {
+  if (!Array.isArray(inventory) || inventory.length === 0) return 0;
+  
+  const item = inventory.find(
+    inv => inv?.color === color && inv?.size === size && inv?.quantity > 0
+  );
+  
+  return item ? (item.quantity - (item.reserved || 0)) : 0;
+};
+
+/**
+ * Format price to INR
+ */
+const formatPrice = (price) => {
+  if (typeof price !== 'number') return '₹0';
+  return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
 
 const ProductDetailPage = () => {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [imageViewMode, setImageViewMode] = useState("single");
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [selectedSize, setSelectedSize] = useState("S");
-  const [quantity, setQuantity] = useState(0);
+  const { productId } = useParams();
+  
+  // UI State
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  
+  // API State
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [product ,setProducts] = useState({
-    _id: { $oid: "68eb00000000000000000001" },
-    ProductId: "PID10004",
-    Name: "Luxury Cotton Nightshirt",
-    Slug: "luxury-cotton-nightshirt",
-    Description:
-      "Premium cotton nightshirt offering ultimate comfort and breathability for a perfect night's sleep.",
-    Price: { $numberDecimal: "1499.00" },
-    CompareAtPrice: { $numberDecimal: "1799.00" },
-    DiscountPercent: 17,
-    Stock: 60,
-    Variants: [
+  // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
+  const TESTING_DUMMY_PRODUCT = {
+    id: "test-product-001",
+    productId: "PID10001",
+    name: "Luxe Cotton Nightshirt",
+    slug: "luxe-cotton-nightshirt",
+    description: "Lightweight, breathable cotton nightshirt with mother-of-pearl buttons. Designed for ultimate comfort and style.",
+    images: [
       {
-        _id: "v1",
-        Sku: "PID10004-NAV-S",
-        Color: "navy",
-        Size: "S",
-        Quantity: 10,
-        PriceOverride: { $numberDecimal: "1499.00" },
-        Images: null,
-        IsActive: true,
+        url: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=150",
+        alt: "Front view",
       },
       {
-        _id: "v2",
-        Sku: "PID10004-NAV-M",
-        Color: "navy",
-        Size: "M",
-        Quantity: 15,
-        PriceOverride: { $numberDecimal: "1499.00" },
-        Images: null,
-        IsActive: true,
+        url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=150",
+        alt: "Side view",
+      },
+      {
+        url: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800",
+        thumbnailUrl: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=150",
+        alt: "Back view",
       },
     ],
-    Images: [
+    price: 1499.00,
+    compareAtPrice: 1799.00,
+    variants: [
       {
-        Url: "https://i.etsystatic.com/19870219/r/il/9939a4/3877887290/il_fullxfull.3877887290_o82x.jpg",
-        ThumbnailUrl:
-          "https://i.etsystatic.com/19870219/r/il/9939a4/3877887290/il_fullxfull.3877887290_o82x.jpg",
-        Alt: "Luxury Cotton Nightshirt front view",
-        UploadedByUserId: null,
-        UploadedAt: { $date: "2025-10-11T15:00:00.000Z" },
+        id: "variant-1",
+        sku: "PID10001-NAV-S",
+        color: "navy",
+        size: "S",
+        quantity: 10,
+        isActive: true
       },
       {
-        Url: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-        ThumbnailUrl:
-          "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-        Alt: "Luxury Cotton Nightshirt back view",
-        UploadedByUserId: null,
-        UploadedAt: { $date: "2025-10-11T15:00:00.000Z" },
+        id: "variant-2",
+        sku: "PID10001-NAV-M",
+        color: "navy",
+        size: "M",
+        quantity: 15,
+        isActive: true
       },
       {
-        Url: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
-        ThumbnailUrl:
-          "https://dummyimage.com/150x200/cccccc/000000&text=Side+Thumb",
-        Alt: "Luxury Cotton Nightshirt side view",
-        UploadedByUserId: null,
-        UploadedAt: { $date: "2025-10-11T15:00:00.000Z" },
+        id: "variant-3",
+        sku: "PID10001-ROSE-S",
+        color: "rose",
+        size: "S",
+        quantity: 8,
+        isActive: true
       },
       {
-        Url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
-        ThumbnailUrl:
-          "https://dummyimage.com/150x200/cccccc/000000&text=Fabric+Thumb",
-        Alt: "Luxury Cotton Nightshirt fabric closeup",
-        UploadedByUserId: null,
-        UploadedAt: { $date: "2025-10-11T15:00:00.000Z" },
-      },
-    ],
-    VariantSkus: ["PID10004-NAV-S", "PID10004-NAV-M"],
-    ProductVariationIds: [
-      {
-        _id: "pv1",
-        Name: "Luxury Cotton Nightshirt - Navy Small",
-        Image: "https://dummyimage.com/600x800/000080/ffffff&text=Navy+S",
-      },
-      {
-        _id: "pv2",
-        Name: "Luxury Cotton Nightshirt - Navy Medium",
-        Image: "https://dummyimage.com/600x800/000080/ffffff&text=Navy+M",
-      },
-      {
-        _id: "pv3",
-        Name: "Luxury Cotton Nightshirt - Black Large",
-        Image: "https://dummyimage.com/600x800/000000/ffffff&text=Black+L",
-      },
-      {
-        _id: "pv4",
-        Name: "Luxury Cotton Nightshirt - White XL",
-        Image: "https://dummyimage.com/600x800/ffffff/000000&text=White+XL",
-      },
-      {
-        _id: "pv5",
-        Name: "Luxury Cotton Nightshirt - Black Medium",
-        Image: "https://dummyimage.com/600x800/000000/ffffff&text=Black+M",
+        id: "variant-4",
+        sku: "PID10001-ROSE-M",
+        color: "rose",
+        size: "M",
+        quantity: 12,
+        isActive: true
       },
     ],
-    AverageRating: 4.5,
-    ReviewCount: 2,
-    Reviews: [
+    inventory: [
       {
-        _id: "r1",
-        ReviewerName: "Ananya Sharma",
-        Rating: 5,
-        Comment:
-          "Super soft and very comfortable! Perfect for sleep.",
-        CreatedAt: { $date: "2025-10-10T10:00:00.000Z" },
+        id: "inv1",
+        variantId: "variant-1",
+        sku: "PID10001-NAV-S",
+        size: "S",
+        color: "navy",
+        quantity: 10,
+        reserved: 0,
       },
       {
-        _id: "r2",
-        ReviewerName: "Rohit Verma",
-        Rating: 4,
-        Comment:
-          "Nice quality, but wish the sleeve was slightly shorter.",
-        CreatedAt: { $date: "2025-10-09T12:30:00.000Z" },
+        id: "inv2",
+        variantId: "variant-2",
+        sku: "PID10001-NAV-M",
+        size: "M",
+        color: "navy",
+        quantity: 15,
+        reserved: 2,
       },
-    ],
-    IsFeatured: true,
-    SalesCount: 0,
-    IsActive: true,
-    IsDeleted: false,
-    CreatedAt: { $date: "2025-10-11T15:00:00.000Z" },
-    UpdatedAt: { $date: "2025-10-11T15:00:00.000Z" },
-    ProductMainCategory: "sleepwear",
-    ProductCategory: "nightwear",
-    ProductSubCategory: "nightshirts",
-    SizeOfProduct: ["S", "M", "L", "XL"],
-    AvailableColors: ["navy", "black", "white"],
-    FabricType: ["cotton"],
-    PriceList: [
       {
-        _id: "pl1",
-        Size: "S",
-        PriceAmount: { $numberDecimal: "1499.00" },
-        Currency: "INR",
-        Quantity: 1,
-        Country: "IN",
+        id: "inv3",
+        variantId: "variant-3",
+        sku: "PID10001-ROSE-S",
+        size: "S",
+        color: "rose",
+        quantity: 8,
+        reserved: 1,
+      },
+      {
+        id: "inv4",
+        variantId: "variant-4",
+        sku: "PID10001-ROSE-M",
+        size: "M",
+        color: "rose",
+        quantity: 12,
+        reserved: 0,
       },
     ],
-    CountryPrices: [
+    colors: ["navy", "rose"],
+    sizes: ["S", "M", "L", "XL"],
+    fabricType: ["100% Cotton"],
+    productMainCategory: "sleepwear",
+    productCategory: "women",
+    productSubCategory: "nightshirts",
+    averageRating: 4.5,
+    reviewCount: 12,
+    reviews: [
       {
-        _id: "cp1",
-        Country: "IN",
-        PriceAmount: { $numberDecimal: "1499.00" },
-        Currency: "INR",
+        id: "r1",
+        userId: "user-1",
+        rating: 5,
+        comment: "Great nightshirt! Very comfortable and the fabric quality is excellent. Highly recommend!",
+        createdAt: "2025-09-20T10:00:00Z",
+        approved: true
+      },
+      {
+        id: "r2",
+        userId: "user-2",
+        rating: 4,
+        comment: "Nice product, good fit. Would have given 5 stars if the sleeves were slightly longer.",
+        createdAt: "2025-09-15T14:30:00Z",
+        approved: true
       },
     ],
-    Specifications: {
-      Material: "100% cotton",
+    isFeatured: false,
+    salesCount: 120,
+    isActive: true,
+    specifications: {
+      Material: "100% Cotton",
       SleeveType: "Full sleeve",
-      Care: "Machine wash cold",
+      Care: "Machine wash cold"
     },
-    KeyFeatures: [
-      "100% cotton",
-      "Soft and breathable",
+    keyFeatures: [
+      "100% breathable cotton",
+      "Mother-of-pearl buttons",
+      "Soft and comfortable",
       "Durable stitching",
-      "Machine washable",
+      "Machine washable"
     ],
-    CareInstructions: [
-      "Cold wash",
+    careInstructions: [
+      "Machine wash cold",
       "Do not bleach",
       "Tumble dry low",
-      "Iron on medium heat",
+      "Iron on medium heat"
     ],
-    Inventory: [
-      {
-        _id: "inv1",
-        VariantId: null,
-        Sku: "PID10004-NAV-S",
-        Size: "S",
-        Color: "navy",
-        Quantity: 10,
-        Reserved: 0,
-        WarehouseId: "WH1",
-        UpdatedAt: { $date: "2025-10-11T15:00:00.000Z" },
-      },
-      {
-        _id: "inv2",
-        VariantId: null,
-        Sku: "PID10004-NAV-M",
-        Size: "M",
-        Color: "navy",
-        Quantity: 15,
-        Reserved: 0,
-        WarehouseId: "WH1",
-        UpdatedAt: { $date: "2025-10-11T15:00:00.000Z" },
-      },
-    ],
-    FreeDelivery: true,
-    ReturnPolicy: "30-day returns",
-    ShippingInfo: {
-      FreeShipping: true,
-      EstimatedDelivery: "3-5 business days",
-      ShippingPrice: { $numberDecimal: "0.00" },
-      CashOnDelivery: true,
-    },
-    MetaTitle: "Luxury Cotton Nightshirt - Yobha",
-    MetaDescription:
-      "Premium cotton nightshirt for ultimate comfort and style.",
-    Views: { $numberLong: "0" },
-    UnitsSold: { $numberLong: "0" },
-  });
+    createdAt: "2025-09-01T12:00:00Z",
+    updatedAt: "2025-10-01T08:00:00Z",
+  };
+  // ============ END TESTING DUMMY DATA ============
+  
+  // Fetch product data
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    const fetchProductDetail = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
+      // Using dummy data for testing
+      setTimeout(() => {
+        setProduct(TESTING_DUMMY_PRODUCT);
+        setIsLoading(false);
+      }, 500); // Simulate loading delay
+      return;
+      // ============ END TESTING MODE ============
+      
+      // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
+      /* 
+      try {
+        // TODO: Replace with your actual API call
+        // const response = await getProductDetail(productId);
+        // const formattedProduct = formatProductData(response);
+        // setProduct(formattedProduct);
+        
+        setProduct(null);
+        
+      } catch (err) {
+        console.error('Failed to fetch product:', err);
+        setError('Failed to load product details');
+      } finally {
+        setIsLoading(false);
+      }
+      */
+      // ============ END PRODUCTION API CODE ============
+    };
 
-  // api call 
-  const payload = {
-    q: "night",
-    category: "sleepwear",
-    minPrice: 500,
-    maxPrice: 2000,
-    page: 1,
-    pageSize: 10,
-    sort: "latest",
-    country: "IN"
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const products = await getFilteredProducts(payload);
-      console.log("Filtered Products:", products);
-    } catch (err) {
-      console.error("Error fetching products:", err);
+    if (productId) {
+      fetchProductDetail();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+  
+  // Set default selections when product loads
+  useEffect(() => {
+    if (product) {
+      if (product.colors.length > 0 && !selectedColor) {
+        setSelectedColor(product.colors[0]);
+      }
+      if (product.sizes.length > 0 && !selectedSize) {
+        setSelectedSize(product.sizes[0]);
+      }
+    }
+  }, [product, selectedColor, selectedSize]);
+  
+  // Get available quantity for current selection
+  const availableQuantity = product 
+    ? getAvailableQuantity(product.inventory, selectedColor, selectedSize) 
+    : 0;
+  
+  // Image navigation
   const handlePrevImage = () => {
-    setSelectedImage((prev) =>
-      prev === 0 ? product.Images.length - 1 : prev - 1
+    if (!product || product.images.length === 0) return;
+    setSelectedImageIndex((prev) =>
+      prev === 0 ? product.images.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
-    setSelectedImage((prev) =>
-      prev === product.Images.length - 1 ? 0 : prev + 1
+    if (!product || product.images.length === 0) return;
+    setSelectedImageIndex((prev) =>
+      prev === product.images.length - 1 ? 0 : prev + 1
     );
   };
 
-  const handleIncrement = () => setQuantity((prev) => prev + 1);
-  const handleDecrement = () =>
-    setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
-  const handleAddToCart = () => {
-    console.log("Add to cart:", quantity, selectedColor, selectedSize);
+  // Quantity controls
+  const handleIncrement = () => {
+    if (quantity < availableQuantity) {
+      setQuantity(prev => prev + 1);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdf7f2] via-[#faf6f2] to-[#f8ede3] ">
-      <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12 ">
-          <div className="space-y-4">
-            <div className="flex justify-end gap-2 mb-3">
-              <button
-                onClick={() => setImageViewMode("single")}
-                className={`p-2 rounded-lg transition-all ${imageViewMode === "single"
-                    ? "bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white"
-                    : "bg-white text-[#8b5f4b] border border-[#e7bfb3]/30"
-                  }`}
-              >
-                <ImageIcon size={18} />
-              </button>
-              <button
-                onClick={() => setImageViewMode("grid")}
-                className={`p-2 rounded-lg transition-all ${imageViewMode === "grid"
-                    ? "bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white"
-                    : "bg-white text-[#8b5f4b] border border-[#e7bfb3]/30"
-                  }`}
-              >
-                <Grid3x3 size={18} />
-              </button>
-            </div>
+  const handleDecrement = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
+  };
 
-            {imageViewMode === "single" ? (
-              <>
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[#e7bfb3]/30 bg-white aspect-square">
-                  <img
-                    src={product.Images[selectedImage].Url}
-                    alt={product.Images[selectedImage].Alt}
-                    className="w-full h-full object-cover"
-                  />
+  // Add to cart
+  const handleAddToCart = () => {
+    if (!selectedColor || !selectedSize || availableQuantity === 0) {
+      alert('Please select color and size');
+      return;
+    }
+    
+    console.log('Add to cart:', {
+      productId: product.productId,
+      color: selectedColor,
+      size: selectedSize,
+      quantity,
+    });
+    // TODO: Implement actual add to cart API call
+  };
+
+  // Wishlist toggle
+  const handleWishlistToggle = () => {
+    setIsWishlisted(!isWishlisted);
+    // TODO: Implement actual wishlist API call
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div 
+        className="min-h-screen bg-premium-cream flex items-center justify-center"
+        style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-premium-beige border-t-black rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-medium text-sm uppercase tracking-wider">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div 
+        className="min-h-screen bg-premium-cream flex items-center justify-center"
+        style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+      >
+        <div className="text-center max-w-md">
+          <h2 className="text-2xl font-bold text-black mb-4 uppercase tracking-wider">
+            Product Not Found
+          </h2>
+          <p className="text-text-medium mb-8">
+            {error || 'The product you are looking for does not exist or is no longer available.'}
+          </p>
+          <a
+            href="/products"
+            className="inline-block bg-black text-white px-8 py-3 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm"
+          >
+            Browse Products
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const currentImage = product.images[selectedImageIndex] || product.images[0];
+  const hasMultipleImages = product.images.length > 1;
+
+  return (
+    <div 
+      className="min-h-screen bg-premium-cream"
+      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+    >
+      <div className="max-w-[1600px] mx-auto px-6 md:px-8 lg:px-12 py-12">
+        
+        {/* Breadcrumb */}
+        <div className="mb-8 text-sm text-text-medium">
+          <a href="/" className="hover:text-black transition-colors">Home</a>
+          <span className="mx-2">/</span>
+          <a href="/products" className="hover:text-black transition-colors">Products</a>
+          <span className="mx-2">/</span>
+          <span className="text-black">{product.name}</span>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          
+          {/* Left Column - Images */}
+          <div className="space-y-4">
+            {/* Main Image */}
+            <div className="relative aspect-square bg-white overflow-hidden group">
+              <img
+                src={currentImage.url}
+                alt={currentImage.alt}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/800x800?text=Image+Not+Found';
+                }}
+              />
+              
+              {/* Navigation Arrows */}
+              {hasMultipleImages && (
+                <>
                   <button
                     onClick={handlePrevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-all"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 opacity-0 group-hover:opacity-100 hover:bg-white transition-all"
+                    aria-label="Previous image"
                   >
-                    <ChevronLeft size={24} className="text-[#8b5f4b]" />
+                    <ChevronLeft size={24} className="text-black" strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={handleNextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-all"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-2 opacity-0 group-hover:opacity-100 hover:bg-white transition-all"
+                    aria-label="Next image"
                   >
-                    <ChevronRight size={24} className="text-[#8b5f4b]" />
+                    <ChevronRight size={24} className="text-black" strokeWidth={1.5} />
                   </button>
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {product.Images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${index === selectedImage ? "bg-[#d9a79a] w-6" : "bg-white/60"
-                          }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                </>
+              )}
 
-                <div className="grid grid-cols-4 gap-3">
-                  {product.Images.map((image, index) => (
+              {/* Image Indicators */}
+              {hasMultipleImages && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {product.images.map((_, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`rounded-lg overflow-hidden border-2 transition-all ${index === selectedImage
-                          ? "border-[#d9a79a] shadow-md"
-                          : "border-[#e7bfb3]/30 hover:border-[#e7bfb3]"
-                        }`}
-                    >
-                      <img
-                        src={image.Url}
-                        alt={image.Alt}
-                        className="w-full h-20 object-cover"
-                      />
-                    </button>
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`h-1 rounded-full transition-all ${
+                        index === selectedImageIndex 
+                          ? 'w-6 bg-black' 
+                          : 'w-1 bg-black/30'
+                      }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
                   ))}
                 </div>
-              </>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {product.Images.map((image, index) => (
-                  <div
+              )}
+            </div>
+
+            {/* Thumbnail Gallery */}
+            {hasMultipleImages && (
+              <div className="grid grid-cols-4 gap-3">
+                {product.images.map((image, index) => (
+                  <button
                     key={index}
-                    className="rounded-2xl overflow-hidden shadow-lg border border-[#e7bfb3]/30 bg-white aspect-square"
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`aspect-square bg-white overflow-hidden transition-all ${
+                      index === selectedImageIndex
+                        ? 'ring-2 ring-black'
+                        : 'ring-1 ring-text-light/20 hover:ring-text-light'
+                    }`}
                   >
                     <img
-                      src={image.Url}
-                      alt={`${product.Name} - View ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                      src={image.thumbnailUrl}
+                      alt={image.alt}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/150x150?text=No+Image';
+                      }}
                     />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* --- Right Column --- */}
-          <div className="space-y-6">
+          {/* Right Column - Product Info */}
+          <div className="space-y-8">
+            
+            {/* Product Name */}
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d9a79a] via-[#e7bfb3] to-[#f6d6cb] mb-3">
-                {product.Name}
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black uppercase tracking-wide mb-4">
+                {product.name}
               </h1>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={16}
-                      className={
-                        i < Math.floor(product.AverageRating)
-                          ? "fill-[#d9a79a] text-[#d9a79a]"
-                          : "text-[#e7bfb3]"
-                      }
-                    />
-                  ))}
+              
+              {/* Rating */}
+              {product.reviewCount > 0 && (
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={16}
+                        className={
+                          i < Math.floor(product.averageRating)
+                            ? "fill-black text-black"
+                            : "fill-none text-text-light"
+                        }
+                        strokeWidth={1.5}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-text-medium">
+                    {product.averageRating} ({product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''})
+                  </span>
                 </div>
-                <span className="text-sm text-[#7a5650]">
-                  {product.AverageRating} ({product.ReviewCount} reviews)
-                </span>
-              </div>
-              <p className="text-[#7a5650] text-sm sm:text-base leading-relaxed">
-                {product.Description}
+              )}
+
+              {/* Description */}
+              <p className="text-text-medium text-base leading-relaxed">
+                {product.description}
               </p>
             </div>
 
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d9a79a] to-[#8b5f4b]">
-                {product.Price.$numberDecimal}
-              </span>
-              {product.CompareAtPrice && (
-                <span className="text-lg text-[#a2786b] line-through">
-                  {product.CompareAtPrice.$numberDecimal}
+            {/* Price */}
+            <div className="py-6 border-y border-text-light/20">
+              <div className="flex items-baseline gap-4">
+                <span className="text-4xl font-bold text-black">
+                  {formatPrice(product.price)}
                 </span>
-              )}
-              {product.DiscountPercent && (
-                <span className="bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white px-3 py-1 rounded-full text-xs font-semibold">
-                  {product.DiscountPercent}% OFF
-                </span>
-              )}
+                {product.compareAtPrice && (
+                  <span className="text-xl text-text-light line-through">
+                    {formatPrice(product.compareAtPrice)}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* --- Color Selection --- */}
-            <div>
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Select Color:{" "}
-                <span className="text-[#d9a79a]">{product.AvailableColors[selectedColor]}</span>
-              </h3>
-              <div className="flex gap-3 flex-wrap">
-                {product.AvailableColors.map((color, index) => {
-                  const colorHex =
-                    color === "navy"
-                      ? "#001f3f"
-                      : color === "black"
-                        ? "#000000"
-                        : "#ffffff";
-                  return (
+            {/* Color Selection */}
+            {product.colors.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
+                  Color: <span className="font-normal text-text-medium">{selectedColor}</span>
+                </h3>
+                <div className="flex gap-3 flex-wrap">
+                  {product.colors.map((color) => (
                     <button
-                      key={index}
-                      onClick={() => setSelectedColor(index)}
-                      className={`relative w-12 h-12 rounded-full border-4 transition-all ${index === selectedColor
-                          ? "border-[#d9a79a] scale-110 shadow-lg"
-                          : "border-[#e7bfb3]/30 hover:border-[#e7bfb3]"
-                        }`}
-                      style={{ backgroundColor: colorHex }}
-                      title={color}
-                    >
-                      {index === selectedColor && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full shadow-md"></div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* --- Size Selection --- */}
-            <div>
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Select Size
-              </h3>
-              <div className="grid grid-cols-6 gap-2">
-                {product.SizeOfProduct.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`py-2 sm:py-3 rounded-lg font-semibold text-sm transition-all ${selectedSize === size
-                        ? "bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white shadow-md"
-                        : "bg-white text-[#7a5650] border border-[#e7bfb3]/30 hover:border-[#e7bfb3]"
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`px-6 py-3 border-2 transition-all uppercase text-sm tracking-wider ${
+                        selectedColor === color
+                          ? 'border-black bg-black text-white'
+                          : 'border-text-light/30 text-black hover:border-text-dark'
                       }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* --- Quantity & Add to Cart --- */}
-            <div className="pt-4">
-              {quantity === 0 ? (
-                <div className="flex gap-3">
+            {/* Size Selection */}
+            {product.sizes.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
+                  Size: <span className="font-normal text-text-medium">{selectedSize}</span>
+                </h3>
+                <div className="grid grid-cols-4 gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`py-3 border-2 transition-all uppercase text-sm tracking-wider font-medium ${
+                        selectedSize === size
+                          ? 'border-black bg-black text-white'
+                          : 'border-text-light/30 text-black hover:border-text-dark'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity */}
+            <div>
+              <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
+                Quantity
+              </h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center border-2 border-text-light/30">
                   <button
-                    onClick={handleAddToCart}
-                    className="flex-1 bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2"
+                    onClick={handleDecrement}
+                    disabled={quantity <= 1}
+                    className="p-3 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="Decrease quantity"
                   >
-                    <ShoppingBag size={20} />
-                    Add to Cart
+                    <Minus size={16} strokeWidth={2} />
                   </button>
-                  <button className="bg-white border-2 border-[#e7bfb3] p-4 rounded-xl hover:bg-[#faf6f2] transition-all">
-                    <Heart size={20} className="text-[#d9a79a]" />
-                  </button>
-                  <button className="bg-white border-2 border-[#e7bfb3] p-4 rounded-xl hover:bg-[#faf6f2] transition-all">
-                    <Share2 size={20} className="text-[#d9a79a]" />
+                  <span className="px-6 py-3 font-semibold text-lg min-w-[60px] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={handleIncrement}
+                    disabled={quantity >= availableQuantity}
+                    className="p-3 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={16} strokeWidth={2} />
                   </button>
                 </div>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                      Quantity
-                    </h3>
-                    <div className="flex items-center gap-3 w-48">
-                      <button
-                        onClick={handleDecrement}
-                        className="bg-white border-2 border-[#e7bfb3] p-3 rounded-lg hover:bg-[#faf6f2] hover:border-[#d9a79a] transition-all hover:scale-110"
-                      >
-                        <Minus size={16} className="text-[#d9a79b]" />
-                      </button>
-                      <span className="font-semibold text-lg">{quantity}</span>
-                      <button
-                        onClick={handleIncrement}
-                        className="bg-white border-2 border-[#e7bfb3] p-3 rounded-lg hover:bg-[#faf6f2] hover:border-[#d9a79a] transition-all hover:scale-110"
-                      >
-                        <Plus size={16} className="text-[#d9a79b]" />
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    <ShoppingBag size={20} />
-                    Update Cart
-                  </button>
-                </>
-              )}
+                {availableQuantity > 0 && (
+                  <span className="text-sm text-text-medium">
+                    {availableQuantity} available
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* --- Key Features / Specs / Care --- */}
-            <div className="mt-8 space-y-4">
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Key Features
-              </h3>
-              <ul className="list-disc list-inside text-[#7a5650] space-y-1">
-                {(product.KeyFeatures || []).map((feature, index) => (
-                  <li key={index}>{feature}</li>
-                ))}
-              </ul>
+            {/* Action Buttons */}
+            <div className="flex gap-4">
+              <button
+                onClick={handleAddToCart}
+                disabled={availableQuantity === 0 || !selectedColor || !selectedSize}
+                className="flex-1 bg-black text-white py-4 px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
+              >
+                <ShoppingBag size={20} strokeWidth={1.5} />
+                {availableQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+              </button>
+              <button
+                onClick={handleWishlistToggle}
+                className={`p-4 border-2 transition-all ${
+                  isWishlisted
+                    ? 'border-black bg-black'
+                    : 'border-text-light/30 hover:border-black'
+                }`}
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                <Heart 
+                  size={20} 
+                  strokeWidth={1.5}
+                  className={isWishlisted ? 'fill-white text-white' : 'text-black'}
+                />
+              </button>
+            </div>
 
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Specifications
-              </h3>
-              <ul className="list-disc list-inside text-[#7a5650] space-y-1">
-                {product.Specifications &&
-                  Object.entries(product.Specifications).map(([key, value], index) => (
-                    <li key={index}>
-                      <strong>{key}:</strong> {value}
-                    </li>
-                  ))}
-              </ul>
+            {/* Shipping Info */}
+            <div className="space-y-3 pt-6 border-t border-text-light/20">
+              <div className="flex items-start gap-3">
+                <Truck size={20} className="text-text-medium mt-0.5" strokeWidth={1.5} />
+                <div>
+                  <p className="text-sm font-medium text-black">Free Shipping</p>
+                  <p className="text-xs text-text-medium">Estimated delivery: 3-5 business days</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <RotateCcw size={20} className="text-text-medium mt-0.5" strokeWidth={1.5} />
+                <div>
+                  <p className="text-sm font-medium text-black">Easy Returns</p>
+                  <p className="text-xs text-text-medium">30-day return policy</p>
+                </div>
+              </div>
+            </div>
 
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Care Instructions
-              </h3>
-              <ul className="list-disc list-inside text-[#7a5650] space-y-1">
-                {(product.CareInstructions || []).map((care, index) => (
-                  <li key={index}>{care}</li>
-                ))}
-              </ul>
+            {/* Product Details */}
+            {(product.keyFeatures.length > 0 || Object.keys(product.specifications).length > 0 || product.fabricType.length > 0) && (
+              <div className="space-y-6 pt-6 border-t border-text-light/20">
+                
+                {/* Key Features */}
+                {product.keyFeatures.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-widest">
+                      Key Features
+                    </h3>
+                    <ul className="space-y-2">
+                      {product.keyFeatures.map((feature, index) => (
+                        <li key={index} className="text-sm text-text-medium flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {/* --- Reviews --- */}
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Reviews
-              </h3>
-              <div className="space-y-4">
-                {product.Reviews.map((review) => (
-                  <div
-                    key={review._id}
-                    className="border border-[#e7bfb3]/30 p-4 rounded-xl bg-white shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
+                {/* Fabric Type */}
+                {product.fabricType.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-widest">
+                      Fabric
+                    </h3>
+                    <p className="text-sm text-text-medium">
+                      {product.fabricType.join(', ')}
+                    </p>
+                  </div>
+                )}
+
+                {/* Care Instructions */}
+                {product.careInstructions.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-widest">
+                      Care Instructions
+                    </h3>
+                    <ul className="space-y-2">
+                      {product.careInstructions.map((instruction, index) => (
+                        <li key={index} className="text-sm text-text-medium flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>{instruction}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        {product.reviews.length > 0 && (
+          <div className="mt-20 pt-12 border-t border-text-light/20">
+            <h2 className="text-2xl md:text-3xl font-bold text-black uppercase tracking-wide mb-8">
+              Customer Reviews
+            </h2>
+            <div className="space-y-6">
+              {product.reviews.map((review, index) => (
+                <div key={review.id || index} className="border-b border-text-light/10 pb-6 last:border-0">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          size={16}
-                          className={i < review.Rating ? "fill-[#d9a79a] text-[#d9a79a]" : "text-[#e7bfb3]"}
+                          size={14}
+                          className={
+                            i < review.rating
+                              ? "fill-black text-black"
+                              : "fill-none text-text-light"
+                          }
+                          strokeWidth={1.5}
                         />
                       ))}
-                      <span className="text-sm text-[#7a5650] font-semibold">
-                        {review.ReviewerName}
-                      </span>
                     </div>
-                    <p className="text-sm text-[#7a5650]">{review.Comment}</p>
+                    <span className="text-sm text-text-medium">
+                      {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </span>
                   </div>
-                ))}
-              </div>
-
-              {/* --- Product Variations --- */}
-              <h3 className="text-sm font-semibold text-[#8b5f4b] mb-3 uppercase tracking-wide">
-                Product Variations
-              </h3>
-              <div className="grid grid-cols-3 gap-4">
-                {product.ProductVariationIds.map((variation) => (
-                  <div
-                    key={variation._id}
-                    className="border border-[#e7bfb3]/30 p-2 rounded-xl bg-white shadow-sm"
-                  >
-                    <img
-                      src={variation.Image}
-                      alt={variation.Name}
-                      className="w-full h-32 object-cover rounded-lg mb-2"
-                    />
-                    <p className="text-sm text-[#7a5650] font-semibold">{variation.Name}</p>
-                  </div>
-                ))}
-              </div>
+                  <p className="text-sm text-text-dark leading-relaxed">
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

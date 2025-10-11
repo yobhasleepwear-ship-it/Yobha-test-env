@@ -1,34 +1,68 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 
+/**
+ * ProductCard Component - Luxury Gucci-inspired design
+ * 
+ * Props:
+ * @param {Object} product - Product data object
+ * 
+ * Expected product structure (from API):
+ * {
+ *   id: string,
+ *   productId: string,
+ *   name: string,
+ *   price: number,
+ *   category: string,
+ *   images: string[],
+ *   available: boolean,
+ *   productMainCategory: string,
+ *   availableColors: string[],
+ *   availableSizes: string[]
+ * }
+ */
 const ProductCard = ({ product }) => {
-  console.log(product,"fromhere")
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Product images (use multiple if available, otherwise fallback to single image)
-  const images = product.images || [product.img];
-  const hasMultipleImages = images.length > 1;
+  // Safe data extraction with null checks
+  const productId = product?.id || product?.productId || '';
+  const productName = product?.name || 'Untitled Product';
+  const productPrice = product?.price || 0;
+  const productImages = Array.isArray(product?.images) && product.images.length > 0
+    ? product.images
+    : ['https://via.placeholder.com/400x400?text=No+Image'];
+  const hasMultipleImages = productImages.length > 1;
+  const availableColors = Array.isArray(product?.availableColors) ? product.availableColors : [];
+  const availableSizes = Array.isArray(product?.availableSizes) ? product.availableSizes : [];
+
+  // Format price
+  const formattedPrice = typeof productPrice === 'number'
+    ? `₹${productPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+    : productPrice;
 
   const handleCardClick = () => {
-    navigate(`/productDetail/${product.id}`);
+    if (productId) {
+      navigate(`/productDetail/${productId}`);
+    }
   };
 
   const handleWishlist = (e) => {
     e.stopPropagation();
     setIsWishlisted(!isWishlisted);
+    // TODO: Add to wishlist API call
   };
 
   const nextImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
   };
 
   const prevImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
   };
 
   const goToImage = (index, e) => {
@@ -36,105 +70,86 @@ const ProductCard = ({ product }) => {
     setCurrentImageIndex(index);
   };
 
-  const getBadgeStyle = (badge) => {
-    switch (badge) {
-      case "New":
-        return "bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white";
-      case "Bestseller":
-        return "bg-gradient-to-r from-[#d9a79a] to-[#8b5f4b] text-white";
-      case "Premium":
-        return "bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b]";
-      default:
-        return "bg-[#8b5f4b] text-white";
-    }
-  };
-
-  // Mock rating (in real app would come from product data)
-  const rating = product.rating || 4.5;
-  const reviewCount = product.reviewCount || 128;
-
   return (
     <div 
       onClick={handleCardClick}
-      className="group relative bg-white rounded-2xl overflow-hidden border border-[#e7bfb3]/20 hover:border-[#d9a79a]/40 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer flex flex-col"
+      className="group relative bg-white border border-text-light/20 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
+      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
-      {/* Image Container with Carousel */}
-      <div className="relative h-48 sm:h-52 md:h-56 overflow-hidden bg-gradient-to-br from-[#fdf9f6] to-[#faf6f2]">
+      {/* Image Container */}
+      <div className="relative aspect-square overflow-hidden bg-premium-beige">
         {/* Carousel Images */}
         <div className="relative w-full h-full">
-          {images.map((img, index) => (
+          {productImages.map((img, index) => (
             <img
               key={index}
               src={img}
-              alt={`${product.name} - ${index + 1}`}
+              alt={`${productName} - ${index + 1}`}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
                 index === currentImageIndex 
-                  ? 'opacity-100 scale-100' 
-                  : 'opacity-0 scale-95'
+                  ? 'opacity-100' 
+                  : 'opacity-0'
               } group-hover:scale-105`}
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+              }}
             />
           ))}
         </div>
-        
-        {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-        {/* Navigation Arrows - Only show if multiple images and on hover */}
+        {/* Navigation Arrows - Show on hover if multiple images */}
         {hasMultipleImages && (
           <>
             <button
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all z-20"
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 hover:bg-white transition-all z-20"
+              aria-label="Previous image"
             >
-              <ChevronLeft size={16} className="text-[#8b5f4b]" />
+              <ChevronLeft size={16} className="text-black" />
             </button>
             <button
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md opacity-0 group-hover:opacity-100 hover:bg-white transition-all z-20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 hover:bg-white transition-all z-20"
+              aria-label="Next image"
             >
-              <ChevronRight size={16} className="text-[#8b5f4b]" />
+              <ChevronRight size={16} className="text-black" />
             </button>
           </>
-        )}
-
-        {/* Badge */}
-        {product.badge && (
-          <div className={`absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full text-xs font-bold ${getBadgeStyle(product.badge)} shadow-md`}>
-            {product.badge}
-          </div>
         )}
 
         {/* Wishlist Icon */}
         <button 
           onClick={handleWishlist}
-          className={`absolute top-2 right-2 z-10 p-2 rounded-full shadow-md backdrop-blur-sm transition-all duration-300 ${
+          className={`absolute top-3 right-3 z-10 p-2 backdrop-blur-sm transition-all duration-300 ${
             isWishlisted 
-              ? 'bg-[#d9a79a]' 
+              ? 'bg-black' 
               : 'bg-white/90 hover:bg-white'
           }`}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart 
             size={16} 
             className={`transition-all ${
               isWishlisted 
                 ? 'text-white fill-white' 
-                : 'text-[#d9a79a]'
+                : 'text-black'
             }`} 
           />
         </button>
 
-        {/* Image Indicator Dots - Only show if multiple images */}
+        {/* Image Indicator Dots */}
         {hasMultipleImages && (
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
-            {images.map((_, index) => (
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1 z-10">
+            {productImages.map((_, index) => (
               <button
                 key={index}
                 onClick={(e) => goToImage(index, e)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-1 rounded-full transition-all duration-300 ${
                   index === currentImageIndex 
-                    ? 'w-6 bg-white' 
-                    : 'w-1.5 bg-white/50 hover:bg-white/80'
+                    ? 'w-6 bg-black' 
+                    : 'w-1 bg-black/30 hover:bg-black/60'
                 }`}
+                aria-label={`Go to image ${index + 1}`}
               />
             ))}
           </div>
@@ -142,43 +157,30 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1 bg-white">
         {/* Product Name */}
-        <h3 className="text-[#8b5f4b] font-bold text-sm sm:text-base mb-1.5 line-clamp-2 group-hover:text-[#d9a79a] transition-colors leading-snug">
-          {product.name}
+        <h3 className="text-text-dark font-semibold text-base mb-2 line-clamp-2 group-hover:text-black transition-colors uppercase tracking-tight">
+          {productName}
         </h3>
 
-        {/* Description */}
-        <p className="text-[#a2786b] text-xs mb-2 line-clamp-2 leading-relaxed">
-          {product.description || "Luxurious comfort meets timeless elegance. Crafted with premium materials for the perfect night's rest."}
-        </p>
-
-        {/* Rating & Reviews */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, index) => (
-              <Star
-                key={index}
-                size={12}
-                className={`${
-                  index < Math.floor(rating)
-                    ? 'fill-[#d9a79a] text-[#d9a79a]'
-                    : index < rating
-                    ? 'fill-[#d9a79a]/50 text-[#d9a79a]'
-                    : 'fill-gray-200 text-gray-200'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-[#a2786b]">
-            {rating} ({reviewCount})
-          </span>
+        {/* Available Options */}
+        <div className="mb-3 space-y-1">
+          {availableColors.length > 0 && (
+            <p className="text-text-light text-xs uppercase tracking-wider">
+              {availableColors.length} Color{availableColors.length !== 1 ? 's' : ''}
+            </p>
+          )}
+          {availableSizes.length > 0 && (
+            <p className="text-text-light text-xs uppercase tracking-wider">
+              Sizes: {availableSizes.join(', ')}
+            </p>
+          )}
         </div>
 
         {/* Price */}
-        <div className="mt-auto">
-          <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#d9a79a] to-[#8b5f4b] bg-clip-text text-transparent">
-            {product.price}
+        <div className="mt-auto pt-3 border-t border-text-light/20">
+          <span className="text-black font-bold text-xl">
+            {formattedPrice}
           </span>
         </div>
       </div>

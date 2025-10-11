@@ -4,6 +4,7 @@ import { BsBag } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
+import logoImage from "../../assets/yobhaLogo.png";
 
 const HeaderWithSidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,40 +34,50 @@ const HeaderWithSidebar = () => {
   };
 
   return (
-    <header className="bg-white border-b border-[#e7bfb3]/10 shadow-[0_6px_24px_rgba(15,15,15,0.06)] fixed top-0 left-0 w-full z-50 transition-colors duration-300">
+    <header 
+      className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+      style={{ 
+        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+        
+      }}
+    >
       <div className="max-w-[1600px] mx-auto flex items-center justify-between px-6 md:px-8 lg:px-12 py-4">
 
-        {/* Logo */}
+        {/* Logo - Left Side */}
         <Link 
           to="/" 
-          className="text-3xl font-semibold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#e7bfb3] via-[#f6d6cb] to-[#d9a79a] drop-shadow-[0_0_10px_rgba(255,182,193,0.3)] cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center"
         >
-          YOBHA
+          <img 
+            src={logoImage} 
+            alt="YOBHA Logo" 
+            className="h-8 md:h-10"
+          />
         </Link>
 
-        {/* Desktop Nav */}
+        {/* Desktop Nav - Center */}
         <nav className="hidden md:flex space-x-8 text-[15px] font-medium">
           {menuItems.map((item) => (
             <div key={item} className="relative group">
               {item === "Collections" ? (
-                <button className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 tracking-wide">
+                <button className="text-black hover:text-gray-700 tracking-wide transition-colors duration-300">
                   {item}
                 </button>
               ) : (
                 <Link
                   to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                  className="text-[#a2786b] hover:text-[#8b5f4b] transition-all duration-300 tracking-wide"
+                  className="text-black hover:text-gray-700 tracking-wide transition-colors duration-300"
                 >
                   {item}
                 </Link>
               )}
               {item === "Collections" && (
-                <div className="absolute top-8 left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 delay-150 bg-white rounded-xl p-4 min-w-[200px] animate-slideDown">
+                <div className="absolute top-8 left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 delay-150 bg-white rounded-xl p-4 min-w-[200px] animate-slideDown shadow-lg">
                   {collectionItems.map((cat) => (
                     <Link
                       key={cat}
                       to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
-                      className="block px-4 py-2 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                      className="block px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-300 text-sm text-black hover:text-gray-700"
                     >
                       {cat}
                     </Link>
@@ -83,7 +94,7 @@ const HeaderWithSidebar = () => {
           {isAuthenticated ? (
             <div className="relative group">
               <button 
-                className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center cursor-pointer"
+                className="text-black hover:text-gray-700 flex items-center cursor-pointer transition-colors duration-300"
                 title="My Account"
               >
                 <User size={22} strokeWidth={1.8} />
@@ -91,24 +102,24 @@ const HeaderWithSidebar = () => {
               
               {/* User Dropdown Menu */}
               <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="bg-white rounded-xl shadow-xl border border-[#e7bfb3]/20 p-2 min-w-[200px]">
+                <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-2 min-w-[200px]">
                   <Link
                     to="/account"
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors duration-300 text-sm text-black hover:text-gray-700"
                   >
                     <User size={16} />
                     <span>My Account</span>
                   </Link>
                   <Link
                     to="/orders"
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors duration-300 text-sm text-black hover:text-gray-700"
                   >
                     <Package size={16} />
                     <span>Orders</span>
                   </Link>
                   <Link
                     to="/wishlist"
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[#f6d6cb]/20 transition-colors duration-300 text-sm text-[#a2786b] hover:text-[#8b5f4b]"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors duration-300 text-sm text-black hover:text-gray-700"
                   >
                     <Heart size={16} />
                     <span>Wishlist</span>
@@ -119,7 +130,7 @@ const HeaderWithSidebar = () => {
           ) : (
             <Link 
               to="/login"
-              className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center"
+              className="text-black hover:text-gray-700 flex items-center transition-colors duration-300"
               title="Login"
             >
               <User size={22} strokeWidth={1.8} />
@@ -129,7 +140,7 @@ const HeaderWithSidebar = () => {
           {/* Cart Icon - Always visible with unique design */}
           <Link 
             to="/cart" 
-            className="text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300 flex items-center"
+            className="text-black hover:text-gray-700 flex items-center transition-colors duration-300"
             title="Shopping Cart"
           >
             <BsBag size={22} />
@@ -139,7 +150,7 @@ const HeaderWithSidebar = () => {
           {isAuthenticated && (
             <button
               onClick={handleLogout}
-              className="hidden md:flex items-center text-[#a2786b] hover:text-[#8b5f4b] transition-colors duration-300"
+              className="hidden md:flex items-center text-black hover:text-gray-700 transition-colors duration-300"
               title="Logout"
             >
               <LogOut size={20} strokeWidth={1.8} />
@@ -148,7 +159,7 @@ const HeaderWithSidebar = () => {
 
           {/* Mobile menu toggle */}
           <button
-            className="md:hidden text-[#a2786b] focus:outline-none hover:opacity-80 transition"
+            className="md:hidden focus:outline-none text-black hover:text-gray-700 transition-colors duration-300"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={24} />
@@ -164,28 +175,30 @@ const HeaderWithSidebar = () => {
             onClick={() => setSidebarOpen(false)}
           ></div>
 
-          <div className="relative w-72 bg-gradient-to-b from-[#f8ede3] via-[#fdf4ee] to-[#fdf7f2] shadow-2xl animate-slideInLeft">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#e7bfb3]/30">
-              <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#d9a79a] via-[#e7bfb3] to-[#f6d6cb] drop-shadow-sm">
-                YOBHA
-              </div>
+          <div className="relative w-72 bg-white shadow-2xl animate-slideInLeft">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300">
+              <img 
+                src={logoImage} 
+                alt="YOBHA Logo" 
+                className="h-10"
+              />
               <button
-                className="text-[#a2786b] hover:text-[#d9a79a] transition-all duration-300"
+                className="text-black hover:text-gray-700 transition-all duration-300"
                 onClick={() => setSidebarOpen(false)}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <nav className="flex flex-col p-6 space-y-3 text-[#7a5650] text-base">
+            <nav className="flex flex-col p-6 space-y-3 text-black text-base">
               {menuItems.map((item) => (
                 <div key={item} className="w-full">
                   {item === "Collections" ? (
-                    <span className="block w-full text-[#8b5f4b] font-semibold">{item}</span>
+                    <span className="block w-full text-black font-semibold">{item}</span>
                   ) : (
                     <Link
                       to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                      className="block w-full text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-medium"
+                      className="block w-full text-black hover:text-gray-700 transition-colors duration-300 font-medium"
                       onClick={() => setSidebarOpen(false)}
                     >
                       {item}
@@ -197,7 +210,7 @@ const HeaderWithSidebar = () => {
                         <Link
                           key={cat}
                           to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
-                          className="block text-[#7a5650] hover:text-[#e7bfb3] transition-colors duration-300 py-1"
+                          className="block text-black hover:text-gray-700 transition-colors duration-300 py-1"
                           onClick={() => setSidebarOpen(false)}
                         >
                           {cat}
@@ -209,11 +222,11 @@ const HeaderWithSidebar = () => {
               ))}
 
               {/* Sidebar Login/Logout */}
-              <div className="pt-4 border-t border-[#e7bfb3]/30 mt-2">
+              <div className="pt-4 border-t border-gray-300 mt-2">
                 {!isAuthenticated ? (
                   <Link
                     to="/login"
-                    className="block text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 font-semibold"
+                    className="block text-black hover:text-gray-700 transition-colors duration-300 font-semibold"
                     onClick={() => setSidebarOpen(false)}
                   >
                     Login
@@ -224,7 +237,7 @@ const HeaderWithSidebar = () => {
                       setSidebarOpen(false);
                       handleLogout();
                     }}
-                    className="flex items-center gap-3 text-[#a2786b] hover:text-[#d9a79a] transition-colors duration-300 text-left w-full font-semibold"
+                    className="flex items-center gap-3 text-black hover:text-gray-700 transition-colors duration-300 text-left w-full font-semibold"
                   >
                     <LogOut size={20} />
                     <span>Logout</span>
