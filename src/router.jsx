@@ -19,7 +19,7 @@ const Router = () => {
     { path: "/home", element: <Home /> },
     { path: '/login', element: <Login /> },
     { path: "/products/:category?", element: <ProductsPage /> },
-    { path: "/productDetail/:id?", element: <ProductDescription /> },
+    { path: "/productDetail/:productId?", element: <ProductDescription /> },
     { path: "/cart", element: <Cart /> },
     { path: "/checkout", element: <Checkout /> },
     { path: "/wishlist", element: <Wishlist /> },

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Plus, Minus, Heart, Trash2, Tag, 
   ChevronRight, Gift, Shield, Package, ShoppingBag, ArrowRight
 } from "lucide-react";
+import { getCartDetails } from "../../service/productAPI";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const CartPage = () => {
     },
   ]);
 
+
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
@@ -41,6 +43,16 @@ const CartPage = () => {
     { code: "FIRST100", discount: 100, description: "₹100 off on first order" },
     { code: "SILK20", discount: 20, description: "20% off on silk collection" },
   ];
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      const data = await getCartDetails();
+ 
+    };
+
+    fetchCart();
+  }, []);
+  
 
   // Handle quantity change
   const updateQuantity = (id, delta) => {

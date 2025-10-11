@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ProductCard from "../product/components/product-card";
 import { Filter, X, ChevronDown, ChevronUp, SlidersHorizontal, Package } from "lucide-react";
+import { getFilteredProducts } from "../../service/productAPI";
 
 const ProductsPage = () => {
   const { category } = useParams();
@@ -11,14 +12,19 @@ const ProductsPage = () => {
   const [selectedSubCategories, setSelectedSubCategories] = useState([]);
   const [lastSelectedCategory, setLastSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState("featured");
-  
+const [filter , setFilter]=useState({
+  categories:'',
+  minPrice:'',
+  maxPrice:'',
+  country:'',
+})
   // Infinite scroll states
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const productsPerPage = 12;
-  
+
   // Accordion states - only one open at a time
   const [openAccordion, setOpenAccordion] = useState("categories");
 
@@ -62,7 +68,43 @@ const ProductsPage = () => {
       { id: "pet-accessories", name: "Pet Accessories" },
     ],
   };
+  const [products, setProducts] = useState([
+    {
+      "id": "652f6e1a8b7e4c3d9a123456",
+      "productId": "PID10001",
+      "name": "Luxe Cotton Nightshirt",
+      "price": 1499.00,
+      "category": "sleepwear",
+      images: [
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
+        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
+        "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600"
+      ],
+      "available": true,
+      "productMainCategory": "sleepwear",
+      "availableColors": ["navy", "rose"],
+      "availableSizes": ["S", "M", "L"]
+    },
+  ]);
 
+  useEffect(() => {
+    fetchProducts(filter)
+  }, [category, selectedCategories])
+  const fetchProducts = async (filter) => {
+    const payload = {
+      q: category,
+      category: "Sleepwear",
+      minPrice: filter.minPrice,
+      maxPrice: filter.maxPrice,
+      // page: 1,
+      // pageSize: 10,
+      sort: "latest",
+      country: "IN"
+    }
+
+    const response = await getFilteredProducts(payload);
+    setProducts(response.data.items);
+  };
   // Get available sub-categories based on last selected category only
   const getAvailableSubCategories = () => {
     if (!lastSelectedCategory || !categorySubOptions[lastSelectedCategory]) {
@@ -79,7 +121,7 @@ const ProductsPage = () => {
         const newCategories = prev.filter(id => id !== categoryId);
         // Also remove sub-categories of this category
         const subCatsToRemove = categorySubOptions[categoryId]?.map(sub => sub.id) || [];
-        setSelectedSubCategories(prevSubs => 
+        setSelectedSubCategories(prevSubs =>
           prevSubs.filter(subId => !subCatsToRemove.includes(subId))
         );
         // Update last selected category
@@ -126,7 +168,7 @@ const ProductsPage = () => {
 
   // Handle sub-category checkbox toggle
   const handleSubCategoryToggle = (subCategoryId) => {
-    setSelectedSubCategories(prev => 
+    setSelectedSubCategories(prev =>
       prev.includes(subCategoryId)
         ? prev.filter(id => id !== subCategoryId)
         : [...prev, subCategoryId]
@@ -142,186 +184,52 @@ const ProductsPage = () => {
     { id: "popular", name: "Most Popular" },
   ];
 
-  const [products] = useState([
-    {
-      id: 1,
-      name: "Silk Night Dress",
-      price: "₹4,990",
-      category: "sleepwear",
-      segment: "women",
-      subCategory: "sleepwear-sets",
-      img: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
-        "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600"
-      ],
-      badge: "New",
-      rating: 4.5,
-      reviewCount: 128
-    },
-    {
-      id: 2,
-      name: "Premium Loungewear Set",
-      price: "₹5,499",
-      category: "loungewear",
-      segment: "men",
-      subCategory: "coord-sets",
-      img: "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600",
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"
-      ],
-      rating: 4.8,
-      reviewCount: 89
-    },
-    {
-      id: 3,
-      name: "Velvet Robe",
-      price: "₹6,999",
-      category: "sleepwear",
-      segment: "women",
-      subCategory: "robes",
-      img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
-        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600"
-      ],
-      badge: "Bestseller",
-      rating: 4.9,
-      reviewCount: 245
-    },
-    {
-      id: 4,
-      name: "Kids Pajama Set",
-      price: "₹2,499",
-      category: "sleepwear",
-      segment: "kids",
-      subCategory: "pajama-sets",
-      img: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600"
-      ],
-      rating: 4.6,
-      reviewCount: 52
-    },
-    {
-      id: 5,
-      name: "Couple Matching Set",
-      price: "₹8,999",
-      category: "loungewear",
-      segment: "couple",
-      subCategory: "coord-sets",
-      img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600",
-        "https://images.unsplash.com/photo-1618354691373-d851c5d96e88?w=600"
-      ],
-      badge: "Premium",
-      rating: 4.7,
-      reviewCount: 76
-    },
-    {
-      id: 6,
-      name: "Silk Hair Scrunchies",
-      price: "₹499",
-      category: "accessories",
-      segment: "women",
-      subCategory: "scrunchies",
-      img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600"
-      ],
-      rating: 4.3,
-      reviewCount: 34
-    },
-    {
-      id: 7,
-      name: "Luxury Slippers",
-      price: "₹1,999",
-      category: "accessories",
-      segment: "women",
-      subCategory: "slippers",
-      img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600"
-      ],
-      badge: "New",
-      rating: 4.4,
-      reviewCount: 41
-    },
-    {
-      id: 8,
-      name: "Nightgown Collection",
-      price: "₹4,499",
-      category: "sleepwear",
-      segment: "women",
-      subCategory: "nightgowns",
-      img: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
-      images: [
-        "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600",
-        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600"
-      ],
-      rating: 4.6,
-      reviewCount: 92
-    },
-  ]);
-
-  // Filter products based on selections
-  const filteredProducts = products.filter((product) => {
-    const matchSegment = selectedSegment === "all" || product.segment === selectedSegment.toLowerCase();
-    const matchCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-    const matchSubCategory = selectedSubCategories.length === 0 || selectedSubCategories.includes(product.subCategory);
-    return matchSegment && matchCategory && matchSubCategory;
-  });
-
   // Load more products
-  const loadMoreProducts = () => {
-    if (isLoading || !hasMore) return;
-    
-    setIsLoading(true);
-    
-    // Simulate loading delay for smooth UX
-    setTimeout(() => {
-      const startIndex = (page - 1) * productsPerPage;
-      const endIndex = startIndex + productsPerPage;
-      const newProducts = filteredProducts.slice(startIndex, endIndex);
-      
-      if (newProducts.length === 0 || endIndex >= filteredProducts.length) {
-        setHasMore(false);
-      }
-      
-      setDisplayedProducts(prev => [...prev, ...newProducts]);
-      setPage(prev => prev + 1);
-      setIsLoading(false);
-    }, 800);
-  };
+  // const loadMoreProducts = () => {
+  //   if (isLoading || !hasMore) return;
+
+  //   setIsLoading(true);
+
+  //   // Simulate loading delay for smooth UX
+  //   setTimeout(() => {
+  //     const startIndex = (page - 1) * productsPerPage;
+  //     const endIndex = startIndex + productsPerPage;
+  //     const newProducts = filteredProducts.slice(startIndex, endIndex);
+
+  //     if (newProducts.length === 0 || endIndex >= filteredProducts.length) {
+  //       setHasMore(false);
+  //     }
+
+  //     setDisplayedProducts(prev => [...prev, ...newProducts]);
+  //     setPage(prev => prev + 1);
+  //     setIsLoading(false);
+  //   }, 800);
+  // };
 
   // Reset pagination when filters change
-  useEffect(() => {
-    setDisplayedProducts([]);
-    setPage(1);
-    setHasMore(true);
-    
-    // Load initial products
-    const initialProducts = filteredProducts.slice(0, productsPerPage);
-    setDisplayedProducts(initialProducts);
-    setPage(2);
-    
-    if (filteredProducts.length <= productsPerPage) {
-      setHasMore(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSegment, selectedCategories, selectedSubCategories, sortBy, productsPerPage]);
+  // useEffect(() => {
+  //   setDisplayedProducts([]);
+  //   setPage(1);
+  //   setHasMore(true);
+
+  //   // Load initial products
+  //   // const initialProducts = filteredProducts.slice(0, productsPerPage);
+  //   // setDisplayedProducts(initialProducts);
+  //   // setPage(2);
+
+  //   if (filteredProducts.length <= productsPerPage) {
+  //     setHasMore(false);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedSegment, selectedCategories, selectedSubCategories, sortBy, productsPerPage]);
 
   // Scroll to top on category change
-  useEffect(() => {
-    const mainElement = document.getElementById('products-main');
-    if (mainElement) {
-      mainElement.scrollTop = 0;
-    }
-  }, [category]);
+  // useEffect(() => {
+  //   const mainElement = document.getElementById('products-main');
+  //   if (mainElement) {
+  //     mainElement.scrollTop = 0;
+  //   }
+  // }, [category]);
 
   // Accordion Component
   const FilterAccordion = ({ title, isOpen, onToggle, children }) => (
@@ -388,11 +296,10 @@ const ProductsPage = () => {
                 onChange={() => setSelectedSegment(segment.toLowerCase())}
                 className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
-              <span className={`text-sm transition-colors ${
-                selectedSegment === segment.toLowerCase() 
-                  ? "text-[#d9a79a] font-bold" 
-                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
-              }`}>
+              <span className={`text-sm transition-colors ${selectedSegment === segment.toLowerCase()
+                ? "text-[#d9a79a] font-bold"
+                : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
+                }`}>
                 {segment}
               </span>
             </label>
@@ -418,11 +325,10 @@ const ProductsPage = () => {
                 onChange={() => handleCategoryToggle(cat.id)}
                 className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
-              <span className={`text-sm transition-colors ${
-                selectedCategories.includes(cat.id) 
-                  ? "text-[#d9a79a] font-bold" 
-                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
-              }`}>
+              <span className={`text-sm transition-colors ${selectedCategories.includes(cat.id)
+                ? "text-[#d9a79a] font-bold"
+                : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
+                }`}>
                 {cat.name}
               </span>
             </label>
@@ -452,11 +358,10 @@ const ProductsPage = () => {
                   onChange={() => handleSubCategoryToggle(subCat.id)}
                   className="w-4 h-4 rounded border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
                 />
-                <span className={`text-sm transition-colors ${
-                  selectedSubCategories.includes(subCat.id) 
-                    ? "text-[#d9a79a] font-bold" 
-                    : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
-                }`}>
+                <span className={`text-sm transition-colors ${selectedSubCategories.includes(subCat.id)
+                  ? "text-[#d9a79a] font-bold"
+                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
+                  }`}>
                   {subCat.name}
                 </span>
               </label>
@@ -484,11 +389,10 @@ const ProductsPage = () => {
                 onChange={() => setSortBy(option.id)}
                 className="w-4 h-4 border-[#e7bfb3] text-[#d9a79a] focus:ring-[#d9a79a]/20 cursor-pointer accent-[#d9a79a]"
               />
-              <span className={`text-sm transition-colors ${
-                sortBy === option.id 
-                  ? "text-[#d9a79a] font-bold" 
-                  : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
-              }`}>
+              <span className={`text-sm transition-colors ${sortBy === option.id
+                ? "text-[#d9a79a] font-bold"
+                : "text-[#7a5650] group-hover:text-[#8b5f4b] font-medium"
+                }`}>
                 {option.name}
               </span>
             </label>
@@ -504,11 +408,11 @@ const ProductsPage = () => {
       {showMobileFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => setShowMobileFilters(false)}
           ></div>
-          
+
           {/* Sidebar */}
           <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl overflow-y-auto animate-slideInLeft scrollbar-hide border-r border-[#e7bfb3]/20">
             <div className="sticky top-0 bg-gradient-to-r from-[#fdf7f2] to-[#f8ede3] z-10 px-4 py-4 border-b border-[#e7bfb3]/30">
@@ -556,7 +460,7 @@ const ProductsPage = () => {
         {/* Right Column: Products */}
         <main id="products-main" className="flex-1 overflow-y-auto scrollbar-hide">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
-            
+
             {/* Page Header */}
             <div className="mb-8 lg:mb-10">
               <div className="text-center mb-8">
@@ -567,7 +471,7 @@ const ProductsPage = () => {
                   Timeless essentials crafted for serene nights and refined comfort
                 </p>
               </div>
-              
+
               {/* Decorative Divider */}
               <div className="flex items-center justify-center gap-3">
                 <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#e7bfb3]"></div>
@@ -576,140 +480,140 @@ const ProductsPage = () => {
               </div>
             </div>
 
-          {/* Mobile Filter Toggle & Product Count */}
-          <div className="flex items-center justify-between mb-6 lg:mb-8">
-            <button
-              onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden flex items-center gap-2 bg-white px-5 py-3 rounded-xl shadow-md border border-[#e7bfb3]/30 text-[#8b5f4b] font-bold hover:shadow-lg transition-all"
-            >
-              <SlidersHorizontal size={20} />
-              <span>Filters</span>
-            </button>
-            <div className="hidden lg:block text-[#8b5f4b] font-semibold text-base">
-              {filteredProducts.length} Product{filteredProducts.length !== 1 ? 's' : ''}
-            </div>
-          </div>
-
-          {/* Selected Filters Display */}
-          {(selectedSegment !== 'all' || selectedCategories.length > 0 || selectedSubCategories.length > 0) && (
-            <div className="bg-white rounded-xl p-4 sm:p-5 mb-6 border border-[#e7bfb3]/20 shadow-md">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold text-[#8b5f4b]">Active Filters:</span>
-                
-                {/* Segment Filter */}
-                {selectedSegment !== 'all' && (
-                  <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm">
-                    <span className="capitalize">{selectedSegment}</span>
-                    <button
-                      onClick={() => removeFilter('segment', selectedSegment)}
-                      className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                      aria-label="Remove filter"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Category Filters */}
-                {selectedCategories.map((catId) => (
-                  <div key={catId} className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
-                    <span>{getCategoryName(catId)}</span>
-                    <button
-                      onClick={() => removeFilter('category', catId)}
-                      className="hover:bg-white/40 rounded-full p-0.5 transition-colors"
-                      aria-label="Remove category"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-
-                {/* Sub-Category Filters */}
-                {selectedSubCategories.map((subCatId) => (
-                  <div key={subCatId} className="inline-flex items-center gap-1.5 bg-[#faf6f2] text-[#7a5650] border border-[#e7bfb3]/40 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm">
-                    <span>{getSubCategoryName(subCatId)}</span>
-                    <button
-                      onClick={() => removeFilter('subCategory', subCatId)}
-                      className="hover:bg-[#e7bfb3]/30 rounded-full p-0.5 transition-colors"
-                      aria-label="Remove sub-category"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-
-                {/* Clear All Button */}
-                <button
-                  onClick={() => {
-                    setSelectedSegment("all");
-                    setSelectedCategories([]);
-                    setSelectedSubCategories([]);
-                    setLastSelectedCategory(null);
-                  }}
-                  className="text-xs sm:text-sm text-[#d9a79a] hover:text-[#8b5f4b] font-semibold underline ml-2"
-                >
-                  Clear All
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {displayedProducts.length > 0 ? (
-              displayedProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-              ))
-            ) : !isLoading ? (
-              <div className="col-span-full text-center py-20">
-                <Package size={64} className="mx-auto text-[#e7bfb3] mb-4" />
-                <p className="text-[#8b5f4b] text-xl font-semibold mb-2">No products found</p>
-                <p className="text-[#a2786b] mb-6">Try adjusting your filters</p>
-                <button
-                  onClick={() => {
-                    setSelectedSegment("all");
-                    setSelectedCategories([]);
-                    setSelectedSubCategories([]);
-                    setLastSelectedCategory(null);
-                  }}
-                  className="bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b] px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Loading Indicator */}
-          {isLoading && (
-            <div className="flex justify-center items-center py-12">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-[#faf6f2] border-t-[#d9a79a] animate-spin"></div>
-                <p className="text-[#8b5f4b] text-sm mt-4 text-center font-semibold">Loading...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Load More Button */}
-          {!isLoading && hasMore && displayedProducts.length > 0 && (
-            <div className="flex justify-center mt-12 mb-8">
+            {/* Mobile Filter Toggle & Product Count */}
+            <div className="flex items-center justify-between mb-6 lg:mb-8">
               <button
-                onClick={loadMoreProducts}
-                className="bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-base"
+                onClick={() => setShowMobileFilters(true)}
+                className="lg:hidden flex items-center gap-2 bg-white px-5 py-3 rounded-xl shadow-md border border-[#e7bfb3]/30 text-[#8b5f4b] font-bold hover:shadow-lg transition-all"
               >
-                Load More Products
+                <SlidersHorizontal size={20} />
+                <span>Filters</span>
               </button>
-            </div>
-          )}
-
-          {/* End of Products Message */}
-          {!hasMore && displayedProducts.length > 0 && (
-            <div className="text-center py-12">
-              <div className="inline-block px-6 py-3 bg-gradient-to-r from-[#faf6f2] to-[#fef9f5] rounded-full border border-[#e7bfb3]/30">
-                <p className="text-[#a2786b] text-sm font-medium">You've viewed all products in this collection</p>
+              <div className="hidden lg:block text-[#8b5f4b] font-semibold text-base">
+                {products.length} Product{products.length !== 1 ? 's' : ''}
               </div>
             </div>
-          )}
+
+            {/* Selected Filters Display */}
+            {(selectedSegment !== 'all' || selectedCategories.length > 0 || selectedSubCategories.length > 0) && (
+              <div className="bg-white rounded-xl p-4 sm:p-5 mb-6 border border-[#e7bfb3]/20 shadow-md">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-bold text-[#8b5f4b]">Active Filters:</span>
+
+                  {/* Segment Filter */}
+                  {selectedSegment !== 'all' && (
+                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#e7bfb3] to-[#d9a79a] text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm">
+                      <span className="capitalize">{selectedSegment}</span>
+                      <button
+                        onClick={() => removeFilter('segment', selectedSegment)}
+                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                        aria-label="Remove filter"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Category Filters */}
+                  {selectedCategories.map((catId) => (
+                    <div key={catId} className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
+                      <span>{getCategoryName(catId)}</span>
+                      <button
+                        onClick={() => removeFilter('category', catId)}
+                        className="hover:bg-white/40 rounded-full p-0.5 transition-colors"
+                        aria-label="Remove category"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Sub-Category Filters */}
+                  {selectedSubCategories.map((subCatId) => (
+                    <div key={subCatId} className="inline-flex items-center gap-1.5 bg-[#faf6f2] text-[#7a5650] border border-[#e7bfb3]/40 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm">
+                      <span>{getSubCategoryName(subCatId)}</span>
+                      <button
+                        onClick={() => removeFilter('subCategory', subCatId)}
+                        className="hover:bg-[#e7bfb3]/30 rounded-full p-0.5 transition-colors"
+                        aria-label="Remove sub-category"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Clear All Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedSegment("all");
+                      setSelectedCategories([]);
+                      setSelectedSubCategories([]);
+                      setLastSelectedCategory(null);
+                    }}
+                    className="text-xs sm:text-sm text-[#d9a79a] hover:text-[#8b5f4b] font-semibold underline ml-2"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {products.length > 0 ? (
+                products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))
+              ) : !isLoading ? (
+                <div className="col-span-full text-center py-20">
+                  <Package size={64} className="mx-auto text-[#e7bfb3] mb-4" />
+                  <p className="text-[#8b5f4b] text-xl font-semibold mb-2">No products found</p>
+                  <p className="text-[#a2786b] mb-6">Try adjusting your filters</p>
+                  <button
+                    onClick={() => {
+                      setSelectedSegment("all");
+                      setSelectedCategories([]);
+                      setSelectedSubCategories([]);
+                      setLastSelectedCategory(null);
+                    }}
+                    className="bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] text-[#8b5f4b] px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Loading Indicator */}
+            {isLoading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full border-4 border-[#faf6f2] border-t-[#d9a79a] animate-spin"></div>
+                  <p className="text-[#8b5f4b] text-sm mt-4 text-center font-semibold">Loading...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {/* {!isLoading && hasMore && displayedProducts.length > 0 && (
+              <div className="flex justify-center mt-12 mb-8">
+                <button
+                  onClick={loadMoreProducts}
+                  className="bg-gradient-to-r from-[#f6d6cb] via-[#e7bfb3] to-[#d9a79a] text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-base"
+                >
+                  Load More Products
+                </button>
+              </div>
+            )} */}
+
+            {/* End of Products Message */}
+            {/* {!hasMore && displayedProducts.length > 0 && (
+              <div className="text-center py-12">
+                <div className="inline-block px-6 py-3 bg-gradient-to-r from-[#faf6f2] to-[#fef9f5] rounded-full border border-[#e7bfb3]/30">
+                  <p className="text-[#a2786b] text-sm font-medium">You've viewed all products in this collection</p>
+                </div>
+              </div>
+            )} */}
           </div>
         </main>
       </div>

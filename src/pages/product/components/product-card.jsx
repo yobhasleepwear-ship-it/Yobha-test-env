@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 const ProductCard = ({ product }) => {
+  console.log(product,"fromhere")
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
