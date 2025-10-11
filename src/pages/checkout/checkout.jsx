@@ -521,7 +521,7 @@ const CheckoutPage = () => {
                     <div className="flex justify-between text-xs md:text-sm">
                       <span className="text-text-medium">Savings</span>
                       <span className="text-luxury-rose-gold font-semibold">
-                        -{formatPrice(cartSummary.discount)}
+                        -{formatPrice(cartSummary?.discount)}
                       </span>
                     </div>
                   )}

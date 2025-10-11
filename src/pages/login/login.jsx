@@ -90,55 +90,67 @@ const handleGoogleLogin = () => {
   return (
     <>
       <HeaderWithSidebar />
-      <div className="min-h-screen flex flex-col md:flex-row bg-[#FAF6F2] pt-16">
-      <div className="hidden md:flex w-1/2 p-20 flex-col justify-center items-start space-y-6 bg-gradient-to-b from-[#FDF7F2] via-[#F8EDE3] to-[#FDF4EE]">
-        <h1 className="text-6xl font-extrabold text-[#B76E79] tracking-wide">
-          Welcome Back
-        </h1>
-        <p className="text-[#7A5650] max-w-md text-lg leading-relaxed">
-          Discover the ultimate luxury in sleepwear with YOBHA. Sign in to continue and indulge in exclusivity.
-        </p>
-        <div className="flex space-x-5 text-[#B76E79] text-3xl">
-          <a href="#" className="hover:text-[#E6B7A9] transition-colors"><FaInstagram /></a>
-          <a href="#" className="hover:text-[#E6B7A9] transition-colors"><FaFacebookF /></a>
-          <a href="#" className="hover:text-[#E6B7A9] transition-colors"><FaTwitter /></a>
-        </div>
-      </div>
-
-      {/* Right Side */}
-      <div className="flex w-full md:w-1/2 justify-center items-center p-6 md:p-20">
-        <div className="w-full md:max-w-md bg-white/20 backdrop-blur-xl rounded-3xl border border-[#B76E79]/20 shadow-lg p-8 md:p-12">
-          {/* Brand */}
-          <h1 className="text-center text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] mb-10 md:mb-12">
-            YOBHA
+      <div 
+        className="min-h-screen flex flex-col md:flex-row bg-premium-cream pt-16"
+        style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+      >
+        {/* Left Side - Brand Section */}
+        <div className="hidden md:flex w-1/2 p-16 lg:p-20 flex-col justify-center items-start space-y-8 bg-white">
+          <h1 className="text-5xl lg:text-6xl font-bold text-black tracking-wider uppercase">
+            Welcome Back
           </h1>
+          <p className="text-text-medium max-w-md text-base lg:text-lg leading-relaxed">
+            Discover the ultimate luxury in sleepwear with YOBHA. Sign in to continue and indulge in exclusivity.
+          </p>
+          <div className="flex space-x-6 text-black text-2xl">
+            <button className="hover:text-text-medium transition-colors" aria-label="Instagram">
+              <FaInstagram />
+            </button>
+            <button className="hover:text-text-medium transition-colors" aria-label="Facebook">
+              <FaFacebookF />
+            </button>
+            <button className="hover:text-text-medium transition-colors" aria-label="Twitter">
+              <FaTwitter />
+            </button>
+          </div>
+        </div>
 
-          {!isSignup ? (
-            <>
-              {/* Tabs */}
-              <div className="flex justify-around mb-6 md:mb-8 border-b border-[#B76E79]/20">
-                <button
-                  onClick={() => setActiveTab("email")}
-                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${activeTab === "email"
-                    ? "border-b-2 border-[#B76E79] text-[#B76E79]"
-                    : "text-[#A46B60] hover:text-[#B76E79]"
+        {/* Right Side - Login/Signup Form */}
+        <div className="flex w-full md:w-1/2 justify-center items-center p-6 md:p-12 lg:p-20">
+          <div className="w-full md:max-w-md bg-white border border-text-light/20 shadow-lg p-8 md:p-12">
+            {/* Brand */}
+            <h1 className="text-center text-4xl md:text-5xl font-bold text-black mb-10 md:mb-12 uppercase tracking-widest">
+              YOBHA
+            </h1>
+
+            {!isSignup ? (
+              <>
+                {/* Tabs */}
+                <div className="flex justify-center gap-8 mb-8 md:mb-10 border-b border-text-light/20">
+                  <button
+                    onClick={() => setActiveTab("email")}
+                    className={`pb-3 px-2 font-semibold text-sm uppercase tracking-wider transition-all ${
+                      activeTab === "email"
+                        ? "border-b-2 border-black text-black"
+                        : "text-text-medium hover:text-black"
                     }`}
-                >
-                  Email
-                </button>
-                <button
-                  onClick={() => setActiveTab("phone")}
-                  className={`py-2 px-3 md:px-4 font-semibold text-sm md:text-lg transition-all ${activeTab === "phone"
-                    ? "border-b-2 border-[#B76E79] text-[#B76E79]"
-                    : "text-[#A46B60] hover:text-[#B76E79]"
+                  >
+                    Email
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("phone")}
+                    className={`pb-3 px-2 font-semibold text-sm uppercase tracking-wider transition-all ${
+                      activeTab === "phone"
+                        ? "border-b-2 border-black text-black"
+                        : "text-text-medium hover:text-black"
                     }`}
-                >
-                  Phone
-                </button>
-              </div>
+                  >
+                    Phone
+                  </button>
+                </div>
 
               {/* Login Form */}
-              <form className="space-y-4 md:space-y-5" onSubmit={activeTab === "phone" ? handlePhoneContinue : handleLogin}>
+              <form className="space-y-5" onSubmit={activeTab === "phone" ? handlePhoneContinue : handleLogin}>
                 {activeTab === "email" ? (
                   <>
                     <input
@@ -146,14 +158,16 @@ const handleGoogleLogin = () => {
                       placeholder="Email Address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                      required
+                      className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                     />
                     <input
                       type="password"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                      required
+                      className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                     />
                   </>
                 ) : (
@@ -161,7 +175,7 @@ const handleGoogleLogin = () => {
                     <select
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
-                      className="w-20 sm:w-24 md:w-28 px-2 sm:px-3 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-xs sm:text-sm md:text-base font-semibold cursor-pointer"
+                      className="w-20 sm:w-24 px-2 sm:px-3 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white text-xs sm:text-sm font-semibold cursor-pointer"
                     >
                       <option value="+91">🇮🇳 +91</option>
                       <option value="+1">🇺🇸 +1</option>
@@ -197,38 +211,42 @@ const handleGoogleLogin = () => {
                       placeholder="Phone Number"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                      required
+                      className="flex-1 min-w-0 px-3 sm:px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                     />
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
+                  className="w-full py-4 bg-black text-white font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm mt-6"
                 >
                   {activeTab === "email" ? "Login" : "Continue"}
                 </button>
               </form>
 
               {/* OR Divider */}
-              <div className="flex items-center my-4 md:my-6 text-[#A46B60]">
-                <hr className="flex-grow border-[#B76E79]/20" />
-                <span className="px-2 md:px-3 text-sm md:text-base">OR</span>
-                <hr className="flex-grow border-[#B76E79]/20" />
+              <div className="flex items-center my-6 md:my-8 text-text-medium">
+                <hr className="flex-grow border-text-light/20" />
+                <span className="px-4 text-xs uppercase tracking-wider">Or</span>
+                <hr className="flex-grow border-text-light/20" />
               </div>
 
               {/* Google Login */}
-              <button  onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 md:gap-4 py-3 md:py-4 border border-[#B76E79]/20 rounded-2xl hover:bg-[#FFF1E0]/30 transition-all text-[#5A3A36] font-medium text-sm md:text-base">
+              <button 
+                onClick={handleGoogleLogin} 
+                className="w-full flex items-center justify-center gap-3 py-4 border-2 border-text-light/30 hover:border-black transition-colors text-black font-medium text-sm"
+              >
                 <FcGoogle size={22} />
                 Continue with Google
               </button>
 
               {/* Signup Link */}
-              <p className="text-center text-[#7A5650] mt-4 md:mt-6 text-sm md:text-base">
-                New to Yobha?{" "}
+              <p className="text-center text-text-medium mt-6 md:mt-8 text-sm">
+                New to YOBHA?{" "}
                 <span
                   onClick={() => setIsSignup(true)}
-                  className="text-[#B76E79] font-semibold cursor-pointer hover:text-[#E6B7A9] transition-colors"
+                  className="text-black font-semibold cursor-pointer hover:text-text-medium transition-colors underline"
                 >
                   Sign Up
                 </span>
@@ -237,36 +255,39 @@ const handleGoogleLogin = () => {
           ) : (
             <>
               {/* Signup Form */}
-              <h2 className="text-center text-2xl md:text-3xl font-bold text-[#B76E79] mb-6 md:mb-8">
+              <h2 className="text-center text-2xl md:text-3xl font-bold text-black mb-6 md:mb-8 uppercase tracking-wider">
                 Create Account
               </h2>
-              <form className="space-y-4 md:space-y-5" onSubmit={handleSignup}>
+              <form className="space-y-5" onSubmit={handleSignup}>
                 <input
                   type="text"
                   placeholder="Full Name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                  required
+                  className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                 />
                 <input
                   type="email"
                   placeholder="Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                  required
+                  className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                 />
                 <input
                   type="password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                  required
+                  className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                 />
                 <div className="flex gap-2">
                   <select
                     value={countryCode}
                     onChange={(e) => setCountryCode(e.target.value)}
-                    className="w-20 sm:w-24 md:w-28 px-2 sm:px-3 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-xs sm:text-sm md:text-base font-semibold cursor-pointer"
+                    className="w-20 sm:w-24 px-2 sm:px-3 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white text-xs sm:text-sm font-semibold cursor-pointer"
                   >
                     <option value="+91">🇮🇳 +91</option>
                     <option value="+1">🇺🇸 +1</option>
@@ -302,21 +323,22 @@ const handleGoogleLogin = () => {
                     placeholder="Phone Number"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="flex-1 min-w-0 px-3 sm:px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-1 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner text-sm md:text-base"
+                    required
+                    className="flex-1 min-w-0 px-3 sm:px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light text-sm"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
+                  className="w-full py-4 bg-black text-white font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm mt-6"
                 >
                   Sign Up
                 </button>
               </form>
-              <p className="text-center text-[#7A5650] mt-4 md:mt-6 text-sm md:text-base">
+              <p className="text-center text-text-medium mt-6 md:mt-8 text-sm">
                 Already have an account?{" "}
                 <span
                   onClick={() => setIsSignup(false)}
-                  className="text-[#B76E79] font-semibold cursor-pointer hover:text-[#E6B7A9] transition-colors"
+                  className="text-black font-semibold cursor-pointer hover:text-text-medium transition-colors underline"
                 >
                   Login
                 </span>
@@ -327,84 +349,85 @@ const handleGoogleLogin = () => {
       </div>
 
       {/* OTP Modal */}
-     {showOtpModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-[#B76E79]/20">
-      <h2 className="text-2xl md:text-3xl font-bold text-[#B76E79] mb-3 md:mb-4 text-center">
-        Enter OTP
-      </h2>
-      <p className="text-center text-[#7A5650] mb-6 text-sm md:text-base">
-        We sent a verification code to
-      </p>
-      
-      {/* Phone Number Display */}
-      <div className="bg-gradient-to-r from-[#FDF7F2] to-[#F8EDE3] rounded-xl p-3 mb-6 text-center border border-[#B76E79]/20">
-        <p className="text-[#B76E79] font-bold text-base md:text-lg break-all">
-          {countryCode} {phoneNumber}
-        </p>
-      </div>
-
-      {/* OTP Input */}
-      <input
-        type="text"
-        placeholder="Enter 6-digit OTP"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-        maxLength="6"
-        className="w-full px-4 md:px-5 py-3 md:py-4 rounded-2xl border border-[#B76E79]/30 focus:border-[#B76E79] focus:ring-2 focus:ring-[#FFD7C2]/40 outline-none text-[#5A3A36] bg-white/30 backdrop-blur-sm shadow-inner mb-5 text-center text-lg md:text-xl font-semibold tracking-widest"
-      />
-      <button
-        className="w-full py-3 md:py-4 bg-gradient-to-r from-[#B76E79] via-[#E6B7A9] to-[#FFD7C2] text-white font-semibold rounded-2xl transition-transform hover:scale-[1.03] text-sm md:text-base"
-        onClick={async () => {
-          try {
-            const response = await verifyOtp(`${countryCode}${phoneNumber}`, otp);
-            console.log("OTP verified:", response);
-
-            // Save tokens if returned
-            const { token, refreshToken, user } = response?.data;
-            localStorageService.setValue(LocalStorageKeys.AuthToken, token);
-            localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
-            localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
-
+      {showOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white p-6 md:p-8 w-full max-w-md shadow-2xl border border-text-light/20">
+            <h2 className="text-2xl md:text-3xl font-bold text-black mb-3 md:mb-4 text-center uppercase tracking-wider">
+              Enter OTP
+            </h2>
+            <p className="text-center text-text-medium mb-6 text-sm md:text-base">
+              We sent a verification code to
+            </p>
             
-            setShowOtpModal(false);
-            navigate("/");
-          } catch (err) {
-            console.error("OTP verification failed:", err);
-           
-          }
-        }}
-      >
-        Verify OTP
-      </button>
-      
-      {/* Resend OTP */}
-      <p className="text-center text-[#7A5650] mt-4 text-sm">
-        Didn't receive code?{" "}
-        <button
-          onClick={async () => {
-            try {
-              await sendOtp(`${countryCode}${phoneNumber}`);
-              // Show success message
-            } catch (error) {
-              console.error("Resend OTP error:", error);
-            }
-          }}
-          className="text-[#B76E79] font-semibold hover:text-[#E6B7A9] transition-colors underline"
-        >
-          Resend OTP
-        </button>
-      </p>
+            {/* Phone Number Display */}
+            <div className="bg-premium-beige p-3 mb-6 text-center border border-text-light/20">
+              <p className="text-black font-bold text-base md:text-lg break-all">
+                {countryCode} {phoneNumber}
+              </p>
+            </div>
 
-      <button
-        className="text-center text-[#A46B60] mt-3 cursor-pointer hover:text-[#B76E79] text-sm w-full transition-colors"
-        onClick={() => setShowOtpModal(false)}
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+            {/* OTP Input */}
+            <input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength="6"
+              className="w-full px-4 py-4 border-2 border-text-light/30 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light mb-5 text-center text-lg md:text-xl font-semibold tracking-widest"
+            />
+            <button
+              className="w-full py-4 bg-black text-white font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm"
+              onClick={async () => {
+                try {
+                  const response = await verifyOtp(`${countryCode}${phoneNumber}`, otp);
+                  console.log("OTP verified:", response);
+
+                  // Save tokens if returned
+                  const { token, refreshToken, user } = response?.data;
+                  localStorageService.setValue(LocalStorageKeys.AuthToken, token);
+                  localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
+                  localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
+
+                  
+                  setShowOtpModal(false);
+                  navigate("/");
+                } catch (err) {
+                  console.error("OTP verification failed:", err);
+                  alert(err.response?.data?.message || "OTP verification failed");
+                }
+              }}
+            >
+              Verify OTP
+            </button>
+            
+            {/* Resend OTP */}
+            <p className="text-center text-text-medium mt-4 text-sm">
+              Didn't receive code?{" "}
+              <button
+                onClick={async () => {
+                  try {
+                    await sendOtp(`${countryCode}${phoneNumber}`);
+                    alert("OTP resent successfully!");
+                  } catch (error) {
+                    console.error("Resend OTP error:", error);
+                    alert("Failed to resend OTP");
+                  }
+                }}
+                className="text-black font-semibold hover:text-text-medium transition-colors underline"
+              >
+                Resend OTP
+              </button>
+            </p>
+
+            <button
+              className="text-center text-text-medium mt-3 cursor-pointer hover:text-black text-sm w-full transition-colors uppercase tracking-wider"
+              onClick={() => setShowOtpModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
     <Footer />

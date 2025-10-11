@@ -11,6 +11,7 @@ const Cart = lazy(() => import("./pages/cart/cart"));
 const Checkout = lazy(() => import("./pages/checkout/checkout"));
 const Wishlist = lazy(() => import("./pages/wishlist/wishlist"));
 const Orders = lazy(() => import("./pages/orders/orders"));
+const OrderDetails = lazy(() => import("./pages/order-details/order-details"));
 const Account = lazy(() => import("./pages/account/account"));
 
 const Router = () => {
@@ -24,6 +25,7 @@ const Router = () => {
     { path: "/checkout", element: <Checkout /> },
     { path: "/wishlist", element: <Wishlist /> },
     { path: "/orders", element: <Orders /> },
+    { path: "/order-details/:orderId", element: <OrderDetails /> },
     { path: "/account", element: <Account /> }
   ];
 
