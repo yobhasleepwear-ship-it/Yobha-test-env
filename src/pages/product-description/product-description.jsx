@@ -15,7 +15,7 @@ import { addToCart, getCartDetails, getProductDescription, updateCartQuantity } 
 import { useDispatch } from "react-redux";
 import { setCartCount } from "../../redux/cartSlice";
 import { addToWishlist } from "../../service/wishlist";
-
+import ToastContainer, { message } from "../../comman/toster-message/ToastContainer";
 /**
  * Helper function to safely format product data from API
  * Handles null checks and provides fallbacks
@@ -277,9 +277,7 @@ const ProductDetailPage = () => {
     createdAt: "2025-09-01T12:00:00Z",
     updatedAt: "2025-10-01T08:00:00Z",
   };
-  // ============ END TESTING DUMMY DATA ============
   
-  // Fetch product data
   useEffect(() => {
     
 
@@ -385,7 +383,7 @@ const handleAddToCart = async () => {
   try {
     const response = await addToCart(payload);
     console.log("Added to cart:", response);
-    alert("Product added to cart successfully!");
+    message.success("Product added to cart successfully!");
     fetchCart()
   } catch (err) {
     console.error("Error adding to cart:", err);

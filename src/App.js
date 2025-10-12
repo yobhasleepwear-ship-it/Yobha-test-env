@@ -7,6 +7,7 @@ import { store } from "./redux/store";
 import { Provider, useDispatch } from "react-redux";
 import { getCartDetails } from "./service/productAPI";
 import { setCartCount } from "./redux/cartSlice"; // assume you have this action
+import ToastContainer from "./comman/toster-message/ToastContainer";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -35,6 +36,7 @@ function App() {
       <BrowserRouter>
         <AxiosInterceptorProvider>
           <AppContent />
+          <ToastContainer />
         </AxiosInterceptorProvider>
       </BrowserRouter>
     </Provider>
