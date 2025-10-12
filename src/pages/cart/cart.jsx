@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
+import {
   Plus, Minus, Heart, Trash2, ShoppingBag, ArrowRight, Truck, RotateCcw
 } from "lucide-react";
 // eslint-disable-next-line no-unused-vars
-import { getCartDetails } from "../../service/productAPI";
+import { deleteCartItem, getCartDetails, updateCartQuantity } from "../../service/productAPI";
+import { useDispatch } from "react-redux";
+import { setCartCount } from "../../redux/cartSlice";
 
 /**
  * Helper function to safely format cart data from API
@@ -27,41 +29,41 @@ const formatCartData = (apiResponse) => {
   const data = apiResponse.data;
 
   // Format cart items with null checks
-  const items = Array.isArray(data?.items) 
+  const items = Array.isArray(data?.items)
     ? data.items
-        .filter(item => item && item.product && item.product.isActive !== false)
-        .map(item => ({
-          // Item level fields
-          id: item?.id || Math.random().toString(),
-          userId: item?.userId || '',
-          quantity: typeof item?.quantity === 'number' ? item.quantity : 1,
-          lineTotal: typeof item?.lineTotal === 'number' ? item.lineTotal : 0,
-          addedAt: item?.addedAt || null,
-          updatedAt: item?.updatedAt || null,
-          note: item?.note || '',
+      .filter(item => item && item.product && item.product.isActive !== false)
+      .map(item => ({
+        // Item level fields
+        id: item?.id || Math.random().toString(),
+        userId: item?.userId || '',
+        quantity: typeof item?.quantity === 'number' ? item.quantity : 1,
+        lineTotal: typeof item?.lineTotal === 'number' ? item.lineTotal : 0,
+        addedAt: item?.addedAt || null,
+        updatedAt: item?.updatedAt || null,
+        note: item?.note || '',
 
-          // Product fields (nested)
-          product: {
-            productId: item?.product?.productId || '',
-            productObjectId: item?.product?.productObjectId || '',
-            name: item?.product?.name || 'Untitled Product',
-            slug: item?.product?.slug || '',
-            thumbnailUrl: item?.product?.thumbnailUrl || 'https://via.placeholder.com/150x150?text=No+Image',
-            variantSku: item?.product?.variantSku || '',
-            variantId: item?.product?.variantId || '',
-            variantSize: item?.product?.variantSize || '',
-            variantColor: item?.product?.variantColor || '',
-            unitPrice: typeof item?.product?.unitPrice === 'number' ? item.product.unitPrice : 0,
-            compareAtPrice: typeof item?.product?.compareAtPrice === 'number' ? item.product.compareAtPrice : null,
-            currency: item?.product?.currency || 'INR',
-            stockQuantity: typeof item?.product?.stockQuantity === 'number' ? item.product.stockQuantity : 0,
-            reservedQuantity: typeof item?.product?.reservedQuantity === 'number' ? item.product.reservedQuantity : 0,
-            isActive: item?.product?.isActive !== false,
-            freeShipping: item?.product?.freeShipping === true,
-            cashOnDelivery: item?.product?.cashOnDelivery === true,
-            priceList: Array.isArray(item?.product?.priceList) ? item.product.priceList : [],
-          }
-        }))
+        // Product fields (nested)
+        product: {
+          productId: item?.product?.productId || '',
+          productObjectId: item?.product?.productObjectId || '',
+          name: item?.product?.name || 'Untitled Product',
+          slug: item?.product?.slug || '',
+          thumbnailUrl: item?.product?.thumbnailUrl || 'https://via.placeholder.com/150x150?text=No+Image',
+          variantSku: item?.product?.variantSku || '',
+          variantId: item?.product?.variantId || '',
+          variantSize: item?.product?.variantSize || '',
+          variantColor: item?.product?.variantColor || '',
+          unitPrice: typeof item?.product?.unitPrice === 'number' ? item.product.unitPrice : 0,
+          compareAtPrice: typeof item?.product?.compareAtPrice === 'number' ? item.product.compareAtPrice : null,
+          currency: item?.product?.currency || 'INR',
+          stockQuantity: typeof item?.product?.stockQuantity === 'number' ? item.product.stockQuantity : 0,
+          reservedQuantity: typeof item?.product?.reservedQuantity === 'number' ? item.product.reservedQuantity : 0,
+          isActive: item?.product?.isActive !== false,
+          freeShipping: item?.product?.freeShipping === true,
+          cashOnDelivery: item?.product?.cashOnDelivery === true,
+          priceList: Array.isArray(item?.product?.priceList) ? item.product.priceList : [],
+        }
+      }))
     : [];
 
   // Format summary with null checks
@@ -85,9 +87,9 @@ const formatCartData = (apiResponse) => {
 const formatPrice = (price, currency = 'INR') => {
   if (typeof price !== 'number') return '₹0';
   const symbol = currency === 'INR' ? '₹' : currency;
-  return `${symbol}${price.toLocaleString('en-IN', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0 
+  return `${symbol}${price.toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   })}`;
 };
 
@@ -101,11 +103,11 @@ const calculateDiscountPercent = (originalPrice, currentPrice) => {
 
 const CartPage = () => {
   const navigate = useNavigate();
-  
+  const dispatch = useDispatch();
   // API State
   const [cartItems, setCartItems] = useState([]);
   const [cartSummary, setCartSummary] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Coupon State
@@ -114,156 +116,159 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState('');
 
   // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
-  const TESTING_DUMMY_CART = {
-    success: true,
-    status: 200,
-    message: "OK",
-    data: {
-      items: [
-        {
-          id: "656fa3e7d1b2a4c9f0000001",
-          userId: "user-123",
-          product: {
-            productId: "PID10001",
-            productObjectId: "650b8c1e4b5f4a0000000000",
-            name: "Luxe Cotton Nightshirt",
-            slug: "luxe-cotton-nightshirt",
-            thumbnailUrl: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400",
-            variantSku: "PID10001-NAV-S",
-            variantId: "var-123",
-            variantSize: "S",
-            variantColor: "navy",
-            unitPrice: 1299.00,
-            compareAtPrice: 1599.00,
-            currency: "INR",
-            stockQuantity: 10,
-            reservedQuantity: 0,
-            isActive: true,
-            freeShipping: true,
-            cashOnDelivery: true,
-            priceList: [
-              { id:"pt1", size:"S", priceAmount:1299.0, quantity:0, currency:"INR" }
-            ]
-          },
-          quantity: 2,
-          lineTotal: 2598.00,
-          addedAt: "2025-10-11T03:12:00Z",
-          updatedAt: "2025-10-11T03:12:00Z",
-          note: "Gift wrap please"
-        },
-        {
-          id: "656fa3e7d1b2a4c9f0000002",
-          userId: "user-123",
-          product: {
-            productId: "PID10002",
-            productObjectId: "650b8c1e4b5f4a0000000001",
-            name: "Silk Camisole Set",
-            slug: "silk-camisole-set",
-            thumbnailUrl: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400",
-            variantSku: "PID10002-ROSE-M",
-            variantId: "var-456",
-            variantSize: "M",
-            variantColor: "rose",
-            unitPrice: 1999.00,
-            compareAtPrice: 2499.00,
-            currency: "INR",
-            stockQuantity: 8,
-            reservedQuantity: 2,
-            isActive: true,
-            freeShipping: true,
-            cashOnDelivery: true,
-            priceList: []
-          },
-          quantity: 1,
-          lineTotal: 1999.00,
-          addedAt: "2025-10-11T04:20:00Z",
-          updatedAt: "2025-10-11T04:20:00Z",
-          note: ""
-        }
-      ],
-      summary: {
-        totalItems: 3,
-        distinctItems: 2,
-        subTotal: 4597.00,
-        shipping: 0.00,
-        tax: 0.00,
-        discount: 0.00,
-        grandTotal: 4597.00,
-        currency: "INR"
-      }
+  // const TESTING_DUMMY_CART = {
+  //   success: true,
+  //   status: 200,
+  //   message: "OK",
+  //   data: {
+  //     items: [
+  //       {
+  //         id: "656fa3e7d1b2a4c9f0000001",
+  //         userId: "user-123",
+  //         product: {
+  //           productId: "PID10001",
+  //           productObjectId: "650b8c1e4b5f4a0000000000",
+  //           name: "Luxe Cotton Nightshirt",
+  //           slug: "luxe-cotton-nightshirt",
+  //           thumbnailUrl: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400",
+  //           variantSku: "PID10001-NAV-S",
+  //           variantId: "var-123",
+  //           variantSize: "S",
+  //           variantColor: "navy",
+  //           unitPrice: 1299.00,
+  //           compareAtPrice: 1599.00,
+  //           currency: "INR",
+  //           stockQuantity: 10,
+  //           reservedQuantity: 0,
+  //           isActive: true,
+  //           freeShipping: true,
+  //           cashOnDelivery: true,
+  //           priceList: [
+  //             { id: "pt1", size: "S", priceAmount: 1299.0, quantity: 0, currency: "INR" }
+  //           ]
+  //         },
+  //         quantity: 2,
+  //         lineTotal: 2598.00,
+  //         addedAt: "2025-10-11T03:12:00Z",
+  //         updatedAt: "2025-10-11T03:12:00Z",
+  //         note: "Gift wrap please"
+  //       },
+  //       {
+  //         id: "656fa3e7d1b2a4c9f0000002",
+  //         userId: "user-123",
+  //         product: {
+  //           productId: "PID10002",
+  //           productObjectId: "650b8c1e4b5f4a0000000001",
+  //           name: "Silk Camisole Set",
+  //           slug: "silk-camisole-set",
+  //           thumbnailUrl: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400",
+  //           variantSku: "PID10002-ROSE-M",
+  //           variantId: "var-456",
+  //           variantSize: "M",
+  //           variantColor: "rose",
+  //           unitPrice: 1999.00,
+  //           compareAtPrice: 2499.00,
+  //           currency: "INR",
+  //           stockQuantity: 8,
+  //           reservedQuantity: 2,
+  //           isActive: true,
+  //           freeShipping: true,
+  //           cashOnDelivery: true,
+  //           priceList: []
+  //         },
+  //         quantity: 1,
+  //         lineTotal: 1999.00,
+  //         addedAt: "2025-10-11T04:20:00Z",
+  //         updatedAt: "2025-10-11T04:20:00Z",
+  //         note: ""
+  //       }
+  //     ],
+  //     summary: {
+  //       totalItems: 3,
+  //       distinctItems: 2,
+  //       subTotal: 4597.00,
+  //       shipping: 0.00,
+  //       tax: 0.00,
+  //       discount: 0.00,
+  //       grandTotal: 4597.00,
+  //       currency: "INR"
+  //     }
+  //   }
+  // };
+
+  useEffect(() => {
+    
+    fetchCart();
+    
+  }, []);
+  const fetchCart = async () => {
+    setIsLoading(true)
+    try {
+      const response = await getCartDetails()
+      console.log(response.data);
+      setCartItems(response.data.items)
+      dispatch(setCartCount(response.data.items.length));
+    }
+    catch (err) {
+      console.log(err || "something went wrong")
+    }
+    finally{
+      setIsLoading(false)
+    }
+
+  }
+
+  const handleUpdateCartQuantity = async (itemId,q) => {
+    try {
+      const payload = { cartItemId:itemId, quantity:q};
+      const data = await updateCartQuantity(payload);
+      console.log("Cart quantity updated:", data);
+      return data;
+    } catch (err) {
+      console.error("Error updating cart quantity:", err);
     }
   };
-  // ============ END TESTING DUMMY DATA ============
-
-  // Fetch cart data
-  useEffect(() => {
-    const fetchCart = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
-      setTimeout(() => {
-        const formatted = formatCartData(TESTING_DUMMY_CART);
-        setCartItems(formatted.items);
-        setCartSummary(formatted.summary);
-        setIsLoading(false);
-      }, 500);
-      return;
-      // ============ END TESTING MODE ============
-
-      // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
-      /* 
-      try {
-        const response = await getCartDetails();
-        
-        if (response && response.success) {
-          const formatted = formatCartData(response);
-          setCartItems(formatted.items);
-          setCartSummary(formatted.summary);
-        } else {
-          setCartItems([]);
-          setCartSummary(null);
-        }
-      } catch (err) {
-        console.error('Failed to fetch cart:', err);
-        setError('Failed to load cart');
-        setCartItems([]);
-        setCartSummary(null);
-      } finally {
-        setIsLoading(false);
-      }
-      */
-      // ============ END PRODUCTION API CODE ============
-    };
-
-    fetchCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
   // Update quantity
-  const updateQuantity = (itemId, delta) => {
-    setCartItems(items =>
-      items.map(item => {
-        if (item.id === itemId) {
-          const newQuantity = Math.max(1, item.quantity + delta);
-          const maxQuantity = item.product.stockQuantity - item.product.reservedQuantity;
-          
-          return {
-            ...item,
-            quantity: Math.min(newQuantity, maxQuantity),
-            lineTotal: item.product.unitPrice * Math.min(newQuantity, maxQuantity)
-          };
-        }
-        return item;
-      })
-    );
-    // TODO: Call API to update cart quantity
-  };
+ const updateQuantity = async (itemId, delta) => {
+  setCartItems(items =>
+    items.map(item => {
+      if (item.id === itemId) {
+        const newQuantity = Math.max(1, item.quantity + delta);
+        const maxQuantity = item.product.stockQuantity - item.product.reservedQuantity;
 
+        const finalQuantity = Math.min(newQuantity, maxQuantity);
+
+        // Call API to update cart quantity
+        handleUpdateCartQuantity(itemId, finalQuantity);
+
+        return {
+          ...item,
+          quantity: finalQuantity,
+          lineTotal: item.product.unitPrice * finalQuantity
+        };
+      }
+      return item;
+    })
+  );
+};
+
+const handleDeleteCartItem = async (id) => {
+
+
+  try {
+  
+    await deleteCartItem(id);
+
+    const response = await fetchCart();
+    console.log("Item deleted successfully");
+  } catch (err) {
+    console.error("Failed to delete cart item:", err);
+  }
+};
   // Remove item
   const removeItem = (itemId) => {
-    setCartItems(items => items.filter(item => item.id !== itemId));
-    // TODO: Call API to remove from cart
+    // setCartItems(items => items.filter(item => item.id !== itemId));
+    handleDeleteCartItem(itemId)
   };
 
   // Move to wishlist
@@ -275,7 +280,7 @@ const CartPage = () => {
   // Apply coupon
   const applyCoupon = () => {
     setCouponError('');
-    
+
     if (!couponCode || couponCode.trim() === '') {
       setCouponError('Please enter a coupon code');
       return;
@@ -290,7 +295,7 @@ const CartPage = () => {
     ];
 
     const validCoupon = mockCoupons.find(c => c.code === couponCode.toUpperCase());
-    
+
     if (validCoupon) {
       setAppliedCoupon(validCoupon);
       setCouponError('');
@@ -334,7 +339,7 @@ const CartPage = () => {
     }, 0);
 
     const shipping = subTotal > 1000 || cartItems.some(item => item?.product?.freeShipping) ? 0 : 99;
-    
+
     // Calculate coupon discount
     let couponDiscount = 0;
     if (appliedCoupon) {
@@ -357,7 +362,7 @@ const CartPage = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div 
+      <div
         className="min-h-screen bg-premium-cream flex items-center justify-center"
         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
       >
@@ -372,7 +377,7 @@ const CartPage = () => {
   // Error state
   if (error) {
     return (
-      <div 
+      <div
         className="min-h-screen bg-premium-cream flex items-center justify-center"
         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
       >
@@ -393,12 +398,12 @@ const CartPage = () => {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-premium-cream"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 md:py-12">
-        
+
         {/* Page Header */}
         <div className="mb-8 md:mb-12">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black uppercase tracking-wide mb-2 md:mb-3">
@@ -422,19 +427,19 @@ const CartPage = () => {
               <p className="text-sm md:text-base text-text-medium mb-6 md:mb-8">
                 Discover our premium collection of luxury sleepwear
               </p>
-            <button
-              onClick={() => navigate("/products")}
+              <button
+                onClick={() => navigate("/products")}
                 className="inline-flex items-center gap-2 md:gap-3 bg-black text-white px-6 md:px-8 py-3 md:py-4 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs md:text-sm"
-            >
+              >
                 Start Shopping
                 <ArrowRight size={18} strokeWidth={1.5} />
-            </button>
+              </button>
             </div>
           </div>
         ) : (
           /* Cart Content */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            
+
             {/* Left Column - Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
@@ -443,13 +448,13 @@ const CartPage = () => {
                 const discountPercent = calculateDiscountPercent(product.compareAtPrice, product.unitPrice);
 
                 return (
-                    <div
-                      key={item.id}
+                  <div
+                    key={item.id}
                     className="bg-white border border-text-light/20 p-4 md:p-6 hover:shadow-md transition-all"
                   >
                     <div className="flex flex-col sm:flex-row gap-4">
-                        {/* Product Image */}
-                      <div 
+                      {/* Product Image */}
+                      <div
                         className="w-full sm:w-28 md:w-32 h-32 flex-shrink-0 bg-premium-beige overflow-hidden cursor-pointer"
                         onClick={() => navigate(`/productDetail/${product.productId}`)}
                       >
@@ -460,19 +465,19 @@ const CartPage = () => {
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/150x150?text=No+Image';
                           }}
-                          />
-                        </div>
+                        />
+                      </div>
 
-                        {/* Product Details */}
-                        <div className="flex-1 min-w-0">
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
                         <div className="flex justify-between gap-2 mb-3">
                           <div className="flex-1 min-w-0">
-                            <h3 
+                            <h3
                               className="font-semibold text-black text-base md:text-lg mb-2 line-clamp-2 hover:underline cursor-pointer uppercase tracking-tight"
                               onClick={() => navigate(`/productDetail/${product.productId}`)}
                             >
                               {product.name}
-                          </h3>
+                            </h3>
                             <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-text-medium mb-2">
                               {product.variantColor && (
                                 <span>Color: <span className="text-black font-medium capitalize">{product.variantColor}</span></span>
@@ -494,9 +499,9 @@ const CartPage = () => {
                           >
                             <Trash2 size={18} strokeWidth={1.5} />
                           </button>
-                          </div>
-                          
-                          {/* Price */}
+                        </div>
+
+                        {/* Price */}
                         <div className="mb-4">
                           <div className="flex flex-wrap items-baseline gap-2 mb-1">
                             <span className="text-xl md:text-2xl font-bold text-black">
@@ -505,52 +510,52 @@ const CartPage = () => {
                             {product.compareAtPrice && (
                               <span className="text-sm md:text-base text-text-light line-through">
                                 {formatPrice(product.compareAtPrice, product.currency)}
-                            </span>
+                              </span>
                             )}
                             {discountPercent > 0 && (
                               <span className="text-xs bg-black text-white px-2 py-0.5 uppercase tracking-wider whitespace-nowrap">
                                 {discountPercent}% OFF
-                            </span>
+                              </span>
                             )}
                           </div>
                           <p className="text-xs md:text-sm text-text-medium">
                             Line Total: <span className="font-bold text-black">{formatPrice(item.lineTotal, product.currency)}</span>
                           </p>
-                          </div>
+                        </div>
 
                         {/* Quantity Controls & Actions */}
                         <div className="flex flex-wrap items-center gap-4">
                           {/* Quantity Controls */}
                           <div className="flex items-center border-2 border-text-light/30">
-                              <button
-                                onClick={() => updateQuantity(item.id, -1)}
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
                               disabled={item.quantity <= 1}
                               className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               aria-label="Decrease quantity"
-                              >
+                            >
                               <Minus size={14} strokeWidth={2} />
-                              </button>
+                            </button>
                             <span className="px-4 md:px-6 py-2 font-semibold text-sm md:text-base min-w-[50px] text-center">
-                                {item.quantity}
-                              </span>
-                              <button
-                                onClick={() => updateQuantity(item.id, 1)}
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
                               disabled={item.quantity >= availableStock}
                               className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               aria-label="Increase quantity"
-                              >
-                              <Plus size={14} strokeWidth={2} />
-                              </button>
-                            </div>
-
-                            {/* Move to Wishlist */}
-                            <button
-                              onClick={() => moveToWishlist(item.id)}
-                            className="flex items-center gap-2 text-xs md:text-sm text-text-medium hover:text-black transition-colors"
                             >
-                            <Heart size={14} strokeWidth={1.5} />
-                              <span className="hidden sm:inline">Wishlist</span>
+                              <Plus size={14} strokeWidth={2} />
                             </button>
+                          </div>
+
+                          {/* Move to Wishlist */}
+                          <button
+                            onClick={() => moveToWishlist(item.id)}
+                            className="flex items-center gap-2 text-xs md:text-sm text-text-medium hover:text-black transition-colors"
+                          >
+                            <Heart size={14} strokeWidth={1.5} />
+                            <span className="hidden sm:inline">Wishlist</span>
+                          </button>
 
                           {/* Stock Warning */}
                           {availableStock <= 5 && availableStock > 0 && (
@@ -608,8 +613,8 @@ const CartPage = () => {
                       </p>
                       <p className="text-xs text-luxury-rose-gold font-semibold mt-1">
                         You saved{' '}
-                        {appliedCoupon.type === 'percentage' 
-                          ? `${appliedCoupon.discount}%` 
+                        {appliedCoupon.type === 'percentage'
+                          ? `${appliedCoupon.discount}%`
                           : formatPrice(appliedCoupon.discount)}!
                       </p>
                     </div>
@@ -720,7 +725,7 @@ const CartPage = () => {
                         {formatPrice(cartSummary?.subTotal || totals.subTotal)}
                       </span>
                     </div>
-                    
+
                     {(cartSummary?.discount || totals.totalSavings) > 0 && (
                       <div className="flex justify-between text-xs md:text-sm">
                         <span className="text-text-medium">Product Savings</span>
@@ -786,7 +791,7 @@ const CartPage = () => {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
                         <p className="text-xs text-text-medium">30-day return policy</p>
-                    </div>
+                      </div>
                     </div>
                   </div>
 

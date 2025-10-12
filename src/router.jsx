@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./comman/app-layout/app-layout";
-
+import logoImage from "./assets/yobhaLogo.png"
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home/home"));
 const Login = lazy(() => import("./pages/login/login"))
@@ -33,7 +33,13 @@ const Router = () => {
   ];
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={ <div className="flex items-center justify-center h-screen">
+      <img
+        src={logoImage}
+        alt="YOBHA Logo"
+        className="h-8 md:h-10"
+      />
+    </div>}>
       <Routes>
         {routes.map(({ path, element }, index) => (
           <Route

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { addToWishlist } from "../../../service/wishlist";
 
 /**
  * ProductCard Component - Luxury Gucci-inspired design
@@ -28,7 +29,7 @@ const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Safe data extraction with null checks
-  const productId = product?.id || product?.productId || '';
+  const productId = product?.id || '';
   const productName = product?.name || 'Untitled Product';
   const productPrice = product?.price || 0;
   const productImages = Array.isArray(product?.images) && product.images.length > 0
@@ -48,10 +49,30 @@ const ProductCard = ({ product }) => {
       navigate(`/productDetail/${productId}`);
     }
   };
+  const handleAddToWishlist = async (productId) => {
+    const payload={
+  "productId": "PID10001",
+  "variantSku": "PID10001-NAV-S",
+  "desiredQuantity": 1,
+  "desiredSize": "S",
+  "desiredColor": "Navy Blue",
+  "notifyWhenBackInStock": true,
+  "note": "Buy during Diwali sale"
+}
 
+    try {
+      const result = await addToWishlist(productId,payload);
+      console.log("Added to wishlist:", result);
+      alert("Product added to wishlist!");
+    } catch (err) {
+      console.error("Failed to add to wishlist:", err);
+      alert("Failed to add to wishlist");
+    }
+  };
   const handleWishlist = (e) => {
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
+    // e.stopPropagation();
+    // setIsWishlisted(!isWishlisted);
+    handleAddToWishlist(e)
     // TODO: Add to wishlist API call
   };
 
@@ -119,7 +140,7 @@ const ProductCard = ({ product }) => {
 
         {/* Wishlist Icon */}
         <button 
-          onClick={handleWishlist}
+          onClick={()=>handleWishlist(product.id)}
           className={`absolute top-3 right-3 z-10 p-2 backdrop-blur-sm transition-all duration-300 ${
             isWishlisted 
               ? 'bg-black' 

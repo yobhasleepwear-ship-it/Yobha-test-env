@@ -11,6 +11,10 @@ import {
   Truck,
   RotateCcw,
 } from "lucide-react";
+import { addToCart, getCartDetails, getProductDescription, updateCartQuantity } from "../../service/productAPI";
+import { useDispatch } from "react-redux";
+import { setCartCount } from "../../redux/cartSlice";
+import { addToWishlist } from "../../service/wishlist";
 
 /**
  * Helper function to safely format product data from API
@@ -108,7 +112,7 @@ const formatPrice = (price) => {
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
-  
+  const dispatch = useDispatch();
   // UI State
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState('');
@@ -277,41 +281,10 @@ const ProductDetailPage = () => {
   
   // Fetch product data
   useEffect(() => {
-    const fetchProductDetail = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
-      // Using dummy data for testing
-      setTimeout(() => {
-        setProduct(TESTING_DUMMY_PRODUCT);
-        setIsLoading(false);
-      }, 500); // Simulate loading delay
-      return;
-      // ============ END TESTING MODE ============
-      
-      // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
-      /* 
-      try {
-        // TODO: Replace with your actual API call
-        // const response = await getProductDetail(productId);
-        // const formattedProduct = formatProductData(response);
-        // setProduct(formattedProduct);
-        
-        setProduct(null);
-        
-      } catch (err) {
-        console.error('Failed to fetch product:', err);
-        setError('Failed to load product details');
-      } finally {
-        setIsLoading(false);
-      }
-      */
-      // ============ END PRODUCTION API CODE ============
-    };
+    
 
     if (productId) {
-      fetchProductDetail();
+      fetchProductDetail(productId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
@@ -319,15 +292,28 @@ const ProductDetailPage = () => {
   // Set default selections when product loads
   useEffect(() => {
     if (product) {
-      if (product.colors.length > 0 && !selectedColor) {
-        setSelectedColor(product.colors[0]);
+      if (product.availableColors.length > 0 && !selectedColor) {
+        setSelectedColor(product.availableColors[0]);
       }
-      if (product.sizes.length > 0 && !selectedSize) {
-        setSelectedSize(product.sizes[0]);
+      if (product.sizeOfProduct.length > 0 && !selectedSize) {
+        setSelectedSize(product.sizeOfProduct[0]);
       }
     }
   }, [product, selectedColor, selectedSize]);
-  
+ const fetchProductDetail = async (productId) => {
+  setIsLoading(true)
+    try {
+      const response = await getProductDescription(productId);
+      console.log("Product details:");
+      setProduct(response.data);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    }
+    finally{
+      setIsLoading(false)
+    }
+  };
+
   // Get available quantity for current selection
   const availableQuantity = product 
     ? getAvailableQuantity(product.inventory, selectedColor, selectedSize) 
@@ -360,24 +346,75 @@ const ProductDetailPage = () => {
       setQuantity(prev => prev - 1);
     }
   };
-
-  // Add to cart
-  const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize || availableQuantity === 0) {
-      alert('Please select color and size');
-      return;
+ 
+const fetchCart = async () => {
+  
+    try {
+      const response = await getCartDetails()
+      console.log(response.data.items.length);
+      dispatch(setCartCount(response.data.items.length));
     }
-    
-    console.log('Add to cart:', {
-      productId: product.productId,
-      color: selectedColor,
-      size: selectedSize,
-      quantity,
-    });
-    // TODO: Implement actual add to cart API call
+    catch (err) {
+      console.log(err || "something went wrong")
+    }
+    finally{
+     
+    }
+
+  }
+  // Add to cart
+const handleAddToCart = async () => {
+  if (!selectedColor || !selectedSize || availableQuantity === 0) {
+    alert('Please select color and size');
+    return;
+  }
+
+  // Find the variant SKU for selected color + size
+  const selectedVariant = product.variants.find(
+    (v) => v.color === selectedColor && v.size === selectedSize
+  );
+
+  const payload = {
+    productId: product.productId,                    // required
+    variantSku: selectedVariant?.sku || '',          // optional
+    quantity: quantity,                              // required
+    currency: "INR",                                 // optional
+    note: ""                                         // optional, can be set dynamically
   };
 
+  try {
+    const response = await addToCart(payload);
+    console.log("Added to cart:", response);
+    alert("Product added to cart successfully!");
+    fetchCart()
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    alert("Failed to add product to cart. Please try again.");
+  }
+};
+
+
   // Wishlist toggle
+  const handleAddToWishlist = async (productId) => {
+      const payload={
+    "productId": "PID10001",
+    "variantSku": "PID10001-NAV-S",
+    "desiredQuantity": 1,
+    "desiredSize": "S",
+    "desiredColor": "Navy Blue",
+    "notifyWhenBackInStock": true,
+    "note": "Buy during Diwali sale"
+  }
+  
+      try {
+        const result = await addToWishlist(productId,payload);
+        console.log("Added to wishlist:", result);
+        alert("Product added to wishlist!");
+      } catch (err) {
+        console.error("Failed to add to wishlist:", err);
+        alert("Failed to add to wishlist");
+      }
+    };
   const handleWishlistToggle = () => {
     setIsWishlisted(!isWishlisted);
     // TODO: Implement actual wishlist API call
@@ -577,13 +614,13 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Color Selection */}
-            {product.colors.length > 0 && (
+            {product?.availableColors?.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
                   Color: <span className="font-normal text-text-medium">{selectedColor}</span>
                 </h3>
                 <div className="flex gap-3 flex-wrap">
-                  {product.colors.map((color) => (
+                  {product?.availableColors.map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
@@ -601,13 +638,13 @@ const ProductDetailPage = () => {
             )}
 
             {/* Size Selection */}
-            {product.sizes.length > 0 && (
+            {product.sizeOfProduct.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
                   Size: <span className="font-normal text-text-medium">{selectedSize}</span>
                 </h3>
                 <div className="grid grid-cols-4 gap-3">
-                  {product.sizes.map((size) => (
+                  {product.sizeOfProduct.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -670,7 +707,7 @@ const ProductDetailPage = () => {
                 {availableQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
               <button
-                onClick={handleWishlistToggle}
+                onClick={()=>handleAddToWishlist(product.id)}
                 className={`p-4 border-2 transition-all ${
                   isWishlisted
                     ? 'border-black bg-black'

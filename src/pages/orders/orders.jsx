@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, Truck, CheckCircle2, XCircle, Clock, ChevronRight } from "lucide-react";
+import { getOrders } from "../../service/order";
 
 /**
  * Helper function to safely format orders data from API
@@ -102,9 +103,6 @@ const getStatusInfo = (status) => {
   return statusMap[normalizedStatus] || statusMap.pending;
 };
 
-/**
- * Format price to INR
- */
 const formatPrice = (price, currency = 'INR') => {
   if (typeof price !== 'number') return '₹0';
   const symbol = currency === 'INR' ? '₹' : currency;
@@ -114,9 +112,7 @@ const formatPrice = (price, currency = 'INR') => {
   })}`;
 };
 
-/**
- * Format date
- */
+
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
@@ -132,7 +128,7 @@ const OrdersPage = () => {
 
   // API State
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
@@ -240,45 +236,20 @@ const OrdersPage = () => {
 
   // Fetch orders
   useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
-      setTimeout(() => {
-        const formattedOrders = TESTING_DUMMY_ORDERS.map(formatOrderData).filter(o => o !== null);
-        setOrders(formattedOrders);
-        setIsLoading(false);
-      }, 500);
-      return;
-      // ============ END TESTING MODE ============
-
-      // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
-      /*
-      try {
-        const response = await getUserOrders(); // Your API call
-        
-        if (response && response.success && Array.isArray(response.data)) {
-          const formattedOrders = response.data
-            .map(formatOrderData)
-            .filter(o => o !== null);
-          setOrders(formattedOrders);
-        } else {
-          setOrders([]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch orders:', err);
-        setError('Failed to load orders');
-        setOrders([]);
-      } finally {
-        setIsLoading(false);
-      }
-      */
-      // ============ END PRODUCTION API CODE ============
-    };
-
-    fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   const getOrder = async () => {
+    setIsLoading(true)
+  try {
+    const orders = await getOrders();
+    console.log("Orders:", orders.data);
+  } catch (err) {
+    console.log("Failed to fetch orders");
+  }
+  finally{
+    setIsLoading(false)
+  }
+};
+    getOrder();
+   
   }, []);
 
   // View order details

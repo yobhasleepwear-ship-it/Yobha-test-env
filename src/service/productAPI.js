@@ -47,3 +47,23 @@ export const addToCart = async (payload) => {
     throw err;
   }
 };
+
+export const updateCartQuantity = async (payload) => {
+  try {
+    const response = await axiosService.Patch(`/Cart/quantity`, payload);
+    return response.data;
+  } catch (err) {
+    console.error("updateCartQuantity error:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
+export const deleteCartItem = async (id) => {
+  try {
+    const response = await axiosService.Delete(`/Cart/${id}`);
+    return response.data;
+  } catch (err) {
+    console.error("deleteCartItem error:", err.response?.data || err.message);
+    throw err;
+  }
+};

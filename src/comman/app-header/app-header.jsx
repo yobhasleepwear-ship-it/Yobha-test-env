@@ -5,8 +5,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
 import logoImage from "../../assets/yobhaLogo.png";
+import { useDispatch, useSelector } from "react-redux";
 
 const HeaderWithSidebar = () => {
+  const dispatch = useDispatch();
+  const cartCount = useSelector(state => state.cart.count);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -34,23 +37,23 @@ const HeaderWithSidebar = () => {
   };
 
   return (
-    <header 
+    <header
       className="fixed top-0 left-0 w-full z-50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
-      style={{ 
+      style={{
         fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-        
+
       }}
     >
       <div className="max-w-[1600px] mx-auto flex items-center justify-between px-6 md:px-8 lg:px-12 py-4">
 
         {/* Logo - Left Side */}
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="flex items-center"
         >
-          <img 
-            src={logoImage} 
-            alt="YOBHA Logo" 
+          <img
+            src={logoImage}
+            alt="YOBHA Logo"
             className="h-8 md:h-10"
           />
         </Link>
@@ -93,13 +96,13 @@ const HeaderWithSidebar = () => {
           {/* User Account Icon with Dropdown */}
           {isAuthenticated ? (
             <div className="relative group">
-              <button 
+              <button
                 className="text-black hover:text-gray-700 flex items-center cursor-pointer transition-colors duration-300"
                 title="My Account"
               >
                 <User size={22} strokeWidth={1.8} />
               </button>
-              
+
               {/* User Dropdown Menu */}
               <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-2 min-w-[200px]">
@@ -128,7 +131,7 @@ const HeaderWithSidebar = () => {
               </div>
             </div>
           ) : (
-            <Link 
+            <Link
               to="/login"
               className="text-black hover:text-gray-700 flex items-center transition-colors duration-300"
               title="Login"
@@ -138,12 +141,17 @@ const HeaderWithSidebar = () => {
           )}
 
           {/* Cart Icon - Always visible with unique design */}
-          <Link 
-            to="/cart" 
+          <Link
+            to="/cart"
             className="text-black hover:text-gray-700 flex items-center transition-colors duration-300"
             title="Shopping Cart"
           >
             <BsBag size={22} />
+            {cartCount > 0 && (
+              // <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+               <span> {cartCount}</span>
+              // </span>
+            )}
           </Link>
 
           {/* Logout Icon - Only when authenticated and on desktop */}
@@ -177,9 +185,9 @@ const HeaderWithSidebar = () => {
 
           <div className="relative w-72 bg-white shadow-2xl animate-slideInLeft">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-300">
-              <img 
-                src={logoImage} 
-                alt="YOBHA Logo" 
+              <img
+                src={logoImage}
+                alt="YOBHA Logo"
                 className="h-10"
               />
               <button

@@ -8,6 +8,14 @@ import { getFilteredProducts } from "../../service/productAPI";
  * Helper function to format API response data
  * Handles null checks and provides fallbacks
  */
+const debounce = (func, delay) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
+
 const formatProductData = (apiResponse) => {
   if (!apiResponse || !apiResponse.data || !apiResponse.data.items) {
     return [];
@@ -21,8 +29,8 @@ const formatProductData = (apiResponse) => {
       name: item?.name || 'Untitled Product',
       price: item?.price || 0,
       category: item?.category || item?.productMainCategory || '',
-      images: Array.isArray(item?.images) && item.images.length > 0 
-        ? item.images 
+      images: Array.isArray(item?.images) && item.images.length > 0
+        ? item.images
         : ['https://via.placeholder.com/400x400?text=No+Image'],
       available: item?.available !== false,
       productMainCategory: item?.productMainCategory || item?.category || '',
@@ -33,11 +41,11 @@ const formatProductData = (apiResponse) => {
 
 const ProductsPage = () => {
   const { category } = useParams();
-  
+
   // UI State
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [openAccordion, setOpenAccordion] = useState("categories");
-  
+
   // Filter State
   const [filters, setFilters] = useState({
     segment: 'all',
@@ -57,6 +65,7 @@ const ProductsPage = () => {
     pageSize: 12,
     total: 0,
   });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 500000 });
 
   // Filter Options (can be fetched from API using setFilterOptions)
   // TODO: Replace with API call to fetch dynamic filters from backend
@@ -99,13 +108,24 @@ const ProductsPage = () => {
       { id: "popular", name: "Most Popular" },
     ],
   });
+  useEffect(() => {
+    const debouncedFilterUpdate = debounce(() => {
+      setFilters(prev => ({
+        ...prev,
+        minPrice: priceRange.min,
+        maxPrice: priceRange.max,
+      }));
+    }, 600);
 
+    debouncedFilterUpdate();
+
+  }, [priceRange]);
   // Fetch products from API
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const payload = {
-        q:'night',
+        q: 'night',
         category: filters.categories.length > 0 ? filters.categories.join(',') : '',
         minPrice: filters.minPrice || undefined,
         maxPrice: filters.maxPrice || undefined,
@@ -116,66 +136,66 @@ const ProductsPage = () => {
       };
 
       // Remove undefined values
-      Object.keys(payload).forEach(key => 
+      Object.keys(payload).forEach(key =>
         payload[key] === undefined && delete payload[key]
       );
 
       const response = await getFilteredProducts(payload);
-      
+
       if (response && response.success && response.data) {
-        const formattedProducts = formatProductData({
-    "success": true,
-    "status": 200,
-    "message": "OK",
-    "data": {
-        "pageNumber": 1,
-        "pageSize": 12,
-        "total": 2,
-        "items": [
-            {
-                "id": "68ea9382034b313e6da0d974",
-                "productId": "PID10017",
-                "name": "Satin Pyjama Set",
-                "price": 2199.00,
-                "category": "Pyjamas",
-                "images": [
-                    "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
-                ],
-                "available": true,
-                "productMainCategory": "Sleepwear",
-                "availableColors": [
-                    "Black"
-                ],
-                "availableSizes": [
-                    "L"
-                ]
-            },
-            {
-                "id": "68ea9364034b313e6da0d972",
-                "productId": "PID10015",
-                "name": "Luxe Cotton Nightshirt",
-                "price": 1299.00,
-                "category": "Nightwear",
-                "images": [
-                    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
-                ],
-                "available": true,
-                "productMainCategory": "Sleepwear",
-                "availableColors": [
-                    "Navy Blue"
-                ],
-                "availableSizes": [
-                    "S"
-                ]
-            }
-        ]
-    },
-    "errors": null,
-    "pagination": null
-});
-        setProducts(formattedProducts);
-      
-        
+        // const formattedProducts = formatProductData({
+        //   "success": true,
+        //   "status": 200,
+        //   "message": "OK",
+        //   "data": {
+        //     "pageNumber": 1,
+        //     "pageSize": 12,
+        //     "total": 2,
+        //     "items": [
+        //       {
+        //         "id": "68ea9382034b313e6da0d974",
+        //         "productId": "PID10017",
+        //         "name": "Satin Pyjama Set",
+        //         "price": 2199.00,
+        //         "category": "Pyjamas",
+        //         "images": [
+        //           "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+        //         ],
+        //         "available": true,
+        //         "productMainCategory": "Sleepwear",
+        //         "availableColors": [
+        //           "Black"
+        //         ],
+        //         "availableSizes": [
+        //           "L"
+        //         ]
+        //       },
+        //       {
+        //         "id": "68ea9364034b313e6da0d972",
+        //         "productId": "PID10015",
+        //         "name": "Luxe Cotton Nightshirt",
+        //         "price": 1299.00,
+        //         "category": "Nightwear",
+        //         "images": [
+        //           "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
+        //         ],
+        //         "available": true,
+        //         "productMainCategory": "Sleepwear",
+        //         "availableColors": [
+        //           "Navy Blue"
+        //         ],
+        //         "availableSizes": [
+        //           "S"
+        //         ]
+        //       }
+        //     ]
+        //   },
+        //   "errors": null,
+        //   "pagination": null
+        // });
+        setProducts(response.data.items);
+
+
         setPagination(prev => ({
           ...prev,
           total: response.data.total || 0,
@@ -186,65 +206,63 @@ const ProductsPage = () => {
       setProducts([]);
     } finally {
       setIsLoading(false);
-       const formattedProducts = formatProductData({
-    "success": true,
-    "status": 200,
-    "message": "OK",
-    "data": {
-        "pageNumber": 1,
-        "pageSize": 12,
-        "total": 2,
-        "items": [
-            {
-                "id": "68ea9382034b313e6da0d974",
-                "productId": "PID10017",
-                "name": "Satin Pyjama Set",
-                "price": 2199.00,
-                "category": "Pyjamas",
-                "images": [
-                    "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
-                ],
-                "available": true,
-                "productMainCategory": "Sleepwear",
-                "availableColors": [
-                    "Black"
-                ],
-                "availableSizes": [
-                    "L"
-                ]
-            },
-            {
-                "id": "68ea9364034b313e6da0d972",
-                "productId": "PID10015",
-                "name": "Luxe Cotton Nightshirt",
-                "price": 1299.00,
-                "category": "Nightwear",
-                "images": [
-                    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
-                ],
-                "available": true,
-                "productMainCategory": "Sleepwear",
-                "availableColors": [
-                    "Navy Blue"
-                ],
-                "availableSizes": [
-                    "S"
-                ]
-            }
-        ]
-    },
-    "errors": null,
-    "pagination": null
-});
-        setProducts(formattedProducts);
+      // const formattedProducts = formatProductData({
+      //   "success": true,
+      //   "status": 200,
+      //   "message": "OK",
+      //   "data": {
+      //     "pageNumber": 1,
+      //     "pageSize": 12,
+      //     "total": 2,
+      //     "items": [
+      //       {
+      //         "id": "68ea9382034b313e6da0d974",
+      //         "productId": "PID10017",
+      //         "name": "Satin Pyjama Set",
+      //         "price": 2199.00,
+      //         "category": "Pyjamas",
+      //         "images": [
+      //           "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
+      //         ],
+      //         "available": true,
+      //         "productMainCategory": "Sleepwear",
+      //         "availableColors": [
+      //           "Black"
+      //         ],
+      //         "availableSizes": [
+      //           "L"
+      //         ]
+      //       },
+      //       {
+      //         "id": "68ea9364034b313e6da0d972",
+      //         "productId": "PID10015",
+      //         "name": "Luxe Cotton Nightshirt",
+      //         "price": 1299.00,
+      //         "category": "Nightwear",
+      //         "images": [
+      //           "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
+      //         ],
+      //         "available": true,
+      //         "productMainCategory": "Sleepwear",
+      //         "availableColors": [
+      //           "Navy Blue"
+      //         ],
+      //         "availableSizes": [
+      //           "S"
+      //         ]
+      //       }
+      //     ]
+      //   },
+      //   "errors": null,
+      //   "pagination": null
+      // });
+      // setProducts(formattedProducts);
     }
   };
 
-  // Fetch products when filters or category changes
   useEffect(() => {
     fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, filters.categories, filters.sortBy, pagination.pageNumber]);
+  }, [category, filters.categories, filters.sortBy, pagination.pageNumber, priceRange,filters.country]);
 
   // Handle filter changes
   const updateFilter = (key, value) => {
@@ -272,9 +290,9 @@ const ProductsPage = () => {
     });
   };
 
-  const hasActiveFilters = 
-    filters.segment !== 'all' || 
-    filters.categories.length > 0 || 
+  const hasActiveFilters =
+    filters.segment !== 'all' ||
+    filters.categories.length > 0 ||
     filters.subCategories.length > 0;
 
   // Get category name helper
@@ -349,11 +367,10 @@ const ProductsPage = () => {
                 onChange={() => updateFilter('segment', segment.toLowerCase())}
                 className="w-4 h-4 border border-text-light text-black focus:ring-1 focus:ring-black cursor-pointer"
               />
-              <span className={`ml-3 text-sm tracking-wide transition-colors ${
-                filters.segment === segment.toLowerCase()
-                  ? "text-black font-medium"
-                  : "text-text-medium group-hover:text-black"
-              }`}>
+              <span className={`ml-3 text-sm tracking-wide transition-colors ${filters.segment === segment.toLowerCase()
+                ? "text-black font-medium"
+                : "text-text-medium group-hover:text-black"
+                }`}>
                 {segment}
               </span>
             </label>
@@ -362,7 +379,7 @@ const ProductsPage = () => {
       </FilterAccordion>
 
       {/* Categories */}
-      <FilterAccordion
+      {/* <FilterAccordion
         title="Category"
         isOpen={openAccordion === "categories"}
         onToggle={() => toggleAccordion("categories")}
@@ -379,17 +396,16 @@ const ProductsPage = () => {
                 onChange={() => toggleCategory(cat.id)}
                 className="w-4 h-4 border border-text-light text-black focus:ring-1 focus:ring-black cursor-pointer rounded-none"
               />
-              <span className={`ml-3 text-sm tracking-wide transition-colors ${
-                filters.categories.includes(cat.id)
-                  ? "text-black font-medium"
-                  : "text-text-medium group-hover:text-black"
-              }`}>
+              <span className={`ml-3 text-sm tracking-wide transition-colors ${filters.categories.includes(cat.id)
+                ? "text-black font-medium"
+                : "text-text-medium group-hover:text-black"
+                }`}>
                 {cat.name}
               </span>
             </label>
           ))}
         </div>
-      </FilterAccordion>
+      </FilterAccordion> */}
 
       {/* Sort */}
       <FilterAccordion
@@ -410,22 +426,99 @@ const ProductsPage = () => {
                 onChange={() => updateFilter('sortBy', option.id)}
                 className="w-4 h-4 border border-text-light text-black focus:ring-1 focus:ring-black cursor-pointer"
               />
-              <span className={`ml-3 text-sm tracking-wide transition-colors ${
-                filters.sortBy === option.id
-                  ? "text-black font-medium"
-                  : "text-text-medium group-hover:text-black"
-              }`}>
+              <span className={`ml-3 text-sm tracking-wide transition-colors ${filters.sortBy === option.id
+                ? "text-black font-medium"
+                : "text-text-medium group-hover:text-black"
+                }`}>
                 {option.name}
               </span>
             </label>
           ))}
         </div>
       </FilterAccordion>
+      <FilterAccordion
+        title="Price Range"
+        isOpen={openAccordion === "price"}
+        onToggle={() => toggleAccordion("price")}
+      >
+        <div className="mt-3 space-y-2">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>₹{priceRange.min}</span>
+            <span>₹{priceRange.max}</span>
+          </div>
+
+          <input
+            type="range"
+            min="0"
+            max="50000"
+            step="1000"
+            value={priceRange.min}
+            onChange={(e) =>
+              setPriceRange((prev) => ({
+                ...prev,
+                min: Math.min(Number(e.target.value), prev.max - 1000),
+              }))
+            }
+            className="w-full accent-black cursor-pointer"
+          />
+
+          <input
+            type="range"
+            min="0"
+            max="50000"
+            step="1000"
+            value={priceRange.max}
+            onChange={(e) =>
+              setPriceRange((prev) => ({
+                ...prev,
+                max: Math.max(Number(e.target.value), prev.min + 1000),
+              }))
+            }
+            className="w-full accent-black cursor-pointer"
+          />
+        </div>
+      </FilterAccordion>
+      <FilterAccordion
+        title="Country"
+        isOpen={openAccordion === "country"}
+        onToggle={() => toggleAccordion("country")}
+      >
+        <div className="space-y-3 mt-2">
+          {["IN", "SA", "AE"].map((code) => {
+            const countryNames = { IN: "India", SA: "Saudi Arabia", AE: "UAE" };
+            return (
+              <label
+                key={code}
+                className="flex items-center cursor-pointer group"
+              >
+                <input
+                  type="radio"
+                  name="country"
+                  checked={filters.country === code}
+                  onChange={() => setFilters((prev) => ({ ...prev, country: code }))}
+                  className="w-4 h-4 border border-gray-400 text-black focus:ring-1 focus:ring-black cursor-pointer"
+                />
+                <span
+                  className={`ml-3 text-sm tracking-wide transition-colors ${filters.country === code
+                      ? "text-black font-medium"
+                      : "text-gray-600 group-hover:text-black"
+                    }`}
+                >
+                  {countryNames[code]}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </FilterAccordion>
+
+
+
     </div>
   );
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-premium-cream"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
@@ -470,7 +563,7 @@ const ProductsPage = () => {
 
       {/* Main Content */}
       <main className="max-w-[1600px] mx-auto px-6 md:px-8 lg:px-12 py-12">
-        
+
         {/* Page Header */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-black uppercase tracking-wide mb-3">

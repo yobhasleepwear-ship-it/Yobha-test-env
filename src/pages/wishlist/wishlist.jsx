@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Trash2, ArrowRight, Bell } from "lucide-react";
+import { removeFromWishlists } from "../../service/wishlist";
+import { addToCart } from "../../service/productAPI";
 
 /**
  * Helper function to safely format wishlist data from API
@@ -232,16 +234,19 @@ const WishlistPage = () => {
   }, []);
 
   // Remove from wishlist
-  const removeFromWishlist = (itemId) => {
-    setWishlistItems(items => items.filter(item => item.id !== itemId));
-    // TODO: Call API to remove from wishlist
-    // await removeFromWishlistAPI(itemId);
-  };
 
+ const removeFromWishlist = async (productId) => {
+  try {
+    const response = await removeFromWishlists(productId)
+    return response.data;
+  } catch (err) {
+    console.error("removeFromWishlist error:", err.response?.data || err.message);
+    throw err;
+  }
+};
   // Move to cart
-  const moveToCart = (item) => {
-    // TODO: Call API to add to cart
-    /*
+  const moveToCart = async(item) => {
+    
     const cartData = {
       productId: item.product.productId,
       variantSku: item.product.variantSku,
@@ -249,12 +254,18 @@ const WishlistPage = () => {
       size: item.desiredSize,
       color: item.desiredColor
     };
-    await addToCart(cartData);
-    */
+    try{
+   await addToCart(cartData);
+   
     
-    // Remove from wishlist after adding to cart
+   
     removeFromWishlist(item.id);
     alert('Item moved to cart!');
+    }
+    catch(err){
+      console.log(err||"something went wrong")
+    }
+ 
   };
 
   // Toggle notify when back in stock
