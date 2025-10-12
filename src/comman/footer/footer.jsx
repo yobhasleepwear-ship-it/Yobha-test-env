@@ -1,7 +1,7 @@
 import React from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import logoImage from "../../assets/yobhaLogo.png";
 const Footer = () => {
   return (
     <footer 
@@ -15,7 +15,16 @@ const Footer = () => {
           {/* Brand & About */}
           <div className="space-y-5">
             <div className="text-3xl font-bold text-black tracking-wider">
-              YOBHA
+             <Link 
+                      to="/" 
+                      className="flex items-center"
+                    >
+                      <img 
+                        src={logoImage} 
+                        alt="YOBHA Logo" 
+                        className="h-8 md:h-10"
+                      />
+                    </Link>
             </div>
             <p className="text-text-medium text-sm leading-relaxed">
               Premium sleepwear for your ultimate comfort. Designed with care, elegance, and style.

@@ -6,14 +6,15 @@ import AppLayout from "./comman/app-layout/app-layout";
 const Home = lazy(() => import("./pages/Home/home"));
 const Login = lazy(() => import("./pages/login/login"))
 const ProductsPage = lazy(() => import("./pages/product/product"));
-const ProductDescription = lazy(()=>import("./pages/product-description/product-description"))
+const ProductDescription = lazy(() => import("./pages/product-description/product-description"))
 const Cart = lazy(() => import("./pages/cart/cart"));
 const Checkout = lazy(() => import("./pages/checkout/checkout"));
 const Wishlist = lazy(() => import("./pages/wishlist/wishlist"));
 const Orders = lazy(() => import("./pages/orders/orders"));
 const OrderDetails = lazy(() => import("./pages/order-details/order-details"));
 const Account = lazy(() => import("./pages/account/account"));
-
+const Contact = lazy(() => import("./pages/contact/contact"))
+const About = lazy(() => import("./pages/about/about"))
 const Router = () => {
   const routes = [
     { path: "/", element: <Navigate to="/home" replace /> },
@@ -26,7 +27,9 @@ const Router = () => {
     { path: "/wishlist", element: <Wishlist /> },
     { path: "/orders", element: <Orders /> },
     { path: "/order-details/:orderId", element: <OrderDetails /> },
-    { path: "/account", element: <Account /> }
+    { path: "/account", element: <Account /> },
+    { path: '/contact', element: <Contact /> },
+    { path: '/about', element: <About /> }
   ];
 
   return (

@@ -154,7 +154,8 @@ const ProductDetailPage = () => {
         color: "navy",
         size: "S",
         quantity: 10,
-        isActive: true
+        isActive: true,
+        image:"https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
       },
       {
         id: "variant-2",
@@ -162,7 +163,8 @@ const ProductDetailPage = () => {
         color: "navy",
         size: "M",
         quantity: 15,
-        isActive: true
+        isActive: true,
+         image:"https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
       },
       {
         id: "variant-3",
@@ -170,7 +172,8 @@ const ProductDetailPage = () => {
         color: "rose",
         size: "S",
         quantity: 8,
-        isActive: true
+        isActive: true,
+         image:"https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
       },
       {
         id: "variant-4",
@@ -178,7 +181,8 @@ const ProductDetailPage = () => {
         color: "rose",
         size: "M",
         quantity: 12,
-        isActive: true
+        isActive: true,
+         image:"https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
       },
     ],
     inventory: [
@@ -794,7 +798,50 @@ const ProductDetailPage = () => {
             </div>
           </div>
         )}
+        {product.variants?.length > 0 && (
+  <div className="space-y-6 pt-6 border-t border-text-light/20 ">
+    <h3 className="text-sm font-semibold text-black mb-3 uppercase tracking-widest">
+      Available Variants
+    </h3>
+
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 ">
+      {product.variants
+        .filter(v => v.isActive)
+        .map((variant) => (
+          <div
+            key={variant.id}
+            className="group border border-text-light/20 hover:border-black transition-all rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md"
+          >
+            <div className="aspect-square overflow-hidden">
+              <img
+                src={variant.image}
+                alt={`${variant.color} ${variant.size}`}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) =>
+                  (e.target.src = "https://via.placeholder.com/300x300?text=No+Image")
+                }
+              />
+            </div>
+            <div className="p-4 text-center space-y-2">
+              <p className="text-sm font-semibold text-black uppercase tracking-widest">
+                {variant.color}
+              </p>
+              <p className="text-xs text-text-medium uppercase">
+                Size: {variant.size}
+              </p>
+              <p className="text-xs text-text-medium">
+                Qty: {variant.quantity > 0 ? variant.quantity : "Out of Stock"}
+              </p>
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+)}
       </div>
+      {/* Product Variants */}
+
+
     </div>
   );
 };
