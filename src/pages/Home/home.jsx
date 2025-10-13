@@ -2,6 +2,7 @@ import React from "react";
 import heroVideo from "../../assets/heroVideo.mp4";
 import TrendingNewArrivals from './components/TrendingNewArrivals'
 import GenderGrid from './components/GenderGrid'
+import AccessoriesSection from './components/AccessoriesSection'
 const HomePage = () => {
   return (
     <div className="relative min-h-screen bg-[#FAF6F2]">
@@ -34,9 +35,10 @@ const HomePage = () => {
           </button>
         </div>
       </section>
-      {/* Render Trending arrivals and Gender grid below the hero */}
+      {/* Render Trending arrivals, Gender grid, and Accessories below the hero */}
       <TrendingNewArrivals />
       <GenderGrid />
+      <AccessoriesSection />
     </div>
   );
 };
