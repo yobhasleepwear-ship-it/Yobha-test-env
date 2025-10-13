@@ -1,32 +1,123 @@
 import React, { useEffect, useState } from "react";
-import { User, Mail, Phone, MapPin, Edit3, Save, X, Lock, Shield, Key, Smartphone, CheckCircle2, AlertCircle } from "lucide-react";
-import { addAddress, deleteAddress, getAddresses } from "../../service/address";
+import { User, Mail, Phone, MapPin, Edit3, Save, X } from "lucide-react";
+import { addAddress, updateAddress, deleteAddress, getAddresses } from "../../service/address";
 import { message } from "../../comman/toster-message/ToastContainer";
 import { updateUserName } from "../../service/user";
 
 
 const AccountPage = () => {
   const [userData, setUserData] = useState([]);
-  const [LocalUserData ,setLocalUserData]=useState({})
-  console.log(LocalUserData,"localdara")
+  const [LocalUserData, setLocalUserData] = useState({});
   const [editingField, setEditingField] = useState(null);
   const [tempData, setTempData] = useState({});
-  console.log(tempData, "tempData")
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+
+
+  // Load user data from localStorage on component mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setLocalUserData(parsedUser);
-    }
+    const loadUserData = () => {
+      const storedUser = localStorage.getItem("user");
+       if (storedUser) {
+         let parsedUser;
+         try {
+           // First parse to get the string
+           const firstParse = JSON.parse(storedUser);
+         
+           // If it's still a string, parse again
+           if (typeof firstParse === 'string') {
+             parsedUser = JSON.parse(firstParse);
+           } else {
+             parsedUser = firstParse;
+           }
+         } catch (error) {
+           parsedUser = {};
+         }
+
+         
+         setLocalUserData(parsedUser);
+      }
+    };
+    
+    loadUserData();
     GetAddress();
+    
+    // Listen for localStorage changes (when user logs in from another tab)
+    const handleStorageChange = (e) => {
+      if (e.key === "user") {
+        console.log("localStorage changed, reloading user data");
+        loadUserData();
+      }
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
-  const startEdit = (field) => {
+
+  // Function to update localStorage with new user data
+   const updateLocalStorage = (updatedData) => {
+     const currentUser = localStorage.getItem("user");
+     if (currentUser) {
+       let parsedUser;
+       try {
+         // First parse to get the string
+         const firstParse = JSON.parse(currentUser);
+         
+         // If it's still a string, parse again
+         if (typeof firstParse === 'string') {
+           parsedUser = JSON.parse(firstParse);
+         } else {
+           parsedUser = firstParse;
+         }
+       } catch (error) {
+         console.error("Failed to parse localStorage user data in updateLocalStorage:", error);
+         parsedUser = {};
+       }
+       const updatedUser = { ...parsedUser, ...updatedData };
+       localStorage.setItem("user", JSON.stringify(updatedUser));
+       setLocalUserData(updatedUser);
+     }
+   };
+  const startEdit = (field, addressId = null) => {
     setEditingField(field);
     if (field === "address") {
-      setTempData({ ...userData.address });
-    } else {
-      setTempData({ [field]: userData[field] });
+      if (addressId) {
+        // Editing existing address - populate with saved address data
+        const addressToEdit = userData.find(addr => addr.id === addressId);
+        if (addressToEdit) {
+          setEditingAddressId(addressId);
+          setTempData({
+            fullName: addressToEdit.fullName || "",
+            line1: addressToEdit.line1 || "",
+            line2: addressToEdit.line2 || "",
+            city: addressToEdit.city || "",
+            state: addressToEdit.state || "",
+            zip: addressToEdit.zip || "",
+            country: addressToEdit.country || "",
+            isDefault: addressToEdit.isDefault || false
+          });
+        }
+      } else {
+        // Adding new address - initialize with user's name from localStorage
+        setEditingAddressId(null);
+        setTempData({ 
+          fullName: LocalUserData.fullName || LocalUserData.name || "",
+          line1: "",
+          line2: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+          isDefault: false
+        });
+      }
+    } else if (field === "name") {
+       // Initialize with current value from localStorage
+       const currentName = LocalUserData.fullName || LocalUserData.name || LocalUserData.Name || LocalUserData.FullName || "";
+       setTempData({ name: currentName });
     }
   };
 
@@ -34,25 +125,41 @@ const AccountPage = () => {
   const saveEdit = async () => {
     if (editingField === "address") {
       try {
-        // Call API to save address
-        const payload = { ...tempData };
-        const response = await addAddress(payload);
-        console.log("Address saved:", response);
-        message.success("address Saved Successfully")
-        GetAddress()
-        // setUserData({ ...userData, address: payload });
+        if (editingAddressId) {
+
+          const response = await updateAddress(editingAddressId, tempData);
+          message.success("Address Updated Successfully");
+          
+          // Update localStorage with the updated address
+          updateLocalStorage({
+            [`address_${editingAddressId}`]: tempData
+          });
+        } else {
+          // Add new address
+          const payload = { ...tempData };     
+          const response = await addAddress(payload);
+          message.success("Address Saved Successfully");
+        }
+        
+        GetAddress();
       } catch (error) {
         console.error("Failed to save address:", error);
+        message.error("Failed to save address");
       }
-    } else {
-      // setUserData({ ...userData, ...tempData });
+    } else if (editingField === "name") {
       try {
-        const response = await updateUserName({ "fullName": tempData.name })
-        message.success("Name Update Successfully")
+        // eslint-disable-next-line no-unused-vars
+        const response = await updateUserName({ "fullName": tempData.name });
+        message.success("Name Updated Successfully");
         
-      }
-      catch {
-        message.error("something went wrong")
+        // Update localStorage with new name
+        updateLocalStorage({ 
+          name: tempData.name,
+          fullName: tempData.name 
+        });
+      } catch (error) {
+        console.error("Failed to update name:", error);
+        message.error("Failed to update name");
       }
     }
 
@@ -64,7 +171,7 @@ const AccountPage = () => {
 
     try {
       const response = await getAddresses();
-      console.log(response.data, "res")
+
       setUserData(response.data)
     }
     catch (err) {
@@ -86,20 +193,26 @@ const AccountPage = () => {
   const cancelEdit = () => {
     setEditingField(null);
     setTempData({});
+    setEditingAddressId(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-[#fdfbf9] to-[#faf6f2] pt-4 lg:pt-4 pb-12">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+    <div 
+      className="min-h-screen bg-premium-cream pt-4 lg:pt-4 pb-12"
+      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-12">
 
         {/* Page Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#8b5f4b] mb-2">
-            My Account
-          </h1>
-          <p className="text-sm sm:text-base text-[#a2786b]">
-            Manage your profile and preferences
-          </p>
+        <div className="mb-8 sm:mb-12">
+          <div className="border-b border-text-light/10 pb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-3 uppercase tracking-[0.2em]">
+              My Account
+            </h1>
+            <p className="text-base sm:text-lg text-text-medium uppercase tracking-wider">
+              Manage your profile and preferences
+            </p>
+          </div>
         </div>
 
         {/* Grid Layout */}
@@ -109,120 +222,121 @@ const AccountPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
             {/* Profile Details */}
-            <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 border-b border-[#e7bfb3]/30">
-                <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b] flex items-center gap-2">
-                  <User size={20} className="text-[#d9a79a]" />
-                  Profile Information
-                </h2>
+            <div className="bg-white border border-text-light/10 shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
+              <div className="bg-white px-6 sm:px-8 py-6 border-b border-text-light/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-black flex items-center justify-center">
+                    <User size={20} className="text-white" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-black uppercase tracking-[0.15em]">
+                    Profile Information
+                  </h2>
+                </div>
               </div>
-              <div className="p-5 sm:p-6 space-y-5">
+              <div className="p-6 sm:p-8 space-y-6">
 
                 {/* Name */}
                 <div className="group">
-                  <label className="text-sm font-semibold text-[#7a5650] mb-2 block">Full Name</label>
+                  <label className="text-xs font-semibold text-text-medium mb-3 block uppercase tracking-[0.2em]">Full Name</label>
                   {editingField === "name" ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <input
                         type="text"
-                        value={tempData.name ||LocalUserData.name}
+                        value={tempData.name || ""}
                         onChange={(e) => setTempData({ ...tempData, name: e.target.value })}
-                        className="flex-1 px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                         placeholder={LocalUserData.fullName || "Enter your full name"}
+                        className="flex-1 px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white transition-colors font-medium"
                       />
-                      <button onClick={saveEdit} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all">
+                      <button onClick={saveEdit} className="p-4 bg-black hover:bg-text-dark text-white transition-all duration-200 hover:scale-105">
                         <Save size={18} />
                       </button>
-                      <button onClick={cancelEdit} className="p-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all">
+                      <button onClick={cancelEdit} className="p-4 bg-text-light/10 hover:bg-text-light/20 text-black transition-all duration-200">
                         <X size={18} />
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between p-4 bg-[#faf6f2] rounded-lg">
-                      <span className="text-[#8b5f4b] font-medium">{LocalUserData.name}</span>
-                      <button onClick={() => startEdit("name")} className="text-[#d9a79a] hover:text-[#8b5f4b] transition-colors">
+                    <div className="group/item flex items-center justify-between p-5 bg-premium-beige border border-text-light/10 hover:border-text-light/20 transition-all duration-200">
+                       <span className="text-black font-medium text-lg">
+                         {LocalUserData.fullName || ""}
+                       </span>
+                      <button onClick={() => startEdit("name")} className="opacity-0 group-hover/item:opacity-100 text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10">
                         <Edit3 size={18} />
                       </button>
                     </div>
                   )}
                 </div>
 
-                {/* Email */}
+                {/* Email - Read Only */}
                 <div>
-                  <label className="text-sm font-semibold text-[#7a5650] mb-2 block flex items-center gap-2">
+                  <label className="text-xs font-semibold text-text-medium mb-3 block flex items-center gap-2 uppercase tracking-[0.2em]">
                     <Mail size={14} />
                     Email Address
                   </label>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-[#8b5f4b] font-medium">{LocalUserData.email}</span>
-                    <span className="text-xs text-[#a2786b]">Verified</span>
+                  <div className="flex items-center justify-between p-5 bg-premium-beige border border-text-light/10">
+                    <span className="text-black font-medium text-lg">
+                      {LocalUserData.email || ""}
+                    </span>
+                    {(LocalUserData.email ) && (
+                      <span className="text-xs text-text-medium uppercase tracking-[0.2em] px-3 py-1 bg-black text-white">Verified</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Phone */}
+                {/* Phone - Read Only */}
                 <div>
-                  <label className="text-sm font-semibold text-[#7a5650] mb-2 block flex items-center gap-2">
+                  <label className="text-xs font-semibold text-text-medium mb-3 block flex items-center gap-2 uppercase tracking-[0.2em]">
                     <Phone size={14} />
                     Phone Number
                   </label>
-                  {editingField === "phone" ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="tel"
-                        value={LocalUserData.phone || ""}
-                        // onChange={(e) => setTempData({ ...tempData, phone: e.target.value })}
-                        className="flex-1 px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
-                      />
-                      {/* <button onClick={saveEdit} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all">
-                        <Save size={18} />
-                      </button>
-                      <button onClick={cancelEdit} className="p-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all">
-                        <X size={18} />
-                      </button> */}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between p-4 bg-[#faf6f2] rounded-lg">
-                      <span className="text-[#8b5f4b] font-medium">{LocalUserData.phone}</span>
-                      {/* <button onClick={() => startEdit("phone")} className="text-[#d9a79a] hover:text-[#8b5f4b] transition-colors">
-                        <Edit3 size={18} />
-                      </button> */}
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between p-5 bg-premium-beige border border-text-light/10">
+                    <span className="text-black font-medium text-lg">
+                      {LocalUserData.phone || LocalUserData.Phone || LocalUserData.phoneNumber || ""}
+                    </span>
+                    {(LocalUserData.phone || LocalUserData.Phone || LocalUserData.phoneNumber) && (
+                      <span className="text-xs text-text-medium uppercase tracking-[0.2em] px-3 py-1 bg-black text-white">Verified</span>
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
 
             {/* Address Column */}
-            <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 border-b border-[#e7bfb3]/30">
-                <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b] flex items-center gap-2">
-                  <MapPin size={20} className="text-[#d9a79a]" />
-                  Default Address
-                </h2>
+            <div className="bg-white border border-text-light/10 shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
+              <div className="bg-white px-6 sm:px-8 py-6 border-b border-text-light/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-black flex items-center justify-center">
+                    <MapPin size={20} className="text-white" />
+                  </div>
+                   <h2 className="text-xl sm:text-2xl font-bold text-black uppercase tracking-[0.15em]">
+                     Addresses
+                   </h2>
+                </div>
               </div>
 
-              <div className="p-5 sm:p-6">
+              <div className="p-6 sm:p-8">
                 {editingField === "address" ? (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <input
                       type="text"
-                      placeholder="Full Name"
+                       placeholder={LocalUserData.fullName || LocalUserData.name || "Full Name"}
                       value={tempData.fullName || ""}
                       onChange={(e) => setTempData({ ...tempData, fullName: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                      className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                     />
                     <input
                       type="text"
                       placeholder="Address Line 1"
                       value={tempData.line1 || ""}
                       onChange={(e) => setTempData({ ...tempData, line1: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                      className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                     />
                     <input
                       type="text"
                       placeholder="Address Line 2"
                       value={tempData.line2 || ""}
                       onChange={(e) => setTempData({ ...tempData, line2: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                      className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <input
@@ -230,14 +344,14 @@ const AccountPage = () => {
                         placeholder="City"
                         value={tempData.city || ""}
                         onChange={(e) => setTempData({ ...tempData, city: e.target.value })}
-                        className="px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                        className="px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                       />
                       <input
                         type="text"
                         placeholder="State"
                         value={tempData.state || ""}
                         onChange={(e) => setTempData({ ...tempData, state: e.target.value })}
-                        className="px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                        className="px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -246,72 +360,78 @@ const AccountPage = () => {
                         placeholder="ZIP"
                         value={tempData.zip || ""}
                         onChange={(e) => setTempData({ ...tempData, zip: e.target.value })}
-                        className="px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                        className="px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                       />
                       <input
                         type="text"
                         placeholder="Country"
                         value={tempData.country || ""}
                         onChange={(e) => setTempData({ ...tempData, country: e.target.value })}
-                        className="px-4 py-3 rounded-lg border border-[#e7bfb3] focus:border-[#d9a79a] focus:ring-2 focus:ring-[#d9a79a]/10 outline-none"
+                        className="px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
                       />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={tempData.isDefault || false}
-                        onChange={(e) => setTempData({ ...tempData, isDefault: e.target.checked })}
-                        className="h-4 w-4 accent-[#d9a79a]"
-                        id="defaultAddress"
-                      />
-                      <label htmlFor="defaultAddress" className="text-[#7a5650] font-medium text-sm">Set as default address</label>
-                    </div>
-                    <div className="flex gap-3">
-                      <button onClick={saveEdit} className="flex-1 bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] hover:shadow-lg text-[#8b5f4b] font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
-                        <Save size={18} />
-                        Save Address
-                      </button>
-                      <button onClick={cancelEdit} className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition-all">
+                    <div className="flex gap-4 pt-4">
+                       <button onClick={saveEdit} className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02]">
+                         <Save size={18} />
+                         {editingAddressId ? "Update Address" : "Save Address"}
+                       </button>
+                      <button onClick={cancelEdit} className="px-8 bg-text-light/10 hover:bg-text-light/20 text-black font-semibold py-4 transition-all duration-200 uppercase tracking-wider">
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="space-y-4 mb-3">
+                    <div className="space-y-4 mb-6">
                       {userData && userData.length > 0 ? (
                         userData.map((addr) => (
                           <div
                             key={addr.id}
-                            className={`p-4 bg-[#faf6f2] rounded-lg border relative ${addr.isDefault ? "border-[#d9a79a]" : "border-[#e7bfb3]/20"}`}
+                            className="group/item p-5 bg-premium-beige border border-text-light/10 relative hover:border-text-light/30 transition-all duration-200"
                           >
-                            {/* Delete Icon */}
-                            <button
-                              onClick={() => handleDeleteAddress(addr.id)}
-                              className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                            >
-                              <X size={16} />
-                            </button>
+                             {/* Action Icons */}
+                             <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover/item:opacity-100 transition-all duration-200">
+                               <button
+                                 onClick={() => startEdit("address", addr.id)}
+                                 className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
+                                 title="Edit Address"
+                               >
+                                 <Edit3 size={16} />
+                               </button>
+                               <button
+                                 onClick={() => handleDeleteAddress(addr.id)}
+                                 className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
+                                 title="Delete Address"
+                               >
+                                 <X size={16} />
+                               </button>
+                             </div>
 
-                            <p className="text-[#8b5f4b] font-medium mb-1">{addr.fullName}</p>
-                            <p className="text-[#7a5650]">
-                              {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}
-                            </p>
-                            <p className="text-[#7a5650]">
-                              {addr.city}, {addr.state} - {addr.zip}
-                            </p>
-                            <p className="text-[#7a5650]">{addr.country}</p>
+                            <div className="pr-20">
+                              <p className="text-black font-semibold mb-2 text-lg">{addr.fullName}</p>
+                              <p className="text-text-medium mb-1">
+                                {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}
+                              </p>
+                              <p className="text-text-medium mb-1">
+                                {addr.city}, {addr.state} - {addr.zip}
+                              </p>
+                              <p className="text-text-medium">{addr.country}</p>
+                            </div>
                           </div>
 
                         ))
                       ) : (
-                        <p className="text-[#7a5650]">No addresses found</p>
+                        <div className="text-center py-12">
+                          <MapPin size={48} className="mx-auto text-text-light/40 mb-4" />
+                          <p className="text-text-medium text-lg">No addresses found</p>
+                          <p className="text-text-light text-sm mt-1">Add your first address to get started</p>
+                        </div>
                       )}
                     </div>
 
                     <button
                       onClick={() => startEdit("address")}
-                      className="w-full bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] hover:shadow-lg text-[#8b5f4b] font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02]"
                     >
                       <Edit3 size={18} />
                       Add Address
@@ -323,95 +443,6 @@ const AccountPage = () => {
 
           </div>
 
-          {/* Security & Privacy */}
-          {/* <div className="bg-white border border-[#e7bfb3]/20 rounded-2xl shadow-md overflow-hidden"> */}
-            {/* <div className="bg-gradient-to-r from-[#fdf9f6] to-[#faf6f2] px-5 sm:px-6 py-4 border-b border-[#e7bfb3]/30">
-              <h2 className="text-lg sm:text-xl font-bold text-[#8b5f4b] flex items-center gap-2">
-                <Shield size={20} className="text-[#d9a79a]" />
-                Security & Privacy
-              </h2>
-              <p className="text-xs sm:text-sm text-[#a2786b] mt-1">Keep your account safe and secure</p>
-            </div> */}
-            {/* <div className="p-5 sm:p-6">
-              <div className="space-y-6"> */}
-
-                {/* Password & Two-Factor Auth */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-[#faf6f2] to-[#fef9f5] rounded-xl p-5 border border-[#e7bfb3]/30 h-full flex flex-col">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                        <Key size={20} className="text-[#d9a79a]" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-[#8b5f4b] text-sm">Password</h3>
-                        <p className="text-xs text-[#a2786b]">Last changed 30 days ago</p>
-                      </div>
-                    </div>
-                    <button className="w-full bg-gradient-to-r from-[#f6d6cb] to-[#e7bfb3] hover:shadow-lg text-[#8b5f4b] font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 mt-auto">
-                      <Lock size={18} />
-                      Change Password
-                    </button>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-[#faf6f2] to-[#fef9f5] rounded-xl p-5 border border-[#e7bfb3]/30 h-full flex flex-col">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                        <Smartphone size={20} className="text-[#d9a79a]" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-[#8b5f4b] text-sm">Two-Factor Auth</h3>
-                        <p className="text-xs text-[#7a5650]">Extra security layer</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-xs text-[#7a5650] font-medium">
-                        {twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                      </span>
-                      <button
-                        onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFactorEnabled
-                          ? 'bg-gradient-to-r from-green-400 to-green-500'
-                          : 'bg-gray-200 hover:bg-gray-300'
-                          }`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${twoFactorEnabled ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
-                      </button>
-                    </div>
-                  </div>
-                </div> */}
-
-                {/* Account Security Status & Tips */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 h-full">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <CheckCircle2 size={20} className="text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-green-800 text-sm mb-1">Account Secured</h3>
-                        <p className="text-xs text-green-600 leading-relaxed">Your account is protected with strong security measures</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 h-full">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <AlertCircle size={20} className="text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-blue-800 text-sm mb-1">Security Tip</h3>
-                        <p className="text-xs text-blue-600 leading-relaxed">Use a strong password with at least 8 characters, including numbers and symbols</p>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
-
-              {/* </div>
-            </div> */}
-          {/* </div> */}
-
         </div>
       </div>
     </div>
@@ -419,3 +450,4 @@ const AccountPage = () => {
 };
 
 export default AccountPage;
+

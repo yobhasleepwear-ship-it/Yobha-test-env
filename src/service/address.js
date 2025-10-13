@@ -20,6 +20,16 @@ export const addAddress = async (payload) => {
     }
 };
 
+export const updateAddress = async (addressId, payload) => {
+    try {
+        const response = await axiosService.Put(`/auth/addresses/${addressId}`, payload);
+        return response.data;
+    } catch (error) {
+        console.error("updateAddress error:", error);
+        throw error;
+    }
+};
+
 export const deleteAddress = async (addressId) => {
     try {
         const response = await axiosService.Delete(`/auth/addresses/${addressId}`);
