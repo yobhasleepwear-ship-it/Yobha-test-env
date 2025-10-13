@@ -25,6 +25,16 @@ export const getProductDescription = async (id) => {
   }
 };
 
+export const submitReview = async (productId, reviewData) => {
+  try {
+    const response = await axiosService.Post(`/Products/${productId}/reviews`, reviewData);
+    return response.data;
+  } catch (err) {
+    console.error("submitReview error:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 export const getCartDetails = async () => {
   try {
     const response = await axiosService.Get(`/Cart`);
