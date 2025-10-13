@@ -27,7 +27,7 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
+
   // Safe data extraction with null checks
   const productId = product?.id || '';
   const productName = product?.name || 'Untitled Product';
@@ -50,18 +50,18 @@ const ProductCard = ({ product }) => {
     }
   };
   const handleAddToWishlist = async (productId) => {
-    const payload={
-  "productId": "PID10001",
-  "variantSku": "PID10001-NAV-S",
-  "desiredQuantity": 1,
-  "desiredSize": "S",
-  "desiredColor": "Navy Blue",
-  "notifyWhenBackInStock": true,
-  "note": "Buy during Diwali sale"
-}
+    const payload = {
+      "productId": "PID10001",
+      "variantSku": "PID10001-NAV-S",
+      "desiredQuantity": 1,
+      "desiredSize": "S",
+      "desiredColor": "Navy Blue",
+      "notifyWhenBackInStock": true,
+      "note": "Buy during Diwali sale"
+    }
 
     try {
-      const result = await addToWishlist(productId,payload);
+      const result = await addToWishlist(productId, payload);
       console.log("Added to wishlist:", result);
       alert("Product added to wishlist!");
     } catch (err) {
@@ -92,7 +92,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div 
+    <div
       onClick={handleCardClick}
       className="group relative bg-white border border-text-light/20 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
@@ -106,11 +106,10 @@ const ProductCard = ({ product }) => {
               key={index}
               src={img}
               alt={`${productName} - ${index + 1}`}
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
-                index === currentImageIndex 
-                  ? 'opacity-100' 
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${index === currentImageIndex
+                  ? 'opacity-100'
                   : 'opacity-0'
-              } group-hover:scale-105`}
+                } group-hover:scale-105`}
               onError={(e) => {
                 e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
               }}
@@ -139,24 +138,22 @@ const ProductCard = ({ product }) => {
         )}
 
         {/* Wishlist Icon */}
-        <button 
-          onClick={()=>handleWishlist(product.id)}
-          className={`absolute top-3 right-3 z-10 p-2 backdrop-blur-sm transition-all duration-300 ${
-            isWishlisted 
-              ? 'bg-black' 
+        {/* <button
+          onClick={() => handleWishlist(product.id)}
+          className={`absolute top-3 right-3 z-10 p-2 backdrop-blur-sm transition-all duration-300 ${isWishlisted
+              ? 'bg-black'
               : 'bg-white/90 hover:bg-white'
-          }`}
+            }`}
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart 
-            size={16} 
-            className={`transition-all ${
-              isWishlisted 
-                ? 'text-white fill-white' 
+          <Heart
+            size={16}
+            className={`transition-all ${isWishlisted
+                ? 'text-white fill-white'
                 : 'text-black'
-            }`} 
+              }`}
           />
-        </button>
+        </button> */}
 
         {/* Image Indicator Dots */}
         {hasMultipleImages && (
@@ -165,11 +162,10 @@ const ProductCard = ({ product }) => {
               <button
                 key={index}
                 onClick={(e) => goToImage(index, e)}
-                className={`h-1 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex 
-                    ? 'w-6 bg-black' 
+                className={`h-1 rounded-full transition-all duration-300 ${index === currentImageIndex
+                    ? 'w-6 bg-black'
                     : 'w-1 bg-black/30 hover:bg-black/60'
-                }`}
+                  }`}
                 aria-label={`Go to image ${index + 1}`}
               />
             ))}

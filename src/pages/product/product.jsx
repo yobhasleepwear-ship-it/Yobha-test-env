@@ -16,28 +16,6 @@ const debounce = (func, delay) => {
   };
 };
 
-const formatProductData = (apiResponse) => {
-  if (!apiResponse || !apiResponse.data || !apiResponse.data.items) {
-    return [];
-  }
-
-  return apiResponse.data.items
-    .filter(item => item && item.available !== false)
-    .map(item => ({
-      id: item?.id || item?.productId || Math.random().toString(),
-      productId: item?.productId || item?.id || '',
-      name: item?.name || 'Untitled Product',
-      price: item?.price || 0,
-      category: item?.category || item?.productMainCategory || '',
-      images: Array.isArray(item?.images) && item.images.length > 0
-        ? item.images
-        : ['https://via.placeholder.com/400x400?text=No+Image'],
-      available: item?.available !== false,
-      productMainCategory: item?.productMainCategory || item?.category || '',
-      availableColors: Array.isArray(item?.availableColors) ? item.availableColors : [],
-      availableSizes: Array.isArray(item?.availableSizes) ? item.availableSizes : [],
-    }));
-};
 
 const ProductsPage = () => {
   const { category } = useParams();
@@ -48,7 +26,7 @@ const ProductsPage = () => {
 
   // Filter State
   const [filters, setFilters] = useState({
-    segment: 'all',
+    segment: '',
     categories: [],
     subCategories: [],
     minPrice: '',
@@ -71,12 +49,13 @@ const ProductsPage = () => {
   // TODO: Replace with API call to fetch dynamic filters from backend
   // Example: useEffect(() => { fetchFilterOptions().then(setFilterOptions); }, []);
   const [filterOptions] = useState({
-    segments: ["All", "Women", "Men", "Kids", "Pets", "Couple", "Family"],
+    segments: ["All", "Women", "Men", "Kids", "Pets", "Couple", "Family","Scrunchies","Socks","Eyemasks","Headband","Cushions"],
     categories: [
-      { id: "sleepwear", name: "Sleepwear" },
-      { id: "loungewear", name: "Loungewear" },
-      { id: "homewear", name: "Homewear" },
-      { id: "accessories", name: "Accessories" },
+      { id: "Sleepwear", name: "Sleepwear" },
+      { id: "Loungewear", name: "Loungewear" },
+      { id: "Homewear", name: "Homewear" },
+      { id: "Accessories", name: "Accessories" },
+      { id: "PetAccessories", name: "PetAccessories" },
     ],
     subCategories: {
       sleepwear: [
@@ -125,14 +104,15 @@ const ProductsPage = () => {
     setIsLoading(true);
     try {
       const payload = {
-        q: 'night',
-        category: filters.categories.length > 0 ? filters.categories.join(',') : '',
+        q:'',
+        category:category,
+        subCategory:filters.segment,
         minPrice: filters.minPrice || undefined,
         maxPrice: filters.maxPrice || undefined,
-        pageNumber: pagination.pageNumber,
+        pageNumber: null,
         pageSize: pagination.pageSize,
         sort: filters.sortBy,
-        country: filters.country,
+        country: null,
       };
 
       // Remove undefined values
@@ -262,7 +242,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [category, filters.categories, filters.sortBy, pagination.pageNumber, priceRange,filters.country]);
+  }, [category, filters.categories, filters.sortBy, pagination.pageNumber, priceRange,filters.country , filters.subCategories,filters.segment]);
 
   // Handle filter changes
   const updateFilter = (key, value) => {
@@ -363,11 +343,11 @@ const ProductsPage = () => {
               <input
                 type="radio"
                 name="segment"
-                checked={filters.segment === segment.toLowerCase()}
-                onChange={() => updateFilter('segment', segment.toLowerCase())}
+                checked={filters.segment === segment}
+                onChange={() => updateFilter('segment', segment)}
                 className="w-4 h-4 border border-text-light text-black focus:ring-1 focus:ring-black cursor-pointer"
               />
-              <span className={`ml-3 text-sm tracking-wide transition-colors ${filters.segment === segment.toLowerCase()
+              <span className={`ml-3 text-sm tracking-wide transition-colors ${filters.segment === segment
                 ? "text-black font-medium"
                 : "text-text-medium group-hover:text-black"
                 }`}>
@@ -478,7 +458,7 @@ const ProductsPage = () => {
           />
         </div>
       </FilterAccordion>
-      <FilterAccordion
+      {/* <FilterAccordion
         title="Country"
         isOpen={openAccordion === "country"}
         onToggle={() => toggleAccordion("country")}
@@ -510,7 +490,7 @@ const ProductsPage = () => {
             );
           })}
         </div>
-      </FilterAccordion>
+      </FilterAccordion> */}
 
 
 

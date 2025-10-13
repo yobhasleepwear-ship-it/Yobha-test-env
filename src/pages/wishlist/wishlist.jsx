@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Trash2, ArrowRight, Bell } from "lucide-react";
-import { removeFromWishlists } from "../../service/wishlist";
+import { getWishlist, removeFromWishlists } from "../../service/wishlist";
 import { addToCart } from "../../service/productAPI";
+import { message } from "../../comman/toster-message/ToastContainer";
 
 /**
  * Helper function to safely format wishlist data from API
@@ -76,9 +77,9 @@ const formatWishlistData = (apiResponse) => {
 const formatPrice = (price, currency = 'INR') => {
   if (typeof price !== 'number') return '₹0';
   const symbol = currency === 'INR' ? '₹' : currency;
-  return `${symbol}${price.toLocaleString('en-IN', { 
-    minimumFractionDigits: 0, 
-    maximumFractionDigits: 0 
+  return `${symbol}${price.toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   })}`;
 };
 
@@ -95,7 +96,7 @@ const WishlistPage = () => {
 
   // API State
   const [wishlistItems, setWishlistItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
@@ -194,59 +195,42 @@ const WishlistPage = () => {
 
   // Fetch wishlist
   useEffect(() => {
-    const fetchWishlist = async () => {
-      setIsLoading(true);
-      setError(null);
 
-      // ============ TESTING MODE - COMMENT OUT AFTER TESTING ============
-      setTimeout(() => {
-        const formattedWishlist = formatWishlistData(TESTING_DUMMY_WISHLIST);
-        setWishlistItems(formattedWishlist);
-        setIsLoading(false);
-      }, 500);
-      return;
-      // ============ END TESTING MODE ============
 
-      // ============ PRODUCTION API CODE - UNCOMMENT AFTER TESTING ============
-      /*
-      try {
-        const response = await getWishlist(); // Your API call
-        
-        if (response && response.success) {
-          const formattedWishlist = formatWishlistData(response);
-          setWishlistItems(formattedWishlist);
-        } else {
-          setWishlistItems([]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch wishlist:', err);
-        setError('Failed to load wishlist');
-        setWishlistItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-      */
-      // ============ END PRODUCTION API CODE ============
-    };
 
-    fetchWishlist();
+    fetchWishList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fetchWishList = async () => {
+    setIsLoading(true)
+    try {
+      const response = await getWishlist();
+      console.log(response.data, "res")
+      setWishlistItems(response.data)
+    }
+    catch (err) {
+      console.log("something went wrong")
+    }
+    finally {
+      setIsLoading(false)
+    }
+  }
   // Remove from wishlist
 
- const removeFromWishlist = async (productId) => {
-  try {
-    const response = await removeFromWishlists(productId)
-    return response.data;
-  } catch (err) {
-    console.error("removeFromWishlist error:", err.response?.data || err.message);
-    throw err;
-  }
-};
+  const removeFromWishlist = async (productId) => {
+    try {
+      const response = await removeFromWishlists(productId)
+      fetchWishList();
+      message.success('Item removed from Wishlist!');
+    } catch (err) {
+      message.error("removeFromWishlist error:", err.response?.data || err.message);
+      throw err;
+    }
+  };
   // Move to cart
-  const moveToCart = async(item) => {
-    
+  const moveToCart = async (item) => {
+
     const cartData = {
       productId: item.product.productId,
       variantSku: item.product.variantSku,
@@ -254,18 +238,20 @@ const WishlistPage = () => {
       size: item.desiredSize,
       color: item.desiredColor
     };
-    try{
-   await addToCart(cartData);
-   
-    
-   
-    removeFromWishlist(item.id);
-    alert('Item moved to cart!');
+    try {
+      await addToCart(cartData);
+
+
+
+      removeFromWishlist(item.id);
+
+      message.success('Item moved to cart!');
     }
-    catch(err){
-      console.log(err||"something went wrong")
+    catch (err) {
+      message.error("something went wrong")
+      console.log(err || "something went wrong")
     }
- 
+
   };
 
   // Toggle notify when back in stock
@@ -283,7 +269,7 @@ const WishlistPage = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div 
+      <div
         className="min-h-screen bg-premium-cream flex items-center justify-center"
         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
       >
@@ -298,7 +284,7 @@ const WishlistPage = () => {
   // Error state
   if (error) {
     return (
-      <div 
+      <div
         className="min-h-screen bg-premium-cream flex items-center justify-center"
         style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
       >
@@ -319,12 +305,12 @@ const WishlistPage = () => {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-premium-cream"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 md:py-12">
-        
+
         {/* Page Header */}
         <div className="mb-8 md:mb-12">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
@@ -383,9 +369,9 @@ const WishlistPage = () => {
                   className="group bg-white border border-text-light/20 overflow-hidden hover:shadow-lg transition-all flex flex-col"
                 >
                   {/* Product Image */}
-                  <div 
+                  <div
                     className="relative aspect-square overflow-hidden bg-premium-beige cursor-pointer"
-                    onClick={() => navigate(`/productDetail/${product.productId}`)}
+                    onClick={() => navigate(`/productDetail/${product.productObjectId}`)}
                   >
                     <img
                       src={product.thumbnailUrl}
@@ -395,7 +381,7 @@ const WishlistPage = () => {
                         e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
                       }}
                     />
-                    
+
                     {/* Remove Button */}
                     <button
                       onClick={(e) => {
@@ -425,13 +411,13 @@ const WishlistPage = () => {
 
                   {/* Product Info */}
                   <div className="p-4 flex flex-col flex-1">
-                    <h3 
+                    <h3
                       className="font-semibold text-black text-base mb-2 line-clamp-2 hover:underline cursor-pointer uppercase tracking-tight"
-                      onClick={() => navigate(`/productDetail/${product.productId}`)}
+                      onClick={() => navigate(`/productDetail/${product.productObjectId}`)}
                     >
                       {product.name}
                     </h3>
-                    
+
                     {/* Variant Info */}
                     <div className="flex flex-wrap gap-2 text-xs text-text-medium mb-3">
                       {item.desiredColor && (
@@ -448,7 +434,7 @@ const WishlistPage = () => {
                         Note: {item.note}
                       </p>
                     )}
-                    
+
                     {/* Price */}
                     <div className="flex flex-wrap items-baseline gap-2 mb-4">
                       <span className="text-xl font-bold text-black">
@@ -464,22 +450,27 @@ const WishlistPage = () => {
                     {/* Actions */}
                     <div className="mt-auto space-y-2">
                       {/* Move to Cart Button */}
-                      <button
+                      {/* <button
                         onClick={() => moveToCart(item)}
-                        className="w-full bg-black text-white py-3 font-semibold hover:bg-text-dark transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                        disabled={!product.variantSku} // cleaner check
+                        className={`w-full py-3 font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors
+    ${product.variantSku
+                            ? 'bg-black text-white hover:bg-gray-900'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          }`}
                       >
                         <ShoppingBag size={16} strokeWidth={1.5} />
                         Move to Cart
-                      </button>
+                      </button> */}
+
 
                       {/* Notify When Back in Stock */}
                       <button
                         onClick={() => toggleNotification(item.id)}
-                        className={`w-full py-2 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                          item.notifyWhenBackInStock
-                            ? 'bg-premium-beige text-black border-2 border-black'
-                            : 'border-2 border-text-light/30 text-text-medium hover:border-black hover:text-black'
-                        }`}
+                        className={`w-full py-2 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${item.notifyWhenBackInStock
+                          ? 'bg-premium-beige text-black border-2 border-black'
+                          : 'border-2 border-text-light/30 text-text-medium hover:border-black hover:text-black'
+                          }`}
                       >
                         <Bell size={14} strokeWidth={1.5} />
                         {item.notifyWhenBackInStock ? 'Notifications On' : 'Notify Me'}

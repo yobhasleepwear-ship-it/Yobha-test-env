@@ -15,7 +15,7 @@ const HeaderWithSidebar = () => {
   const navigate = useNavigate();
 
   const menuItems = ["Home", "Collections", "About", "Contact"];
-  const collectionItems = ["Nightwear", "Loungewear", "Couple Sets", "Silk Series"];
+  const collectionItems = ["Sleepwear", "Loungewear", "Homewear", "Accessories","PetAccessories"];
 
   // Check authentication status
   useEffect(() => {
@@ -79,7 +79,7 @@ const HeaderWithSidebar = () => {
                   {collectionItems.map((cat) => (
                     <Link
                       key={cat}
-                      to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                      to={`/products/${cat.replace(/\s/g, "-")}`}
                       className="block px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-300 text-sm text-black hover:text-gray-700"
                     >
                       {cat}
@@ -217,7 +217,7 @@ const HeaderWithSidebar = () => {
                       {collectionItems.map((cat) => (
                         <Link
                           key={cat}
-                          to={`/products/${cat.toLowerCase().replace(/\s/g, "-")}`}
+                          to={`/products/${cat.replace(/\s/g, "-")}`}
                           className="block text-black hover:text-gray-700 transition-colors duration-300 py-1"
                           onClick={() => setSidebarOpen(false)}
                         >

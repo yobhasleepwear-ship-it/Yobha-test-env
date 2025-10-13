@@ -11,7 +11,7 @@ const ToastContainer = () => {
   const [toasts, setToasts] = useState([]);
 
   // function to add a toast
-  const addToast = (type, message, duration = 3000) => {
+  const addToast = (type, message, duration = 2000) => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, type, message }]);
 

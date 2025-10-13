@@ -17,7 +17,7 @@ function AppContent() {
       const response = await getCartDetails();
       const count = response.data.items.length;
       console.log("Cart items:", count);
-      dispatch(setCartCount(count)); // dispatch action with payload
+      dispatch(setCartCount(count)); 
     } catch (err) {
       console.log(err || "something went wrong");
     }

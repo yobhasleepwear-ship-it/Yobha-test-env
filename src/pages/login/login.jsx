@@ -8,6 +8,7 @@ import logoImage from "../../assets/yobhaLogo.png"
 import * as localStorageService from "../../service/localStorageService";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import { Link, useNavigate } from "react-router-dom";
+import { message } from "../../comman/toster-message/ToastContainer";
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -58,7 +59,7 @@ const LoginPage = () => {
       localStorageService.setValue(LocalStorageKeys.RefreshToken, refreshToken);
       localStorageService.setValue(LocalStorageKeys.User, JSON.stringify(user));
 
-
+      message.success("Welcome to YOBHA")
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
