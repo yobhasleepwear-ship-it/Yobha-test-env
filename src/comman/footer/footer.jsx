@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoImage from "../../assets/yobhaLogo.png";
+import { SubscribeNewsletter } from "../../service/notification";
+import { message } from "../toster-message/ToastContainer";
 const Footer = () => {
+const [newsletter , setNewsletter]=useState("")
+  const handleNewsSubscribe = () => {
+    const payload = {
+      "email": newsletter,
+      "countryCode": "",
+      "phoneNumber": ""
+    }
+    try {
+      const response = SubscribeNewsletter(payload)
+      message.success("Subscribed successfully")
+    }
+    catch {
+      message.error("something went wrong")
+    }
+  }
   return (
-    <footer 
+    <footer
       className="bg-premium-cream relative z-10 border-t border-text-light/20"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
@@ -15,16 +32,16 @@ const Footer = () => {
           {/* Brand & About */}
           <div className="space-y-5">
             <div className="text-3xl font-bold text-black tracking-wider">
-             <Link 
-                      to="/" 
-                      className="flex items-center"
-                    >
-                      <img 
-                        src={logoImage} 
-                        alt="YOBHA Logo" 
-                        className="h-8 md:h-10"
-                      />
-                    </Link>
+              <Link
+                to="/"
+                className="flex items-center"
+              >
+                <img
+                  src={logoImage}
+                  alt="YOBHA Logo"
+                  className="h-8 md:h-10"
+                />
+              </Link>
             </div>
             <p className="text-text-medium text-sm leading-relaxed">
               Premium sleepwear for your ultimate comfort. Designed with care, elegance, and style.
@@ -38,32 +55,32 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Home
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/products" 
+                <Link
+                  to="/products"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Collections
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/about" 
+                <Link
+                  to="/about"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   About
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/contact" 
+                <Link
+                  to="/contact"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Contact
@@ -79,32 +96,32 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a 
-                  href="#!" 
+                <a
+                  href="#!"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a 
-                  href="#!" 
+                <a
+                  href="#!"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a 
-                  href="#!" 
+                <a
+                  href="#!"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   Shipping & Returns
                 </a>
               </li>
               <li>
-                <a 
-                  href="#!" 
+                <a
+                  href="#!"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   FAQs
@@ -126,9 +143,11 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={newsletter}
+                  onChange={(e)=>setNewsletter(e.target.value)}
                   className="flex-1 px-4 py-2 text-sm border border-text-light/30 focus:outline-none focus:border-black transition-colors bg-white"
                 />
-                <button className="px-6 py-2 bg-black text-white text-sm font-medium hover:bg-text-dark transition-colors duration-300 uppercase tracking-wider">
+                <button className="px-6 py-2 bg-black text-white text-sm font-medium hover:bg-text-dark transition-colors duration-300 uppercase tracking-wider" onClick={handleNewsSubscribe}>
                   Sign Up
                 </button>
               </div>
@@ -139,23 +158,23 @@ const Footer = () => {
                 Follow Us
               </h3>
               <div className="flex items-center gap-5">
-                <a 
-                  href="#!" 
-                  aria-label="Facebook" 
+                <a
+                  href="#!"
+                  aria-label="Facebook"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   <Facebook size={22} strokeWidth={1.5} />
                 </a>
-                <a 
-                  href="#!" 
-                  aria-label="Twitter" 
+                <a
+                  href="#!"
+                  aria-label="Twitter"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   <Twitter size={22} strokeWidth={1.5} />
                 </a>
-                <a 
-                  href="#!" 
-                  aria-label="Instagram" 
+                <a
+                  href="#!"
+                  aria-label="Instagram"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
                   <Instagram size={22} strokeWidth={1.5} />
@@ -172,20 +191,20 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-text-medium">
             <p>© 2025 YOBHA. All rights reserved.</p>
             <div className="flex gap-8">
-              <Link 
-                to="/privacy" 
+              <Link
+                to="/privacy"
                 className="hover:text-black transition-colors duration-300"
               >
                 Privacy
               </Link>
-              <Link 
-                to="/terms" 
+              <Link
+                to="/terms"
                 className="hover:text-black transition-colors duration-300"
               >
                 Terms
               </Link>
-              <Link 
-                to="/cookies" 
+              <Link
+                to="/cookies"
                 className="hover:text-black transition-colors duration-300"
               >
                 Cookies

@@ -2,10 +2,20 @@ import * as axiosService from "./axiosService";
 
 export const getOrders = async () => {
   try {
-    const response = await axiosService.Get("/Orders"); // GET request
-    return response.data; // return API response data
+    const response = await axiosService.Get("/Orders"); 
+    return response.data;
   } catch (err) {
     console.error("Fetching orders failed:", err.response?.data || err.message);
     throw err;
   }
+};
+
+export const CreateOrder = async (payload) => {
+    try {
+        const response = await axiosService.Post("/Orders", payload);
+        return response.data;
+    } catch (error) {
+        console.error("CreateOrder error:", error);
+        throw error;
+    }
 };

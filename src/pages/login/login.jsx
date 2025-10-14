@@ -72,10 +72,10 @@ const LoginPage = () => {
       try {
         await sendOtp(`${countryCode}${phoneNumber}`);
         setShowOtpModal(true);
-        alert("OTP sent successfully!");
+        message.success("OTP sent successfully!");
       } catch (err) {
         console.error("Send OTP failed:", err);
-        alert(err.response?.data?.message || "Failed to send OTP");
+        message.error(err.response?.data?.message || "Failed to send OTP");
       }
     } else {
       alert("Please enter phone number");

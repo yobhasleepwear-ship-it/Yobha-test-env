@@ -133,7 +133,19 @@ const ProductDetailPage = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-
+  const countryOptions = [
+    { code: "IN", label: "India" },
+    { code: "AE", label: "United Arab Emirates (UAE)" },
+    { code: "SA", label: "Saudi Arabia" },
+    { code: "QA", label: "Qatar" },
+    { code: "KW", label: "Kuwait" },
+    { code: "OM", label: "Oman" },
+    { code: "BH", label: "Bahrain" },
+    { code: "JO", label: "Jordan" },
+    { code: "LB", label: "Lebanon" },
+    { code: "EG", label: "Egypt" },
+    { code: "IQ", label: "Iraq" },
+  ];
 
   useEffect(() => {
 
@@ -153,7 +165,7 @@ const ProductDetailPage = () => {
       }
     }
   }, [product, selectedColor, selectedSize]);
-  
+
   const fetchProductDetail = async (productId) => {
     setIsLoading(true)
     try {
@@ -171,7 +183,7 @@ const ProductDetailPage = () => {
   // Handle review submission
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    
+
     if (!reviewComment.trim()) {
       message.error("Please enter a review comment");
       return;
@@ -183,18 +195,18 @@ const ProductDetailPage = () => {
         rating: reviewRating,
         comment: reviewComment.trim()
       };
-      
+
       await submitReview(productId, reviewData);
       message.success("Review submitted successfully!");
-      
+
       // Reset form
       setReviewComment('');
       setReviewRating(5);
       setShowReviewForm(false);
-      
+
       // Refresh product data to show updated reviews
       await fetchProductDetail(productId);
-      
+
     } catch (error) {
       console.error("Error submitting review:", error);
       message.error("Failed to submit review. Please try again.");
@@ -270,7 +282,7 @@ const ProductDetailPage = () => {
       currency: product?.priceList?.find(
         (item) => item.country === selectedCountry && item.size === selectedSize
       ).currency,                                 // optional
-      note: ""                                        
+      note: ""
     };
 
     try {
@@ -366,6 +378,10 @@ const ProductDetailPage = () => {
     (item) =>
       item.country === selectedCountry &&
       item.size === selectedSize
+  );
+
+  const shippingInfo = product.countryPrices.find(
+    (item) => item.country === selectedCountry
   );
   return (
     <div
@@ -513,17 +529,11 @@ const ProductDetailPage = () => {
                 onChange={handleCountryChange}
                 className="w-full px-4 py-2 border border-text-light/20 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-black"
               >
-                <option value="IN">India</option>
-                <option value="AE">United Arab Emirates (UAE)</option>
-                <option value="SA">Saudi Arabia</option>
-                <option value="QA">Qatar</option>
-                <option value="KW">Kuwait</option>
-                <option value="OM">Oman</option>
-                <option value="BH">Bahrain</option>
-                <option value="JO">Jordan</option>
-                <option value="LB">Lebanon</option>
-                <option value="EG">Egypt</option>
-                <option value="IQ">Iraq</option>
+                    {countryOptions.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.label}
+            </option>
+          ))}
               </select>
             </div>
 
@@ -573,7 +583,6 @@ const ProductDetailPage = () => {
                 })()}
               </div>
             </div>
-
             {/* Color Selection */}
             {product?.availableColors?.length > 0 && (
               <div>
@@ -692,7 +701,20 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Shipping Info */}
-            <div className="space-y-3 pt-6 border-t border-text-light/20">
+          {shippingInfo && (
+  <div className="flex items-start gap-3">
+    <Truck size={20} className="text-text-medium mt-0.5" strokeWidth={1.5} />
+    <div>
+      <p className="text-sm font-medium text-black">Shipping Charges</p>
+      <p className="text-xs text-text-medium">
+        {shippingInfo.priceAmount === 0
+          ? "Free Shipment"
+          : `${shippingInfo.priceAmount.toLocaleString()} ${shippingInfo.currency}`}
+      </p>
+    </div>
+  </div>
+)}
+            {/* <div className="space-y-3 pt-6 border-t border-text-light/20">
               <div className="flex items-start gap-3">
                 <Truck size={20} className="text-text-medium mt-0.5" strokeWidth={1.5} />
                 <div>
@@ -707,7 +729,7 @@ const ProductDetailPage = () => {
                   <p className="text-xs text-text-medium">30-day return policy</p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Product Details */}
             {(product.keyFeatures.length > 0 || Object.keys(product.specifications).length > 0 || product.fabricType.length > 0) && (
@@ -768,7 +790,7 @@ const ProductDetailPage = () => {
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-black uppercase tracking-wide mb-6 sm:mb-8">
             Customer Reviews
           </h2>
-          
+
           {/* Add Review Button */}
           {!showReviewForm && (
             <div className="mb-6 sm:mb-8">
@@ -788,7 +810,7 @@ const ProductDetailPage = () => {
               <h3 className="text-lg sm:text-xl font-bold text-black mb-4 sm:mb-6 uppercase tracking-wide">
                 Share Your Experience
               </h3>
-              
+
               <form onSubmit={handleSubmitReview} className="space-y-4 sm:space-y-6">
                 {/* Rating Selection */}
                 <div>
@@ -805,11 +827,10 @@ const ProductDetailPage = () => {
                       >
                         <Star
                           size={20}
-                          className={`sm:w-6 sm:h-6 ${
-                            rating <= reviewRating
-                              ? "fill-black text-black"
-                              : "fill-none text-text-light"
-                          }`}
+                          className={`sm:w-6 sm:h-6 ${rating <= reviewRating
+                            ? "fill-black text-black"
+                            : "fill-none text-text-light"
+                            }`}
                           strokeWidth={1.5}
                         />
                       </button>
@@ -876,11 +897,10 @@ const ProductDetailPage = () => {
                         <Star
                           key={i}
                           size={12}
-                          className={`sm:w-4 sm:h-4 ${
-                            i < review.rating
-                              ? "fill-black text-black"
-                              : "fill-none text-text-light"
-                          }`}
+                          className={`sm:w-4 sm:h-4 ${i < review.rating
+                            ? "fill-black text-black"
+                            : "fill-none text-text-light"
+                            }`}
                           strokeWidth={1.5}
                         />
                       ))}

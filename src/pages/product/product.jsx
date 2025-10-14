@@ -123,56 +123,7 @@ const ProductsPage = () => {
       const response = await getFilteredProducts(payload);
 
       if (response && response.success && response.data) {
-        // const formattedProducts = formatProductData({
-        //   "success": true,
-        //   "status": 200,
-        //   "message": "OK",
-        //   "data": {
-        //     "pageNumber": 1,
-        //     "pageSize": 12,
-        //     "total": 2,
-        //     "items": [
-        //       {
-        //         "id": "68ea9382034b313e6da0d974",
-        //         "productId": "PID10017",
-        //         "name": "Satin Pyjama Set",
-        //         "price": 2199.00,
-        //         "category": "Pyjamas",
-        //         "images": [
-        //           "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800"
-        //         ],
-        //         "available": true,
-        //         "productMainCategory": "Sleepwear",
-        //         "availableColors": [
-        //           "Black"
-        //         ],
-        //         "availableSizes": [
-        //           "L"
-        //         ]
-        //       },
-        //       {
-        //         "id": "68ea9364034b313e6da0d972",
-        //         "productId": "PID10015",
-        //         "name": "Luxe Cotton Nightshirt",
-        //         "price": 1299.00,
-        //         "category": "Nightwear",
-        //         "images": [
-        //           "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800"
-        //         ],
-        //         "available": true,
-        //         "productMainCategory": "Sleepwear",
-        //         "availableColors": [
-        //           "Navy Blue"
-        //         ],
-        //         "availableSizes": [
-        //           "S"
-        //         ]
-        //       }
-        //     ]
-        //   },
-        //   "errors": null,
-        //   "pagination": null
-        // });
+       
         setProducts(response.data.items);
 
 
