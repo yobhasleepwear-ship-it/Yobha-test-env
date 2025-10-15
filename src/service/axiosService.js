@@ -3,7 +3,7 @@ import * as localStorageService from "./localStorageService";
 import { LocalStorageKeys } from "../constants/localStorageKeys";
 
 const apiClient = axios.create({
-  baseURL: "http://43.205.21.246/api",
+  baseURL: "https://backend.yobha.world/api",
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",
@@ -46,4 +46,5 @@ export const Patch = async (url, data = {}, config = {}) => {
 };
 
 export default apiClient;
+
 
