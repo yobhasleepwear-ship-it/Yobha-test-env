@@ -8,6 +8,7 @@ import { Provider, useDispatch } from "react-redux";
 import { getCartDetails } from "./service/productAPI";
 import { setCartCount } from "./redux/cartSlice"; // assume you have this action
 import ToastContainer from "./comman/toster-message/ToastContainer";
+import ScrollToTop from "./ScrollToTop";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -27,7 +28,13 @@ function AppContent() {
     fetchCart();
   }, []);
 
-  return <Router />;
+  return (
+    <>
+        <ScrollToTop/> 
+      <Router />
+    
+    </>
+  );
 }
 
 function App() {

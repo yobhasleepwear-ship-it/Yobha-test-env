@@ -34,7 +34,7 @@ const ProductCard = ({ product }) => {
   const productPrice = product?.price || 0;
   const productImages = Array.isArray(product?.images) && product.images.length > 0
     ? product.images
-    : ['https://via.placeholder.com/400x400?text=No+Image'];
+    : ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4='];
   const hasMultipleImages = productImages.length > 1;
   const availableColors = Array.isArray(product?.availableColors) ? product.availableColors : [];
   const availableSizes = Array.isArray(product?.availableSizes) ? product.availableSizes : [];
@@ -111,7 +111,7 @@ const ProductCard = ({ product }) => {
                   : 'opacity-0'
                 } group-hover:scale-105`}
               onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPC9zdmc+';
               }}
             />
           ))}

@@ -12,7 +12,7 @@ import { message } from "../../comman/toster-message/ToastContainer";
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState("email");
+  const [activeTab, setActiveTab] = useState("phone");
   const [isSignup, setIsSignup] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -84,7 +84,7 @@ const LoginPage = () => {
   const handleGoogleLogin = () => {
 
     const returnUrl = "http://localhost:3000/home";
-    window.location.href = `http://65.2.184.190/api/GoogleAuth/google/redirect?params=${encodeURIComponent(returnUrl)}`;
+    window.location.href = `https://backend.yobha.world/api/GoogleAuth/google/redirect?params=${encodeURIComponent(returnUrl)}`;
   };
 
 
@@ -239,13 +239,13 @@ const LoginPage = () => {
                 </div>
 
                 {/* Google Login */}
-                <button
+                {/* <button
                   onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 py-4 border-2 border-text-light/30 hover:border-black transition-colors text-black font-medium text-sm"
                 >
                   <FcGoogle size={22} />
                   Continue with Google
-                </button>
+                </button> */}
 
                 {/* Signup Link */}
                 <p className="text-center text-text-medium mt-6 md:mt-8 text-sm">
