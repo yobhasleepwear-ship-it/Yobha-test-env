@@ -5,75 +5,7 @@ import { getWishlist, removeFromWishlists } from "../../service/wishlist";
 import { addToCart } from "../../service/productAPI";
 import { message } from "../../comman/toster-message/ToastContainer";
 
-/**
- * Helper function to safely format wishlist data from API
- * Handles null checks and provides fallbacks
- * 
- * Expected API Response:
- * {
- *   "success": true,
- *   "data": [
- *     {
- *       "id": "...",
- *       "userId": "...",
- *       "product": {...},
- *       "desiredQuantity": 1,
- *       "desiredSize": "S",
- *       "desiredColor": "Navy Blue",
- *       "notifyWhenBackInStock": true,
- *       "movedToCart": false,
- *       "note": "...",
- *       "createdAt": "...",
- *       "updatedAt": "..."
- *     }
- *   ]
- * }
- */
-const formatWishlistData = (apiResponse) => {
-  if (!apiResponse || !apiResponse.data) {
-    return [];
-  }
 
-  const data = Array.isArray(apiResponse.data) ? apiResponse.data : [];
-
-  return data
-    .filter(item => item && item.product && item.product.isActive !== false)
-    .map(item => ({
-      // Wishlist item fields
-      id: item?.id || Math.random().toString(),
-      userId: item?.userId || '',
-      desiredQuantity: typeof item?.desiredQuantity === 'number' ? item.desiredQuantity : 1,
-      desiredSize: item?.desiredSize || '',
-      desiredColor: item?.desiredColor || '',
-      notifyWhenBackInStock: item?.notifyWhenBackInStock === true,
-      movedToCart: item?.movedToCart === true,
-      note: item?.note || '',
-      createdAt: item?.createdAt || null,
-      updatedAt: item?.updatedAt || null,
-
-      // Product nested object fields
-      product: {
-        productId: item?.product?.productId || '',
-        productObjectId: item?.product?.productObjectId || '',
-        name: item?.product?.name || 'Untitled Product',
-        slug: item?.product?.slug || '',
-        thumbnailUrl: item?.product?.thumbnailUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=',
-        variantSku: item?.product?.variantSku || '',
-        variantId: item?.product?.variantId || '',
-        variantSize: item?.product?.variantSize || '',
-        variantColor: item?.product?.variantColor || '',
-        unitPrice: typeof item?.product?.unitPrice === 'number' ? item.product.unitPrice : 0,
-        compareAtPrice: typeof item?.product?.compareAtPrice === 'number' ? item.product.compareAtPrice : null,
-        currency: item?.product?.currency || 'INR',
-        isActive: item?.product?.isActive !== false,
-        freeShipping: item?.product?.freeShipping === true,
-      }
-    }));
-};
-
-/**
- * Format price to INR
- */
 const formatPrice = (price, currency = 'INR') => {
   if (typeof price !== 'number') return '₹0';
   const symbol = currency === 'INR' ? '₹' : currency;
@@ -83,9 +15,7 @@ const formatPrice = (price, currency = 'INR') => {
   })}`;
 };
 
-/**
- * Calculate discount percentage
- */
+
 const calculateDiscountPercent = (originalPrice, currentPrice) => {
   if (!originalPrice || !currentPrice || originalPrice <= currentPrice) return 0;
   return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
@@ -99,107 +29,10 @@ const WishlistPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ============ TESTING DUMMY DATA - REMOVE AFTER TESTING ============
-  const TESTING_DUMMY_WISHLIST = {
-    success: true,
-    status: 200,
-    message: "OK",
-    data: [
-      {
-        id: "6708a3e7d1b2a4c9f0000001",
-        userId: "user_12345",
-        product: {
-          productId: "PID10001",
-          productObjectId: "66fc87e10b9a2b7fbe901001",
-          name: "Luxe Cotton Nightshirt",
-          slug: "luxe-cotton-nightshirt",
-          thumbnailUrl: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-          variantSku: "PID10001-NAV-S",
-          variantId: "var-1001",
-          variantSize: "S",
-          variantColor: "Navy Blue",
-          unitPrice: 1299.00,
-          compareAtPrice: 1599.00,
-          currency: "INR",
-          isActive: true,
-          freeShipping: true
-        },
-        desiredQuantity: 1,
-        desiredSize: "S",
-        desiredColor: "Navy Blue",
-        notifyWhenBackInStock: true,
-        movedToCart: false,
-        note: "Buy when restocked",
-        createdAt: "2025-10-11T07:10:00Z",
-        updatedAt: "2025-10-11T07:10:00Z"
-      },
-      {
-        id: "6708a3e7d1b2a4c9f0000002",
-        userId: "user_12345",
-        product: {
-          productId: "PID10002",
-          productObjectId: "66fc87e10b9a2b7fbe901002",
-          name: "Silk Pyjama Set",
-          slug: "silk-pyjama-set",
-          thumbnailUrl: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=600",
-          variantSku: "PID10002-GRN-M",
-          variantId: "var-1022",
-          variantSize: "M",
-          variantColor: "Green",
-          unitPrice: 1599.00,
-          compareAtPrice: 1799.00,
-          currency: "INR",
-          isActive: true,
-          freeShipping: false
-        },
-        desiredQuantity: 2,
-        desiredSize: "M",
-        desiredColor: "Green",
-        notifyWhenBackInStock: false,
-        movedToCart: false,
-        note: "Gift for sister",
-        createdAt: "2025-10-11T07:12:00Z",
-        updatedAt: "2025-10-11T07:12:00Z"
-      },
-      {
-        id: "6708a3e7d1b2a4c9f0000003",
-        userId: "user_12345",
-        product: {
-          productId: "PID10003",
-          productObjectId: "66fc87e10b9a2b7fbe901003",
-          name: "Premium Velvet Robe",
-          slug: "premium-velvet-robe",
-          thumbnailUrl: "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=600",
-          variantSku: "PID10003-BLK-L",
-          variantId: "var-1033",
-          variantSize: "L",
-          variantColor: "Black",
-          unitPrice: 2499.00,
-          compareAtPrice: 2999.00,
-          currency: "INR",
-          isActive: true,
-          freeShipping: true
-        },
-        desiredQuantity: 1,
-        desiredSize: "L",
-        desiredColor: "Black",
-        notifyWhenBackInStock: false,
-        movedToCart: false,
-        note: "",
-        createdAt: "2025-10-10T15:30:00Z",
-        updatedAt: "2025-10-10T15:30:00Z"
-      }
-    ]
-  };
-  // ============ END TESTING DUMMY DATA ============
 
-  // Fetch wishlist
   useEffect(() => {
-
-
-
     fetchWishList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const fetchWishList = async () => {
@@ -465,7 +298,7 @@ const WishlistPage = () => {
 
 
                       {/* Notify When Back in Stock */}
-                      <button
+                      {/* <button
                         onClick={() => toggleNotification(item.id)}
                         className={`w-full py-2 text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${item.notifyWhenBackInStock
                           ? 'bg-premium-beige text-black border-2 border-black'
@@ -473,8 +306,10 @@ const WishlistPage = () => {
                           }`}
                       >
                         <Bell size={14} strokeWidth={1.5} />
-                        {item.notifyWhenBackInStock ? 'Notifications On' : 'Notify Me'}
-                      </button>
+                        {/* {item.notifyWhenBackInStock ? 'Notifications On' : 'Notify Me'}
+                         */}
+                         {/* {item?.name}
+                      </button> */} 
                     </div>
                   </div>
                 </div>
