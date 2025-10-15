@@ -1,33 +1,15 @@
-import React, { useMemo, useRef, useState, useLayoutEffect, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFilteredProducts } from "../../../service/productAPI";
 
 const TrendingNewArrivals = () => {
-  const [index, setIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(() =>
-    typeof window !== "undefined" && window.innerWidth >= 768 ? 3 : 1
-  );
   const navigate = useNavigate();
-  const trackRef = useRef(null);
-  const [cardWidth, setCardWidth] = useState(0);
-  const [gapPx, setGapPx] = useState(0);
 
   // ✅ Fetch your API data
   useEffect(() => {
     fetchProducts();
-
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 768px)");
-    const handle = (e) => setVisibleCount(e.matches ? 3 : 1);
-    handle(mq);
-    if (mq.addEventListener) mq.addEventListener("change", handle);
-    else mq.addListener(handle);
-    return () => {
-      if (mq.removeEventListener) mq.removeEventListener("change", handle);
-      else mq.removeListener(handle);
-    };
   }, []);
 
   const fetchProducts = async () => {
@@ -40,7 +22,7 @@ const TrendingNewArrivals = () => {
         minPrice: null,
         maxPrice: null,
         pageNumber: null,
-        pageSize: 10,
+        pageSize: 12, // Increased for better grid display
         sort: "latest",
         country: null,
       };
@@ -64,153 +46,140 @@ const TrendingNewArrivals = () => {
     if (!products || !Array.isArray(products)) return [];
     return products
       .filter((p) => p.available)
+      .slice(0, 8) // Show only 8 products for premium layout
       .map((p) => ({
         id: p.id,
         title: p.name || "Untitled Product",
         price: p.price ? `₹${p.price.toLocaleString("en-IN")}` : "Price not available",
-        image: p.images?.[0] || "https://via.placeholder.com/400x300?text=No+Image",
+        image: p.images?.[0] || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4=",
         badge: p.productMainCategory || "New",
         slug: p.productId,
+        category: p.category || "Luxury Collection"
       }));
   }, [products]);
 
-  const maxIndex = Math.max(0, displayProducts.length - visibleCount);
-  const clampedIndex = Math.max(0, Math.min(index, maxIndex));
-
-  const next = () => setIndex((i) => Math.min(i + 1, maxIndex));
-  const prev = () => setIndex((i) => Math.max(i - 1, 0));
-
-  useLayoutEffect(() => {
-    if (!trackRef.current) return;
-    const measure = () => {
-      const first = trackRef.current.querySelector("article");
-      if (!first) {
-        setCardWidth(0);
-        setGapPx(0);
-        return;
-      }
-      const rect = first.getBoundingClientRect();
-      const w = Math.round(rect.width);
-      const cs = window.getComputedStyle(trackRef.current);
-      const gapStr = cs.columnGap || cs.gap || "0px";
-      const gap = Math.round(parseFloat(gapStr) || 0);
-      setCardWidth(w);
-      setGapPx(gap);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [visibleCount]);
-
   return (
     <section
-      className="relative max-w-[1600px] mx-auto px-6 md:px-8 lg:px-12 py-20 bg-premium-cream overflow-hidden"
+      className="relative w-full px-4 sm:px-6 md:px-8 lg:px-12 py-16 md:py-20 bg-premium-cream overflow-hidden"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
-      <div className="flex items-end justify-between mb-12">
-        <div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-wide text-black uppercase mb-3">
-            Trending Collections
-          </h2>
-          <p className="text-text-medium text-base md:text-lg">
-            New Arrivals crafted for elevated living
-          </p>
-        </div>
-        <div className="hidden md:flex gap-4">
-          <button
-            onClick={prev}
-            disabled={clampedIndex === 0}
-            className="h-12 w-12 rounded-sm border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            ‹
-          </button>
-          <button
-            onClick={next}
-            disabled={clampedIndex === maxIndex}
-            className="h-12 w-12 rounded-sm border-2 border-black text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            ›
-          </button>
-        </div>
+      {/* Luxury Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-20 h-20 border border-luxury-gold/30 rotate-45"></div>
+        <div className="absolute top-20 right-16 w-16 h-16 border border-luxury-gold/30 rotate-12"></div>
+        <div className="absolute bottom-16 left-16 w-18 h-18 border border-luxury-gold/30 -rotate-12"></div>
+        <div className="absolute bottom-10 right-10 w-14 h-14 border border-luxury-gold/30 rotate-45"></div>
       </div>
 
-      <div className="relative">
-        <div className="md:hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 z-10">
-          <button
-            onClick={prev}
-            disabled={clampedIndex === 0}
-            className="h-10 w-10 rounded-sm border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30"
-          >
-            ‹
-          </button>
-          <button
-            onClick={next}
-            disabled={clampedIndex === maxIndex}
-            className="h-10 w-10 rounded-sm border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-30"
-          >
-            ›
-          </button>
-        </div>
+      {/* Section Header */}
+      <div className="relative z-10 text-center mb-12 md:mb-16">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-widest text-black uppercase mb-4">
+          New Arrivals
+        </h2>
+        <div className="w-16 h-1 bg-luxury-gold mx-auto mb-6"></div>
+        <p className="text-text-medium text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
+          New Arrivals crafted for elevated living
+        </p>
+      </div>
 
-        <div className="overflow-hidden md:px-4">
-          <div
-            ref={trackRef}
-            className="grid grid-flow-col auto-cols-[100%] sm:auto-cols-[85%] md:auto-cols-[calc((100%-40px)/3)] gap-6 transition-transform duration-500"
-            style={{
-              transform: cardWidth
-                ? `translateX(-${clampedIndex * (cardWidth + gapPx)}px)`
-                : `translateX(-${clampedIndex * (100 / visibleCount)}%)`,
-            }}
-          >
-            {isLoading ? (
-              <div className="col-span-full text-center py-16 text-text-medium">
-                <p className="text-lg">Loading products...</p>
-              </div>
-            ) : displayProducts.length > 0 ? (
-              displayProducts.map((p) => (
-                <article
-                  key={p.id}
-                  className="group bg-white border border-text-light/20 overflow-hidden shadow-sm hover:shadow-lg flex flex-col h-full cursor-pointer transition-all duration-300"
-                  onClick={() => navigate(`/productDetail/${p.slug}`)}
-                >
-                  <div className="relative aspect-square overflow-hidden bg-premium-beige">
-                    <img
-                      src={p.image}
-                      alt={p.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      onError={(e) =>
-                        (e.target.src = "https://via.placeholder.com/400x300?text=Image+Not+Found")
-                      }
-                    />
-                    {p.badge && (
-                      <span className="absolute top-3 left-3 text-xs px-2.5 py-1 bg-black text-white font-medium uppercase tracking-wider">
-                        {p.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-4 flex flex-col flex-1 bg-white">
-                    <h3 className="text-text-dark font-semibold text-base tracking-tight group-hover:text-black transition-colors mb-1 uppercase">
-                      {p.title}
-                    </h3>
-                    <p className="text-text-medium text-xs mt-1 line-clamp-2 flex-1 leading-relaxed">
-                      {p.category || "No description available"}
-                    </p>
-                    <div className="mt-3 pt-3 border-t border-text-light/20">
-                      <span className="text-black font-bold text-lg">
-                        {p.price}
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-16 text-text-medium">
-                <p className="text-lg">No products available at the moment.</p>
-              </div>
-            )}
+      {/* Premium Product Grid - Enhanced Mobile Responsiveness */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <div className="w-12 h-12 border-4 border-luxury-gold/20 rounded-full animate-spin"></div>
+              <div className="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-luxury-gold rounded-full animate-spin"></div>
+            </div>
+            <p className="text-text-medium text-lg font-medium">Loading products...</p>
           </div>
         </div>
-      </div>
+      ) : displayProducts.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          {displayProducts.map((product, index) => (
+            <article
+              key={product.id}
+              className="group bg-white border border-text-light/10 overflow-hidden shadow-lg hover:shadow-2xl cursor-pointer transition-all duration-700 flex flex-col relative"
+              onClick={() => navigate(`/productDetail/${product.slug}`)}
+            >
+              {/* Luxury Gold Accent Bar */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
+              
+              {/* Product Image Container */}
+              <div className="relative aspect-square overflow-hidden bg-premium-beige">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  onError={(e) =>
+                    (e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPC9zdmc+")
+                  }
+                />
+                
+                {/* Luxury overlay effects */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/40 transition-all duration-500"></div>
+                
+                {/* Premium Badge */}
+                {product.badge && (
+                  <span className="absolute top-3 left-3 text-xs px-2 py-1 bg-luxury-gold text-black font-semibold uppercase tracking-widest group-hover:bg-black group-hover:text-luxury-gold transition-all duration-300">
+                    {product.badge}
+                  </span>
+                )}
+
+                {/* Luxury border overlay */}
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-luxury-gold/30 transition-all duration-500"></div>
+                
+                {/* Quick view button */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <button className="px-4 py-2 bg-luxury-gold text-black font-semibold text-xs uppercase tracking-widest hover:bg-black hover:text-luxury-gold transition-all duration-300 transform hover:scale-105">
+                    Quick View
+                  </button>
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 bg-white">
+                <div className="mb-3 flex-1">
+                  <h3 className="text-text-dark font-bold text-xs sm:text-sm lg:text-base tracking-tight group-hover:text-black transition-colors mb-2 uppercase leading-tight line-clamp-2 min-h-[2.5rem] flex items-start">
+                    {product.title}
+                  </h3>
+                  <p className="text-text-medium text-xs leading-relaxed line-clamp-1">
+                    {product.category}
+                  </p>
+                </div>
+                
+                <div className="mt-auto pt-3 border-t border-text-light/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-black font-bold text-sm sm:text-base flex-shrink-0">
+                      {product.price}
+                    </span>
+                    <div className="text-luxury-gold text-xs uppercase tracking-widest group-hover:text-black transition-colors duration-300 flex-shrink-0">
+                      View Details →
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20">
+          <div className="text-6xl mb-4">✨</div>
+          <p className="text-text-medium text-lg">No products available at the moment.</p>
+          <p className="text-text-light text-sm mt-2">Check back soon for new arrivals</p>
+        </div>
+      )}
+
+      {/* Luxury Call-to-Action */}
+      {displayProducts.length > 0 && (
+        <div className="text-center mt-12 md:mt-16">
+          <button 
+            onClick={() => navigate('/products')}
+            className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-black to-text-dark text-white font-semibold text-base sm:text-lg uppercase tracking-widest hover:bg-luxury-gold hover:text-white transition-all duration-500 transform hover:scale-105 border-2 border-black hover:border-luxury-gold shadow-lg hover:shadow-2xl"
+          >
+            View All Products
+          </button>
+        </div>
+      )}
     </section>
   );
 };

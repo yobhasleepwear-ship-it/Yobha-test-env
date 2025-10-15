@@ -3,7 +3,7 @@ import * as localStorageService from "./localStorageService";
 import { LocalStorageKeys } from "../constants/localStorageKeys";
 
 const apiClient = axios.create({
-  baseURL: "http://65.2.184.190/api",
+  baseURL: "https://backend.yobha.world/api",
   timeout: 20000,
   headers: {
     "Content-Type": "application/json",
