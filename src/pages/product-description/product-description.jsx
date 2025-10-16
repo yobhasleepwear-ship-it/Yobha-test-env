@@ -18,15 +18,19 @@ import { addToWishlist } from "../../service/wishlist";
 import { message } from "../../comman/toster-message/ToastContainer";
 
 
-const getAvailableQuantity = (inventory, color, size) => {
-  if (!Array.isArray(inventory) || inventory.length === 0) return 0;
+const getAvailableQuantity = (priceList, selectedCountry, selectedSize) => {
+  if (!Array.isArray(priceList) || priceList.length === 0) return 0;
 
-  const item = inventory.find(
-    inv => inv?.color === color && inv?.size === size && inv?.quantity > 0
+  const matchedItem = priceList.find(
+    (item) =>
+      item.country === selectedCountry &&
+      item.size === selectedSize &&
+      item.quantity > 0
   );
 
-  return item ? (item.quantity - (item.reserved || 0)) : 0;
+  return matchedItem ? matchedItem.quantity : 0;
 };
+
 
 
 const formatPrice = (price, currency = 'INR') => {
@@ -58,6 +62,7 @@ const ProductDetailPage = () => {
   const [error, setError] = useState(null);
   const [newProducts, setProducts] = useState([])
   // Review Form State
+  const [averageProdRating, setAverageProdRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -103,7 +108,14 @@ const ProductDetailPage = () => {
       const response = await getProductDescription(productId);
       console.log("Product details:");
       setProduct(response.data);
+      setAverageProdRating(() => {
+        const reviews = response.data.reviews || [];
+        if (reviews.length === 0) return 0;
+        const total = reviews.reduce((sum, item) => sum + item.rating, 0);
+        return (total / reviews.length).toFixed(1);
+      });
       fetchProducts(response?.data?.productMainCategory)
+
     } catch (error) {
       console.error("Error fetching product:", error);
     }
@@ -176,12 +188,10 @@ const ProductDetailPage = () => {
     }
   };
 
-  // Get available quantity for current selection
   const availableQuantity = product
-    ? getAvailableQuantity(product.inventory, selectedColor, selectedSize)
+    ? getAvailableQuantity(product.priceList, selectedCountry, selectedSize)
     : 0;
 
-  // Image navigation
   const handlePrevImage = () => {
     if (!product || product.images.length === 0) return;
     setSelectedImageIndex((prev) =>
@@ -238,7 +248,7 @@ const ProductDetailPage = () => {
 
     const payload = {
       productId: product.productId,
-      variantSku: '',
+      variantSku: `${product.productId}-${selectedColor}-${selectedSize}`,
       quantity: quantity,
       currency: product?.priceList?.find(
         (item) => item.country === selectedCountry && item.size === selectedSize
@@ -458,7 +468,7 @@ const ProductDetailPage = () => {
                         key={i}
                         size={16}
                         className={
-                          i < Math.floor(product.averageRating)
+                          i < Math.floor(averageProdRating)
                             ? "fill-black text-black"
                             : "fill-none text-text-light"
                         }
@@ -467,7 +477,7 @@ const ProductDetailPage = () => {
                     ))}
                   </div>
                   <span className="text-sm text-text-medium">
-                    {product.averageRating} ({product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''})
+                    {averageProdRating} ({product.reviews.length} review{product.reviewCount !== 1 ? 's' : ''})
                   </span>
                 </div>
               )}

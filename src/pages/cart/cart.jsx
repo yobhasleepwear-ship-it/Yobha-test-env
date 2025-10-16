@@ -116,9 +116,8 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState('');
 
   useEffect(() => {
-    
-    fetchCart();
-    
+ 
+    fetchCart(); 
   }, []);
   const fetchCart = async () => {
     setIsLoading(true)
@@ -186,13 +185,11 @@ const handleDeleteCartItem = async (id) => {
 };
   // Remove item
   const removeItem = (itemId) => {
-    // setCartItems(items => items.filter(item => item.id !== itemId));
+  
     handleDeleteCartItem(itemId)
   };
 
-  // Move to wishlist
   const moveToWishlist = (itemId) => {
-    // TODO: Call API to move to wishlist
     removeItem(itemId);
   };
 
@@ -205,8 +202,6 @@ const handleDeleteCartItem = async (id) => {
       return;
     }
 
-    // TODO: Call API to validate and apply coupon
-    // For now, mock validation
     const mockCoupons = [
       { code: 'YOBHA10', discount: 10, type: 'percentage', description: '10% off on all products' },
       { code: 'FIRST100', discount: 100, type: 'fixed', description: '₹100 off on first order' },
