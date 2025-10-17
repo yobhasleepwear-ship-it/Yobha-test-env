@@ -94,7 +94,7 @@ const TrendingNewArrivals = () => {
           </div>
         </div>
       ) : displayProducts.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
           {displayProducts.map((product, index) => (
             <article
               key={product.id}
@@ -137,22 +137,22 @@ const TrendingNewArrivals = () => {
               </div>
 
               {/* Product Details */}
-              <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 bg-white">
-                <div className="mb-3 flex-1">
-                  <h3 className="text-text-dark font-bold text-xs sm:text-sm lg:text-base tracking-tight group-hover:text-black transition-colors mb-2 uppercase leading-tight line-clamp-2 min-h-[2.5rem] flex items-start">
+              <div className="p-2 sm:p-3 md:p-4 lg:p-6 flex flex-col flex-1 bg-white">
+                <div className="mb-2 sm:mb-3 flex-1">
+                  <h3 className="text-text-dark font-bold text-[11px] sm:text-xs md:text-sm lg:text-base tracking-tight group-hover:text-black transition-colors mb-1 sm:mb-2 uppercase leading-tight line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] flex items-start">
                     {product.title}
                   </h3>
-                  <p className="text-text-medium text-xs leading-relaxed line-clamp-1">
+                  <p className="text-text-medium text-[10px] sm:text-xs leading-relaxed line-clamp-1">
                     {product.category}
                   </p>
                 </div>
                 
-                <div className="mt-auto pt-3 border-t border-text-light/20">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-black font-bold text-sm sm:text-base flex-shrink-0">
+                <div className="mt-auto pt-2 sm:pt-3 border-t border-text-light/20">
+                  <div className="flex items-center justify-between gap-1 sm:gap-2">
+                    <span className="text-black font-bold text-xs sm:text-sm lg:text-base flex-shrink-0 min-w-0">
                       {product.price}
                     </span>
-                    <div className="text-luxury-gold text-xs uppercase tracking-widest group-hover:text-black transition-colors duration-300 flex-shrink-0">
+                    <div className="text-luxury-gold text-[10px] sm:text-xs uppercase tracking-widest group-hover:text-black transition-colors duration-300 flex-shrink-0 whitespace-nowrap">
                       View Details →
                     </div>
                   </div>
