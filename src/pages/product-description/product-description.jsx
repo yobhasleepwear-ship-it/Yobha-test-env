@@ -82,13 +82,9 @@ const ProductDetailPage = () => {
   ];
 
   useEffect(() => {
-
-
     if (productId) {
       fetchProductDetail(productId);
     }
-
-
   }, [productId]);
 
   useEffect(() => {
@@ -106,7 +102,6 @@ const ProductDetailPage = () => {
     setIsLoading(true)
     try {
       const response = await getProductDescription(productId);
-      console.log("Product details:");
       setProduct(response.data);
       setAverageProdRating(() => {
         const reviews = response.data.reviews || [];
@@ -177,7 +172,6 @@ const ProductDetailPage = () => {
       setReviewRating(5);
       setShowReviewForm(false);
 
-      // Refresh product data to show updated reviews
       await fetchProductDetail(productId);
 
     } catch (error) {
@@ -248,7 +242,7 @@ const ProductDetailPage = () => {
 
     const payload = {
       productId: product.productId,
-      variantSku: `${product.productId}-${selectedColor}-${selectedSize}`,
+      size:selectedSize,
       quantity: quantity,
       currency: product?.priceList?.find(
         (item) => item.country === selectedCountry && item.size === selectedSize
@@ -276,7 +270,7 @@ const ProductDetailPage = () => {
 
     const payload = {
       productId: product.productId,
-      variantSku: selectedVariant?.sku || '',
+      size: selectedVariant?.sku || '',
       desiredQuantity: quantity,
       desiredSize: selectedSize,
       desiredColor: selectedColor,

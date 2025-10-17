@@ -362,7 +362,7 @@ const AccountPage = () => {
                     />
                     <input
                       type="text"
-                      placeholder="Address Line 2"
+                      placeholder="Your Contact Number"
                       value={tempData.line2 || ""}
                       onChange={(e) => setTempData({ ...tempData, line2: e.target.value })}
                       className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"

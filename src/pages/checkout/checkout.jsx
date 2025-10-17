@@ -5,6 +5,7 @@ import { getAddresses } from "../../service/address";
 import { getCartDetails } from "../../service/productAPI";
 import { CreateOrder } from "../../service/order";
 import { message } from "../../comman/toster-message/ToastContainer";
+import { getCoupons } from "../../service/coupans";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -67,6 +68,7 @@ const CheckoutPage = () => {
     setUserId(parsedUser.id);
     fetchAddresses();
     fetchCart();
+    CoupansUser();
   }, []);
 
   const fetchAddresses = async () => {
@@ -146,20 +148,19 @@ const CheckoutPage = () => {
     // const userId = user.id || "anonymous";
     // console.log(userId)
     const payload = {
-  shippingAddress: {
-    id: "68f21a4f12cd34d5f41a7a93",
-    fullName: "Samrat Sarotra",
-    line1: "123, Yuhaans Empire, Murugeshpalya",
-    line2: "Opp. Total Mall",
-    city: "Bengaluru",
-    state: "Karnataka",
-    zip: "560017",
-    country: "IN",
-    isDefault: true
-  },
-  paymentMethod: "COD",
-  couponCode: "FIRST100",
-  loyaltyDiscountAmount: 0
+  "couponCode": "FIRST100",
+  "loyaltyDiscountAmount": 150,
+  "paymentMethod": "COD",
+  "shippingAddress": {
+    "fullName": "Samrat Sarotra",
+    "line1": "Flat 302, Yuhanns Empire",
+    "line2": "Murugeshpalya",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "zip": "560017",
+    "country": "India",
+    "isDefault": true
+  }
 };
 
 
@@ -183,7 +184,15 @@ const CheckoutPage = () => {
     }
   };
 
+const CoupansUser = async()=>{
+  try{
+    const response =await getCoupons(1200);
 
+  }
+  catch(err){
+    console.log(err)
+  }
+}
   const formatPrice = (price) => {
     return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };

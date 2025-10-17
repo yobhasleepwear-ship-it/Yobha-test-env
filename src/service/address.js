@@ -2,7 +2,7 @@ import * as axiosService from "./axiosService";
 
 export const getAddresses = async () => {
     try {
-        const response = await axiosService.Get("/auth/addresses");
+        const response = await axiosService.Get("/Auth/addresses");
         return response.data;
     } catch (error) {
         console.error("getAddresses error:", error);
@@ -12,7 +12,7 @@ export const getAddresses = async () => {
 
 export const addAddress = async (payload) => {
     try {
-        const response = await axiosService.Post("/auth/addresses", payload);
+        const response = await axiosService.Post("/Auth/addresses", payload);
         return response.data;
     } catch (error) {
         console.error("addAddress error:", error);
@@ -22,7 +22,7 @@ export const addAddress = async (payload) => {
 
 export const updateAddress = async (addressId, payload) => {
     try {
-        const response = await axiosService.Put(`/auth/addresses/${addressId}`, payload);
+        const response = await axiosService.Put(`/Auth/addresses/${addressId}`, payload);
         return response.data;
     } catch (error) {
         console.error("updateAddress error:", error);
@@ -32,7 +32,7 @@ export const updateAddress = async (addressId, payload) => {
 
 export const deleteAddress = async (addressId) => {
     try {
-        const response = await axiosService.Delete(`/auth/addresses/${addressId}`);
+        const response = await axiosService.Delete(`/Auth/addresses/${addressId}`);
         return response.data;
     } catch (error) {
         console.error("deleteAddress error:", error);

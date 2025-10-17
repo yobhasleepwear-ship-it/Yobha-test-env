@@ -149,58 +149,120 @@ const Contact = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-black uppercase tracking-wide mb-4">
-              Frequently Asked Questions
-            </h2>
-            <div className="w-20 h-1 bg-luxury-gold mx-auto"></div>
-          </div>
+      <section className="bg-white py-20 font-['Helvetica Neue','Helvetica',sans-serif]">
+  <div className="max-w-6xl mx-auto px-6">
+    {/* Heading */}
+    <div className="text-center mb-16">
+      <h2 className="text-4xl md:text-5xl font-bold text-black uppercase tracking-widest mb-5">
+        Frequently Asked Questions
+      </h2>
+      <div className="w-24 h-1.5 bg-gradient-to-r from-[#c1a15b] to-[#e4c988] mx-auto rounded-full"></div>
+      <p className="mt-4 text-text-dark text-sm tracking-wide uppercase">
+        Calm • Connection • Conscious Living
+      </p>
+    </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              <div className="border-l-4 border-luxury-gold pl-6">
-                <h3 className="text-xl font-bold text-black uppercase tracking-wide mb-3">
-                  What is your return policy?
-                </h3>
-                <p className="text-text-dark text-base leading-relaxed font-light">
-                  We offer a 30-day return policy for all unworn items with original tags. Returns are free and easy.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-luxury-gold pl-6">
-                <h3 className="text-xl font-bold text-black uppercase tracking-wide mb-3">
-                  How long does shipping take?
-                </h3>
-                <p className="text-text-dark text-base leading-relaxed font-light">
-                  Standard shipping takes 3-5 business days. Express shipping is available for next-day delivery.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              <div className="border-l-4 border-luxury-gold pl-6">
-                <h3 className="text-xl font-bold text-black uppercase tracking-wide mb-3">
-                  Do you ship internationally?
-                </h3>
-                <p className="text-text-dark text-base leading-relaxed font-light">
-                  Yes, we ship to over 50 countries worldwide. International shipping takes 7-14 business days.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-luxury-gold pl-6">
-                <h3 className="text-xl font-bold text-black uppercase tracking-wide mb-3">
-                  What materials do you use?
-                </h3>
-                <p className="text-text-dark text-base leading-relaxed font-light">
-                  We use only the finest materials including organic cotton, silk, and premium modal for ultimate comfort.
-                </p>
-              </div>
-            </div>
-          </div>
+    {/* FAQ Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      {/* Column 1 */}
+      <div className="space-y-10">
+        <div className="group border-l-4 border-[#d4af37] pl-6 transition-all duration-300 hover:pl-8">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            What does YOBHA stand for?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            YOBHA is a sanctuary of stillness — where modern comfort meets timeless craftsmanship. Born from a desire to reimagine the essence of home, YOBHA creates loungewear, homewear, and sleepwear that transcend generations.
+          </p>
         </div>
-      </section>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            What makes YOBHA different from other brands?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Every YOBHA creation is a dialogue between comfort and art. We embody quiet luxury — crafted not to impress but to express presence, grace, and ease across our collections for men, women, children, and pets.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            Do you offer matching sets for families?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Yes. YOBHA celebrates togetherness through matching sets for couples, children, and even pets — designed to reflect harmony, comfort, and timeless connection.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            Where are YOBHA pieces made?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Crafted in select ateliers that embody excellence and integrity, each piece is handled by artisans who master the poetry of precision — made with devotion and calm.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            What materials do you use?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            We use premium, sustainable fabrics such as organic cotton, bamboo blends, and plant-based silks — ensuring softness, breathability, and harmony with nature.
+          </p>
+        </div>
+      </div>
+
+      {/* Column 2 */}
+      <div className="space-y-10">
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            Is YOBHA a seasonal brand?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Our creations are timeless, not seasonal. YOBHA believes in slow creation and the beauty of continuity — fashion that transcends trends and time.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            Do you offer worldwide shipping?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Yes. We ship globally with utmost care, each order wrapped with intention and delivered with the serenity that defines YOBHA.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            What is your return and exchange policy?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Our Client Care Team ensures every return or exchange is handled with discretion and grace, provided the item is in its original condition and packaging.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            Does YOBHA offer a restoration or buyback program?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Yes. Select collections qualify for restoration or buyback — reflecting our commitment to conscious luxury and circular craftsmanship.
+          </p>
+        </div>
+
+        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
+          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
+            How do I care for my YOBHA pieces?
+          </h3>
+          <p className="text-gray-700 leading-relaxed">
+            Gentle washing, air drying, and mindful storage preserve each piece’s softness and balance. Every item includes care guidance for longevity.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
     </div>
   );
 };
