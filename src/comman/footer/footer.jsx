@@ -27,7 +27,7 @@ const [newsletter , setNewsletter]=useState("")
     >
       {/* Main Footer Content */}
       <div className="max-w-[1600px] mx-auto px-6 md:px-8 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-12 lg:gap-8">
 
           {/* Brand & About */}
           <div className="space-y-5">
@@ -131,7 +131,7 @@ const [newsletter , setNewsletter]=useState("")
           </div>
 
           {/* Newsletter & Social */}
-          <div className="space-y-6">
+          <div className="space-y-6 sm:col-span-2 lg:col-span-1">
             <div>
               <h3 className="text-sm font-semibold mb-6 text-black uppercase tracking-wider">
                 Newsletter
@@ -139,15 +139,15 @@ const [newsletter , setNewsletter]=useState("")
               <p className="text-text-medium text-sm mb-4">
                 Subscribe to receive updates, access to exclusive deals, and more.
               </p>
-              <div className="flex">
+              <div className="flex flex-col sm:flex-row gap-3 max-w-md lg:max-w-none">
                 <input
                   type="email"
                   placeholder="Enter your email"
                   value={newsletter}
                   onChange={(e)=>setNewsletter(e.target.value)}
-                  className="flex-1 px-4 py-2 text-sm border border-text-light/30 focus:outline-none focus:border-black transition-colors bg-white"
+                  className="flex-1 px-4 py-3 text-sm border border-text-light/30 focus:outline-none focus:border-black transition-colors bg-white rounded-none min-w-0"
                 />
-                <button className="px-6 py-2 bg-black text-white text-sm font-medium hover:bg-text-dark transition-colors duration-300 uppercase tracking-wider" onClick={handleNewsSubscribe}>
+                <button className="px-6 py-3 bg-black text-white text-sm font-medium hover:bg-text-dark transition-colors duration-300 uppercase tracking-wider whitespace-nowrap flex-shrink-0" onClick={handleNewsSubscribe}>
                   Sign Up
                 </button>
               </div>
