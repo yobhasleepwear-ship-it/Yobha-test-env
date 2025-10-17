@@ -146,20 +146,22 @@ const CheckoutPage = () => {
     // const userId = user.id || "anonymous";
     // console.log(userId)
     const payload = {
-      userId: userId,
-      items: cartItems.map(item => ({
-        productId: item.product.productId,
-        price: item.product.unitPrice,
-        quantity: item.quantity
-      })),
-      shippingAddress: {
-        line1: address.addressLine1,
-        city: address.city,
-        pincode: address.pincode
-      },
-      paymentMethod: selectedPayment.id === "cod" ? "COD" : "Prepaid",
-      couponCode: "NEWYEAR25"
-    };
+  shippingAddress: {
+    id: "68f21a4f12cd34d5f41a7a93",
+    fullName: "Samrat Sarotra",
+    line1: "123, Yuhaans Empire, Murugeshpalya",
+    line2: "Opp. Total Mall",
+    city: "Bengaluru",
+    state: "Karnataka",
+    zip: "560017",
+    country: "IN",
+    isDefault: true
+  },
+  paymentMethod: "COD",
+  couponCode: "FIRST100",
+  loyaltyDiscountAmount: 0
+};
+
 
     console.log("Order Payload:", payload);
 

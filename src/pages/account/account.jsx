@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { User, Mail, Phone, MapPin, Edit3, Save, X } from "lucide-react";
-import { addAddress, updateAddress, deleteAddress, getAddresses } from "../../service/address";
+import { Send, Gift, User, Mail, Phone, MapPin, Edit3, Save, X } from "lucide-react";
+import { addAddress, updateAddress, deleteAddress, getAddresses, createReferral } from "../../service/address";
 import { message } from "../../comman/toster-message/ToastContainer";
 import { updateUserName } from "../../service/user";
 
@@ -11,7 +11,13 @@ const AccountPage = () => {
   const [editingField, setEditingField] = useState(null);
   const [tempData, setTempData] = useState({});
   const [editingAddressId, setEditingAddressId] = useState(null);
+    const [formData, setFormData] = useState({
+    friendEmail: "",
+    friendPhone: "",
+  });
+  const [loading, setLoading] = useState(false);
 
+  
 
   // Load user data from localStorage on component mount
   useEffect(() => {
@@ -40,8 +46,7 @@ const AccountPage = () => {
     
     loadUserData();
     GetAddress();
-    
-    // Listen for localStorage changes (when user logs in from another tab)
+  
     const handleStorageChange = (e) => {
       if (e.key === "user") {
         console.log("localStorage changed, reloading user data");
@@ -51,7 +56,7 @@ const AccountPage = () => {
     
     window.addEventListener("storage", handleStorageChange);
     
-    // Cleanup listener on unmount
+  
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
@@ -101,7 +106,7 @@ const AccountPage = () => {
           });
         }
       } else {
-        // Adding new address - initialize with user's name from localStorage
+      
         setEditingAddressId(null);
         setTempData({ 
           fullName: LocalUserData.fullName || LocalUserData.name || "",
@@ -115,7 +120,7 @@ const AccountPage = () => {
         });
       }
     } else if (field === "name") {
-       // Initialize with current value from localStorage
+      
        const currentName = LocalUserData.fullName || LocalUserData.name || LocalUserData.Name || LocalUserData.FullName || "";
        setTempData({ name: currentName });
     }
@@ -178,6 +183,30 @@ const AccountPage = () => {
       console.log("something went wrong")
     }
   }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+
+
+    setLoading(true);
+    try {
+      const payload = {
+        email: formData.friendEmail,
+        phone: formData.friendPhone,
+      };
+
+      await createReferral(payload);
+      message.success("Referral Sent Successfully!");
+      setFormData({ friendEmail: "", friendPhone: "" });
+    } catch (err) {
+      console.error(err);
+      message.error("Something went wrong. Try again!");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleDeleteAddress = async(id) => {
     try {
       const response = await deleteAddress(id);
@@ -201,7 +230,7 @@ const AccountPage = () => {
       className="min-h-screen bg-premium-cream pt-4 lg:pt-4 pb-12"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-12">
+      <div className="mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 lg:py-12">
 
         {/* Page Header */}
         <div className="mb-8 sm:mb-12">
@@ -276,9 +305,9 @@ const AccountPage = () => {
                     <span className="text-black font-medium text-lg">
                       {LocalUserData.email || ""}
                     </span>
-                    {(LocalUserData.email ) && (
+                    {/* {(LocalUserData.email ) && (
                       <span className="text-xs text-text-medium uppercase tracking-[0.2em] px-3 py-1 bg-black text-white">Verified</span>
-                    )}
+                    )} */}
                   </div>
                 </div>
 
@@ -443,6 +472,73 @@ const AccountPage = () => {
 
           </div>
 
+        </div>
+
+         <div className="mb-8 sm:mb-12 border-b border-text-light/10 pb-6 mt-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-3 uppercase tracking-[0.2em]">
+            Refer & Earn
+          </h1>
+          <p className="text-base sm:text-lg text-text-medium uppercase tracking-wider">
+            Invite your friends and earn exciting rewards
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white border border-text-light/10 shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+          <div className="bg-white px-6 sm:px-8 py-6 border-b border-text-light/10 flex items-center gap-3">
+            <div className="w-10 h-10 bg-black flex items-center justify-center">
+              <Gift size={20} className="text-white" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-black uppercase tracking-[0.15em]">
+              Refer Your Friend
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+            
+
+            {/* Email */}
+            <div>
+              <label className="text-xs font-semibold text-text-medium mb-3 block flex items-center gap-2 uppercase tracking-[0.2em]">
+                <Mail size={14} /> Friend’s Email
+              </label>
+              <input
+                type="email"
+                name="friendEmail"
+                value={formData.friendEmail}
+                onChange={handleChange}
+                placeholder="Enter your friend's email"
+                className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white transition-colors font-medium"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="text-xs font-semibold text-text-medium mb-3 block flex items-center gap-2 uppercase tracking-[0.2em]">
+                <Phone size={14} /> Friend’s Phone Number
+              </label>
+              <input
+                type="text"
+                name="friendPhone"
+                value={formData.friendPhone}
+                onChange={handleChange}
+                placeholder="Enter your friend's phone number"
+                className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white transition-colors font-medium"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+            >
+              <Send size={18} />
+              {loading ? "Sending..." : "Send Invite"}
+            </button>
+          </form>
         </div>
       </div>
     </div>
