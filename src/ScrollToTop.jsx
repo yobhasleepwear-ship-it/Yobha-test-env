@@ -1,15 +1,31 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const ScrollToTop = (props) => {
+const ScrollToTop = ({ children }) => {
     const location = useLocation();
+    
     useEffect(() => {
-      window.scrollTo({top: 0, left: 0, behavior: 'smooth' });
-    }, [location]);
+     
+      const scrollToTop = () => {
+        
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
 
-    return <>
-        {props.children}
-    </>
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+          rootElement.scrollTop = 0;
+        }
+      };
+
+      scrollToTop();
+
+      setTimeout(scrollToTop, 0);
+      setTimeout(scrollToTop, 10);
+      setTimeout(scrollToTop, 50);
+    }, [location.pathname]);
+
+    return children;
   };
 
 export default ScrollToTop;

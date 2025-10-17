@@ -30,9 +30,9 @@ function AppContent() {
 
   return (
     <>
-        <ScrollToTop/> 
-      <Router />
-    
+      <ScrollToTop>
+        <Router />
+      </ScrollToTop>
     </>
   );
 }
