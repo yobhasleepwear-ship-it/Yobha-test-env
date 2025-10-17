@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ShoppingBag,
@@ -9,9 +9,8 @@ import {
   Plus,
   Star,
   Truck,
-  RotateCcw,
 } from "lucide-react";
-import { addToCart, getCartDetails, getProductDescription, updateCartQuantity, submitReview, getFilteredProducts } from "../../service/productAPI";
+import { addToCart, getCartDetails, getProductDescription, submitReview, getFilteredProducts } from "../../service/productAPI";
 import { useDispatch } from "react-redux";
 import { setCartCount } from "../../redux/cartSlice";
 import { addToWishlist } from "../../service/wishlist";
@@ -54,12 +53,16 @@ const ProductDetailPage = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  
+  // Button Loading States
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
   // API State
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [newProducts, setProducts] = useState([])
   // Review Form State
   const [averageProdRating, setAverageProdRating] = useState(0);
@@ -81,24 +84,7 @@ const ProductDetailPage = () => {
     { code: "IQ", label: "Iraq" },
   ];
 
-  useEffect(() => {
-    if (productId) {
-      fetchProductDetail(productId);
-    }
-  }, [productId]);
-
-  useEffect(() => {
-    if (product) {
-      if (product.availableColors.length > 0 && !selectedColor) {
-        setSelectedColor(product.availableColors[0]);
-      }
-      if (product.sizeOfProduct.length > 0 && !selectedSize) {
-        setSelectedSize(product.sizeOfProduct[0]);
-      }
-    }
-  }, [product, selectedColor, selectedSize]);
-
-  const fetchProductDetail = async (productId) => {
+  const fetchProductDetail = useCallback(async (productId) => {
     setIsLoading(true)
     try {
       const response = await getProductDescription(productId);
@@ -117,7 +103,24 @@ const ProductDetailPage = () => {
     finally {
       setIsLoading(false)
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (productId) {
+      fetchProductDetail(productId);
+    }
+  }, [productId, fetchProductDetail]);
+
+  useEffect(() => {
+    if (product) {
+      if (product.availableColors.length > 0 && !selectedColor) {
+        setSelectedColor(product.availableColors[0]);
+      }
+      if (product.sizeOfProduct.length > 0 && !selectedSize) {
+        setSelectedSize(product.sizeOfProduct[0]);
+      }
+    }
+  }, [product, selectedColor, selectedSize]);
 
   const fetchProducts = async (category) => {
     setIsLoading(true);
@@ -235,10 +238,7 @@ const ProductDetailPage = () => {
       return;
     }
 
-    // Find the variant SKU for selected color + size
-    const selectedVariant = product.variants.find(
-      (v) => v.color === selectedColor && v.size === selectedSize
-    );
+    setAddingToCart(true);
 
     const payload = {
       productId: product.productId,
@@ -258,12 +258,15 @@ const ProductDetailPage = () => {
     } catch (err) {
       console.error("Error adding to cart:", err);
       message.error("Failed to add product to cart. Please try again.");
+    } finally {
+      setAddingToCart(false);
     }
   };
 
 
   // Wishlist toggle
   const handleAddToWishlist = async (productId) => {
+    setAddingToWishlist(true);
     const selectedVariant = product.variants.find(
       (v) => v.color === selectedColor && v.size === selectedSize
     );
@@ -285,11 +288,9 @@ const ProductDetailPage = () => {
     } catch (err) {
       console.error("Failed to add to wishlist:", err);
       message.error("Failed to add to wishlist");
+    } finally {
+      setAddingToWishlist(false);
     }
-  };
-  const handleWishlistToggle = () => {
-    setIsWishlisted(!isWishlisted);
-    // TODO: Implement actual wishlist API call
   };
 
   // Loading state
@@ -637,31 +638,46 @@ const ProductDetailPage = () => {
                   availableQuantity === 0 ||
                   !selectedColor ||
                   !selectedSize ||
-                  !matchedPrice
+                  !matchedPrice ||
+                  addingToCart
                 }
                 className="flex-1 bg-black text-white py-4 px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
               >
-                <ShoppingBag size={20} strokeWidth={1.5} />
-                {availableQuantity === 0
-                  ? 'Out of Stock'
-                  : !matchedPrice
-                    ? 'Price Not Available'
-                    : 'Add to Cart'}
+                {addingToCart ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag size={20} strokeWidth={1.5} />
+                    {availableQuantity === 0
+                      ? 'Out of Stock'
+                      : !matchedPrice
+                        ? 'Price Not Available'
+                        : 'Add to Cart'}
+                  </>
+                )}
               </button>
 
               <button
                 onClick={() => handleAddToWishlist(product.id)}
-                className={`p-4 border-2 transition-all ${isWishlisted
+                disabled={addingToWishlist}
+                className={`p-4 border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isWishlisted
                   ? 'border-black bg-black'
                   : 'border-text-light/30 hover:border-black'
                   }`}
                 aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
               >
-                <Heart
-                  size={20}
-                  strokeWidth={1.5}
-                  className={isWishlisted ? 'fill-white text-white' : 'text-black'}
-                />
+                {addingToWishlist ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Heart
+                    size={20}
+                    strokeWidth={1.5}
+                    className={isWishlisted ? 'fill-white text-white' : 'text-black'}
+                  />
+                )}
               </button>
             </div>
 

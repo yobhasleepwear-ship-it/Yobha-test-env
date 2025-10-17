@@ -16,6 +16,8 @@ const AccountPage = () => {
     friendPhone: "",
   });
   const [loading, setLoading] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [savingName, setSavingName] = useState(false);
 
   
 
@@ -129,10 +131,10 @@ const AccountPage = () => {
 
   const saveEdit = async () => {
     if (editingField === "address") {
+      setSavingAddress(true);
       try {
         if (editingAddressId) {
-
-          const response = await updateAddress(editingAddressId, tempData);
+          await updateAddress(editingAddressId, tempData);
           message.success("Address Updated Successfully");
           
           // Update localStorage with the updated address
@@ -142,7 +144,7 @@ const AccountPage = () => {
         } else {
           // Add new address
           const payload = { ...tempData };     
-          const response = await addAddress(payload);
+          await addAddress(payload);
           message.success("Address Saved Successfully");
         }
         
@@ -150,8 +152,11 @@ const AccountPage = () => {
       } catch (error) {
         console.error("Failed to save address:", error);
         message.error("Failed to save address");
+      } finally {
+        setSavingAddress(false);
       }
     } else if (editingField === "name") {
+      setSavingName(true);
       try {
         // eslint-disable-next-line no-unused-vars
         const response = await updateUserName({ "fullName": tempData.name });
@@ -165,6 +170,8 @@ const AccountPage = () => {
       } catch (error) {
         console.error("Failed to update name:", error);
         message.error("Failed to update name");
+      } finally {
+        setSavingName(false);
       }
     }
 
@@ -209,7 +216,7 @@ const AccountPage = () => {
   };
   const handleDeleteAddress = async(id) => {
     try {
-      const response = await deleteAddress(id);
+      await deleteAddress(id);
       
       message.success("Address Deleted Successfully")
       GetAddress();
@@ -276,8 +283,16 @@ const AccountPage = () => {
                          placeholder={LocalUserData.fullName || "Enter your full name"}
                         className="flex-1 px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white transition-colors font-medium"
                       />
-                      <button onClick={saveEdit} className="p-4 bg-black hover:bg-text-dark text-white transition-all duration-200 hover:scale-105">
-                        <Save size={18} />
+                      <button 
+                        onClick={saveEdit} 
+                        disabled={savingName}
+                        className="p-4 bg-black hover:bg-text-dark text-white transition-all duration-200 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      >
+                        {savingName ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Save size={18} />
+                        )}
                       </button>
                       <button onClick={cancelEdit} className="p-4 bg-text-light/10 hover:bg-text-light/20 text-black transition-all duration-200">
                         <X size={18} />
@@ -400,11 +415,28 @@ const AccountPage = () => {
                       />
                     </div>
                     <div className="flex gap-4 pt-4">
-                       <button onClick={saveEdit} className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02]">
-                         <Save size={18} />
-                         {editingAddressId ? "Update Address" : "Save Address"}
+                       <button 
+                         onClick={saveEdit} 
+                         disabled={savingAddress}
+                         className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                       >
+                         {savingAddress ? (
+                           <>
+                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                             <span>Processing...</span>
+                           </>
+                         ) : (
+                           <>
+                             <Save size={18} />
+                             {editingAddressId ? "Update Address" : "Save Address"}
+                           </>
+                         )}
                        </button>
-                      <button onClick={cancelEdit} className="px-8 bg-text-light/10 hover:bg-text-light/20 text-black font-semibold py-4 transition-all duration-200 uppercase tracking-wider">
+                      <button 
+                        onClick={cancelEdit} 
+                        disabled={savingAddress}
+                        className="px-8 bg-text-light/10 hover:bg-text-light/20 text-black font-semibold py-4 transition-all duration-200 uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         Cancel
                       </button>
                     </div>

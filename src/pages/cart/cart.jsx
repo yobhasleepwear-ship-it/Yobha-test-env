@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Minus, Heart, Trash2, ShoppingBag, ArrowRight, Truck, RotateCcw
@@ -8,78 +8,6 @@ import { deleteCartItem, getCartDetails, updateCartQuantity } from "../../servic
 import { useDispatch } from "react-redux";
 import { setCartCount } from "../../redux/cartSlice";
 
-/**
- * Helper function to safely format cart data from API
- * Handles null checks and provides fallbacks
- * 
- * Expected API Response Structure:
- * {
- *   "success": true,
- *   "data": {
- *     "items": [...],
- *     "summary": {...}
- *   }
- * }
- */
-const formatCartData = (apiResponse) => {
-  if (!apiResponse || !apiResponse.data) {
-    return { items: [], summary: null };
-  }
-
-  const data = apiResponse.data;
-
-  // Format cart items with null checks
-  const items = Array.isArray(data?.items)
-    ? data.items
-      .filter(item => item && item.product && item.product.isActive !== false)
-      .map(item => ({
-        // Item level fields
-        id: item?.id || Math.random().toString(),
-        userId: item?.userId || '',
-        quantity: typeof item?.quantity === 'number' ? item.quantity : 1,
-        lineTotal: typeof item?.lineTotal === 'number' ? item.lineTotal : 0,
-        addedAt: item?.addedAt || null,
-        updatedAt: item?.updatedAt || null,
-        note: item?.note || '',
-
-        // Product fields (nested)
-        product: {
-          productId: item?.product?.productId || '',
-          productObjectId: item?.product?.productObjectId || '',
-          name: item?.product?.name || 'Untitled Product',
-          slug: item?.product?.slug || '',
-          thumbnailUrl: item?.product?.thumbnailUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5OTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+',
-          variantSku: item?.product?.variantSku || '',
-          variantId: item?.product?.variantId || '',
-          variantSize: item?.product?.variantSize || '',
-          variantColor: item?.product?.variantColor || '',
-          unitPrice: typeof item?.product?.unitPrice === 'number' ? item.product.unitPrice : 0,
-          compareAtPrice: typeof item?.product?.compareAtPrice === 'number' ? item.product.compareAtPrice : null,
-          currency: item?.product?.currency || 'INR',
-          stockQuantity: typeof item?.product?.stockQuantity === 'number' ? item.product.stockQuantity : 0,
-          reservedQuantity: typeof item?.product?.reservedQuantity === 'number' ? item.product.reservedQuantity : 0,
-          isActive: item?.product?.isActive !== false,
-          freeShipping: item?.product?.freeShipping === true,
-          cashOnDelivery: item?.product?.cashOnDelivery === true,
-          priceList: Array.isArray(item?.product?.priceList) ? item.product.priceList : [],
-        }
-      }))
-    : [];
-
-  // Format summary with null checks
-  const summary = data?.summary ? {
-    totalItems: typeof data.summary.totalItems === 'number' ? data.summary.totalItems : 0,
-    distinctItems: typeof data.summary.distinctItems === 'number' ? data.summary.distinctItems : 0,
-    subTotal: typeof data.summary.subTotal === 'number' ? data.summary.subTotal : 0,
-    shipping: typeof data.summary.shipping === 'number' ? data.summary.shipping : 0,
-    tax: typeof data.summary.tax === 'number' ? data.summary.tax : 0,
-    discount: typeof data.summary.discount === 'number' ? data.summary.discount : 0,
-    grandTotal: typeof data.summary.grandTotal === 'number' ? data.summary.grandTotal : 0,
-    currency: data.summary.currency || 'INR',
-  } : null;
-
-  return { items, summary };
-};
 
 /**
  * Format price to INR
@@ -106,20 +34,19 @@ const CartPage = () => {
   const dispatch = useDispatch();
   // API State
   const [cartItems, setCartItems] = useState([]);
-  const [cartSummary, setCartSummary] = useState(null);
+  const [cartSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
+  
+  // Button Loading States
+  const [loadingButtons, setLoadingButtons] = useState({});
 
   // Coupon State
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
 
-  useEffect(() => {
- 
-    fetchCart(); 
-  }, []);
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await getCartDetails()
@@ -134,16 +61,23 @@ const CartPage = () => {
       setIsLoading(false)
     }
 
-  }
+  }, [dispatch])
 
-  const handleUpdateCartQuantity = async (itemId,q) => {
+  useEffect(() => {
+    fetchCart(); 
+  }, [fetchCart]);
+
+  const handleUpdateCartQuantity = async (itemId, q) => {
+    setLoadingButtons(prev => ({ ...prev, [`update_${itemId}`]: true }));
     try {
-      const payload = { cartItemId:itemId, quantity:q};
+      const payload = { cartItemId: itemId, quantity: q };
       const data = await updateCartQuantity(payload);
       console.log("Cart quantity updated:", data);
       return data;
     } catch (err) {
       console.error("Error updating cart quantity:", err);
+    } finally {
+      setLoadingButtons(prev => ({ ...prev, [`update_${itemId}`]: false }));
     }
   };
   // Update quantity
@@ -171,16 +105,15 @@ const CartPage = () => {
 };
 
 const handleDeleteCartItem = async (id) => {
-
-
+  setLoadingButtons(prev => ({ ...prev, [`delete_${id}`]: true }));
   try {
-  
     await deleteCartItem(id);
-
-    const response = await fetchCart();
+    await fetchCart();
     console.log("Item deleted successfully");
   } catch (err) {
     console.error("Failed to delete cart item:", err);
+  } finally {
+    setLoadingButtons(prev => ({ ...prev, [`delete_${id}`]: false }));
   }
 };
   // Remove item
@@ -408,10 +341,15 @@ const handleDeleteCartItem = async (id) => {
                           {/* Remove Button */}
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="text-text-medium hover:text-black transition-colors flex-shrink-0"
+                            disabled={loadingButtons[`delete_${item.id}`]}
+                            className="text-text-medium hover:text-black transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed relative"
                             aria-label="Remove item"
                           >
-                            <Trash2 size={18} strokeWidth={1.5} />
+                            {loadingButtons[`delete_${item.id}`] ? (
+                              <div className="w-4 h-4 border border-text-light border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Trash2 size={18} strokeWidth={1.5} />
+                            )}
                           </button>
                         </div>
 
@@ -443,22 +381,34 @@ const handleDeleteCartItem = async (id) => {
                           <div className="flex items-center border-2 border-text-light/30">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
-                              disabled={item.quantity <= 1}
-                              className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              disabled={item.quantity <= 1 || loadingButtons[`update_${item.id}`]}
+                              className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed relative"
                               aria-label="Decrease quantity"
                             >
-                              <Minus size={14} strokeWidth={2} />
+                              {loadingButtons[`update_${item.id}`] && item.quantity <= 1 ? (
+                                <div className="w-3 h-3 border border-text-light border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Minus size={14} strokeWidth={2} />
+                              )}
                             </button>
                             <span className="px-4 md:px-6 py-2 font-semibold text-sm md:text-base min-w-[50px] text-center">
-                              {item.quantity}
+                              {loadingButtons[`update_${item.id}`] ? (
+                                <div className="w-4 h-4 border border-text-light border-t-transparent rounded-full animate-spin mx-auto"></div>
+                              ) : (
+                                item.quantity
+                              )}
                             </span>
                             <button
                               onClick={() => updateQuantity(item.id, 1)}
-                              disabled={item.quantity >= availableStock}
-                              className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              disabled={item.quantity >= availableStock || loadingButtons[`update_${item.id}`]}
+                              className="p-2 hover:bg-premium-beige transition-colors disabled:opacity-30 disabled:cursor-not-allowed relative"
                               aria-label="Increase quantity"
                             >
-                              <Plus size={14} strokeWidth={2} />
+                              {loadingButtons[`update_${item.id}`] && item.quantity >= availableStock ? (
+                                <div className="w-3 h-3 border border-text-light border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Plus size={14} strokeWidth={2} />
+                              )}
                             </button>
                           </div>
 
@@ -711,12 +661,27 @@ const handleDeleteCartItem = async (id) => {
 
                   {/* Checkout Button */}
                   <button
-                    onClick={() => navigate("/checkout")}
-                    disabled={cartItems.length === 0}
+                    onClick={() => {
+                      setLoadingButtons(prev => ({ ...prev, checkout: true }));
+                      setTimeout(() => {
+                        navigate("/checkout");
+                        setLoadingButtons(prev => ({ ...prev, checkout: false }));
+                      }, 500);
+                    }}
+                    disabled={cartItems.length === 0 || loadingButtons.checkout}
                     className="w-full bg-black text-white py-3 md:py-4 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs md:text-sm flex items-center justify-center gap-2 md:gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
                   >
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight size={18} strokeWidth={1.5} />
+                    {loadingButtons.checkout ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Proceed to Checkout</span>
+                        <ArrowRight size={18} strokeWidth={1.5} />
+                      </>
+                    )}
                   </button>
 
                   <button
