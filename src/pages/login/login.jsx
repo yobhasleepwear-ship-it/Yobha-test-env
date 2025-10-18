@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaInstagram, FaFacebookF, FaTwitter } from "react-icons/fa";
 import { LoginUser, RegisterUser, sendOtp, verifyOtp } from "../../service/login";
@@ -21,6 +21,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
+
+
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
