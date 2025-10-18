@@ -724,69 +724,77 @@ const ProductDetailPage = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex gap-3 sm:gap-4 flex-1">
-                <button
-                  onClick={itemAddedToCart ? handleGoToCart : handleAddToCart}
-                  disabled={
-                    availableQuantity === 0 ||
-                    !selectedColor ||
-                    !selectedSize ||
-                    !matchedPrice ||
-                    addingToCart
-                  }
-                  className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
-                >
-                  {addingToCart ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-xs sm:text-sm">Adding...</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
-                      <span className="text-xs sm:text-sm">
-                        {availableQuantity === 0
-                          ? 'Out of Stock'
-                          : !matchedPrice
+              {availableQuantity === 0 ? (
+                // Out of Stock - Show only one button
+                <div className="flex gap-3 sm:gap-4 flex-1">
+                  <button
+                    disabled
+                    className="flex-1 bg-text-light text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
+                  >
+                    <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
+                    <span className="text-xs sm:text-sm">Out of Stock</span>
+                  </button>
+                </div>
+              ) : (
+                // In Stock - Show both buttons
+                <div className="flex gap-3 sm:gap-4 flex-1">
+                  <button
+                    onClick={itemAddedToCart ? handleGoToCart : handleAddToCart}
+                    disabled={
+                      !selectedColor ||
+                      !selectedSize ||
+                      !matchedPrice ||
+                      addingToCart
+                    }
+                    className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
+                  >
+                    {addingToCart ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs sm:text-sm">Adding...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
+                        <span className="text-xs sm:text-sm">
+                          {!matchedPrice
                             ? 'Price Not Available'
                             : itemAddedToCart
                               ? 'Go to Cart'
                               : 'Add to Cart'}
-                      </span>
-                    </>
-                  )}
-                </button>
+                        </span>
+                      </>
+                    )}
+                  </button>
 
-                <button
-                  onClick={handleBuyNow}
-                  disabled={
-                    availableQuantity === 0 ||
-                    !selectedColor ||
-                    !selectedSize ||
-                    !matchedPrice ||
-                    addingToCart
-                  }
-                  className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
-                >
-                  {addingToCart ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-xs sm:text-sm">Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
-                      <span className="text-xs sm:text-sm">
-                        {availableQuantity === 0
-                          ? 'Out of Stock'
-                          : !matchedPrice
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={
+                      !selectedColor ||
+                      !selectedSize ||
+                      !matchedPrice ||
+                      addingToCart
+                    }
+                    className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
+                  >
+                    {addingToCart ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs sm:text-sm">Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
+                        <span className="text-xs sm:text-sm">
+                          {!matchedPrice
                             ? 'Price Not Available'
                             : 'Buy Now'}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
               
               <button
                 onClick={() => handleAddToWishlist(product.id)}
