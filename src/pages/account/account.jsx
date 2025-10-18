@@ -11,7 +11,7 @@ const AccountPage = () => {
   const [editingField, setEditingField] = useState(null);
   const [tempData, setTempData] = useState({});
   const [editingAddressId, setEditingAddressId] = useState(null);
-    const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     friendEmail: "",
     friendPhone: "",
   });
@@ -19,75 +19,75 @@ const AccountPage = () => {
   const [savingAddress, setSavingAddress] = useState(false);
   const [savingName, setSavingName] = useState(false);
 
-  
+
 
   // Load user data from localStorage on component mount
   useEffect(() => {
     const loadUserData = () => {
       const storedUser = localStorage.getItem("user");
-       if (storedUser) {
-         let parsedUser;
-         try {
-           // First parse to get the string
-           const firstParse = JSON.parse(storedUser);
-         
-           // If it's still a string, parse again
-           if (typeof firstParse === 'string') {
-             parsedUser = JSON.parse(firstParse);
-           } else {
-             parsedUser = firstParse;
-           }
-         } catch (error) {
-           parsedUser = {};
-         }
+      if (storedUser) {
+        let parsedUser;
+        try {
+          // First parse to get the string
+          const firstParse = JSON.parse(storedUser);
 
-         
-         setLocalUserData(parsedUser);
+          // If it's still a string, parse again
+          if (typeof firstParse === 'string') {
+            parsedUser = JSON.parse(firstParse);
+          } else {
+            parsedUser = firstParse;
+          }
+        } catch (error) {
+          parsedUser = {};
+        }
+
+
+        setLocalUserData(parsedUser);
       }
     };
-    
+
     loadUserData();
     GetAddress();
-  
+
     const handleStorageChange = (e) => {
       if (e.key === "user") {
         console.log("localStorage changed, reloading user data");
         loadUserData();
       }
     };
-    
+
     window.addEventListener("storage", handleStorageChange);
-    
-  
+
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   // Function to update localStorage with new user data
-   const updateLocalStorage = (updatedData) => {
-     const currentUser = localStorage.getItem("user");
-     if (currentUser) {
-       let parsedUser;
-       try {
-         // First parse to get the string
-         const firstParse = JSON.parse(currentUser);
-         
-         // If it's still a string, parse again
-         if (typeof firstParse === 'string') {
-           parsedUser = JSON.parse(firstParse);
-         } else {
-           parsedUser = firstParse;
-         }
-       } catch (error) {
-         console.error("Failed to parse localStorage user data in updateLocalStorage:", error);
-         parsedUser = {};
-       }
-       const updatedUser = { ...parsedUser, ...updatedData };
-       localStorage.setItem("user", JSON.stringify(updatedUser));
-       setLocalUserData(updatedUser);
-     }
-   };
+  const updateLocalStorage = (updatedData) => {
+    const currentUser = localStorage.getItem("user");
+    if (currentUser) {
+      let parsedUser;
+      try {
+        // First parse to get the string
+        const firstParse = JSON.parse(currentUser);
+
+        // If it's still a string, parse again
+        if (typeof firstParse === 'string') {
+          parsedUser = JSON.parse(firstParse);
+        } else {
+          parsedUser = firstParse;
+        }
+      } catch (error) {
+        console.error("Failed to parse localStorage user data in updateLocalStorage:", error);
+        parsedUser = {};
+      }
+      const updatedUser = { ...parsedUser, ...updatedData };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setLocalUserData(updatedUser);
+    }
+  };
   const startEdit = (field, addressId = null) => {
     setEditingField(field);
     if (field === "address") {
@@ -108,9 +108,9 @@ const AccountPage = () => {
           });
         }
       } else {
-      
+
         setEditingAddressId(null);
-        setTempData({ 
+        setTempData({
           fullName: LocalUserData.fullName || LocalUserData.name || "",
           line1: "",
           line2: "",
@@ -122,9 +122,9 @@ const AccountPage = () => {
         });
       }
     } else if (field === "name") {
-      
-       const currentName = LocalUserData.fullName || LocalUserData.name || LocalUserData.Name || LocalUserData.FullName || "";
-       setTempData({ name: currentName });
+
+      const currentName = LocalUserData.fullName || LocalUserData.name || LocalUserData.Name || LocalUserData.FullName || "";
+      setTempData({ name: currentName });
     }
   };
 
@@ -136,18 +136,18 @@ const AccountPage = () => {
         if (editingAddressId) {
           await updateAddress(editingAddressId, tempData);
           message.success("Address Updated Successfully");
-          
+
           // Update localStorage with the updated address
           updateLocalStorage({
             [`address_${editingAddressId}`]: tempData
           });
         } else {
           // Add new address
-          const payload = { ...tempData };     
+          const payload = { ...tempData };
           await addAddress(payload);
           message.success("Address Saved Successfully");
         }
-        
+
         GetAddress();
       } catch (error) {
         console.error("Failed to save address:", error);
@@ -161,11 +161,11 @@ const AccountPage = () => {
         // eslint-disable-next-line no-unused-vars
         const response = await updateUserName({ "fullName": tempData.name });
         message.success("Name Updated Successfully");
-        
+
         // Update localStorage with new name
-        updateLocalStorage({ 
+        updateLocalStorage({
           name: tempData.name,
-          fullName: tempData.name 
+          fullName: tempData.name
         });
       } catch (error) {
         console.error("Failed to update name:", error);
@@ -193,7 +193,7 @@ const AccountPage = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-   const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
 
@@ -214,10 +214,10 @@ const AccountPage = () => {
       setLoading(false);
     }
   };
-  const handleDeleteAddress = async(id) => {
+  const handleDeleteAddress = async (id) => {
     try {
       await deleteAddress(id);
-      
+
       message.success("Address Deleted Successfully")
       GetAddress();
 
@@ -231,9 +231,27 @@ const AccountPage = () => {
     setTempData({});
     setEditingAddressId(null);
   };
+  const handleShare = () => {
+    const referralLink = `${window.location.origin}/signup`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: "Join me on YOBHA",
+        text: "Sign up using my referral link and earn rewards!",
+        url: referralLink,
+      })
+        .then(() => console.log("success"))
+        .catch((err) => console.error(err));
+    } else {
+      // fallback: copy to clipboard
+      navigator.clipboard.writeText(referralLink)
+        .then(() => message.success("Referral link copied to clipboard!"))
+        .catch(() => message.error("Failed to copy referral link"));
+    }
+  };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-premium-cream pt-4 lg:pt-4 pb-12"
       style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
     >
@@ -280,11 +298,11 @@ const AccountPage = () => {
                         type="text"
                         value={tempData.name || ""}
                         onChange={(e) => setTempData({ ...tempData, name: e.target.value })}
-                         placeholder={LocalUserData.fullName || "Enter your full name"}
+                        placeholder={LocalUserData.fullName || "Enter your full name"}
                         className="flex-1 px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white transition-colors font-medium"
                       />
-                      <button 
-                        onClick={saveEdit} 
+                      <button
+                        onClick={saveEdit}
                         disabled={savingName}
                         className="p-4 bg-black hover:bg-text-dark text-white transition-all duration-200 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
@@ -300,9 +318,9 @@ const AccountPage = () => {
                     </div>
                   ) : (
                     <div className="group/item flex items-center justify-between p-5 bg-premium-beige border border-text-light/10 hover:border-text-light/20 transition-all duration-200">
-                       <span className="text-black font-medium text-lg">
-                         {LocalUserData.fullName || ""}
-                       </span>
+                      <span className="text-black font-medium text-lg">
+                        {LocalUserData.fullName || ""}
+                      </span>
                       <button onClick={() => startEdit("name")} className="opacity-0 group-hover/item:opacity-100 text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10">
                         <Edit3 size={18} />
                       </button>
@@ -352,9 +370,9 @@ const AccountPage = () => {
                   <div className="w-10 h-10 bg-black flex items-center justify-center">
                     <MapPin size={20} className="text-white" />
                   </div>
-                   <h2 className="text-xl sm:text-2xl font-bold text-black uppercase tracking-[0.15em]">
-                     Addresses
-                   </h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-black uppercase tracking-[0.15em]">
+                    Addresses
+                  </h2>
                 </div>
               </div>
 
@@ -363,7 +381,7 @@ const AccountPage = () => {
                   <div className="space-y-5">
                     <input
                       type="text"
-                       placeholder={LocalUserData.fullName || LocalUserData.name || "Full Name"}
+                      placeholder={LocalUserData.fullName || LocalUserData.name || "Full Name"}
                       value={tempData.fullName || ""}
                       onChange={(e) => setTempData({ ...tempData, fullName: e.target.value })}
                       className="w-full px-5 py-4 border-2 border-text-light/20 focus:border-black focus:outline-none text-black bg-white placeholder:text-text-light transition-colors font-medium"
@@ -415,25 +433,25 @@ const AccountPage = () => {
                       />
                     </div>
                     <div className="flex gap-4 pt-4">
-                       <button 
-                         onClick={saveEdit} 
-                         disabled={savingAddress}
-                         className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-                       >
-                         {savingAddress ? (
-                           <>
-                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                             <span>Processing...</span>
-                           </>
-                         ) : (
-                           <>
-                             <Save size={18} />
-                             {editingAddressId ? "Update Address" : "Save Address"}
-                           </>
-                         )}
-                       </button>
-                      <button 
-                        onClick={cancelEdit} 
+                      <button
+                        onClick={saveEdit}
+                        disabled={savingAddress}
+                        className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      >
+                        {savingAddress ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save size={18} />
+                            {editingAddressId ? "Update Address" : "Save Address"}
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={cancelEdit}
                         disabled={savingAddress}
                         className="px-8 bg-text-light/10 hover:bg-text-light/20 text-black font-semibold py-4 transition-all duration-200 uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -450,23 +468,23 @@ const AccountPage = () => {
                             key={addr.id}
                             className="group/item p-5 bg-premium-beige border border-text-light/10 relative hover:border-text-light/30 transition-all duration-200"
                           >
-                             {/* Action Icons */}
-                             <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover/item:opacity-100 transition-all duration-200">
-                               <button
-                                 onClick={() => startEdit("address", addr.id)}
-                                 className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
-                                 title="Edit Address"
-                               >
-                                 <Edit3 size={16} />
-                               </button>
-                               <button
-                                 onClick={() => handleDeleteAddress(addr.id)}
-                                 className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
-                                 title="Delete Address"
-                               >
-                                 <X size={16} />
-                               </button>
-                             </div>
+                            {/* Action Icons */}
+                            <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover/item:opacity-100 transition-all duration-200">
+                              <button
+                                onClick={() => startEdit("address", addr.id)}
+                                className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
+                                title="Edit Address"
+                              >
+                                <Edit3 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAddress(addr.id)}
+                                className="text-black hover:text-text-medium transition-all duration-200 p-2 hover:bg-text-light/10"
+                                title="Delete Address"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
 
                             <div className="pr-20">
                               <p className="text-black font-semibold mb-2 text-lg">{addr.fullName}</p>
@@ -506,7 +524,7 @@ const AccountPage = () => {
 
         </div>
 
-         <div className="mb-8 sm:mb-12 border-b border-text-light/10 pb-6 mt-8">
+        <div className="mb-8 sm:mb-12 border-b border-text-light/10 pb-6 mt-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-3 uppercase tracking-[0.2em]">
             Refer & Earn
           </h1>
@@ -527,7 +545,7 @@ const AccountPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
-            
+
 
             {/* Email */}
             <div>
@@ -560,16 +578,26 @@ const AccountPage = () => {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
-            >
-              <Send size={18} />
-              {loading ? "Sending..." : "Send Invite"}
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02] ${loading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
+              >
+                <Send size={18} />
+                {loading ? "Sending..." : "Send Invite"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex-1 bg-black hover:bg-text-dark text-white font-bold py-4 transition-all duration-200 flex items-center justify-center gap-3 uppercase tracking-wider hover:scale-[1.02]"
+              >
+                Share
+              </button>
+            </div>
+
           </form>
         </div>
       </div>

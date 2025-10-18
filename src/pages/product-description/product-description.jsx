@@ -15,7 +15,7 @@ import { useDispatch } from "react-redux";
 import { setCartCount } from "../../redux/cartSlice";
 import { addToWishlist } from "../../service/wishlist";
 import { message } from "../../comman/toster-message/ToastContainer";
-
+import { Share2 } from "lucide-react";
 
 const getAvailableQuantity = (priceList, selectedCountry, selectedSize) => {
   if (!Array.isArray(priceList) || priceList.length === 0) return 0;
@@ -55,7 +55,9 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  
+  const [isImageFull, setIsImageFull] = useState(false);
+  const [currentImageFull, setCurrentImageFull] = useState(null);
+
   // Button Loading States
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
@@ -64,6 +66,7 @@ const ProductDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error] = useState(null);
   const [newProducts, setProducts] = useState([])
+
   // Review Form State
   const [averageProdRating, setAverageProdRating] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -242,7 +245,7 @@ const ProductDetailPage = () => {
 
     const payload = {
       productId: product.productId,
-      size:selectedSize,
+      size: selectedSize,
       quantity: quantity,
       currency: product?.priceList?.find(
         (item) => item.country === selectedCountry && item.size === selectedSize
@@ -263,6 +266,37 @@ const ProductDetailPage = () => {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!selectedColor || !selectedSize || availableQuantity === 0) {
+      message.error('Please select color and size');
+      return;
+    }
+
+    setAddingToCart(true);
+
+    const payload = {
+      productId: product.productId,
+      size: selectedSize,
+      quantity: quantity,
+      currency: product?.priceList?.find(
+        (item) => item.country === selectedCountry && item.size === selectedSize
+      ).currency,
+      note: ""
+    };
+
+    try {
+      const response = await addToCart(payload);
+      console.log("Added to cart:", response);
+      message.success("Product added to cart successfully!");
+      fetchCart()
+      navigate("/checkout")
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      message.error("Failed to add product to cart. Please try again.");
+    } finally {
+      setAddingToCart(false);
+    }
+  }
 
   // Wishlist toggle
   const handleAddToWishlist = async (productId) => {
@@ -349,6 +383,24 @@ const ProductDetailPage = () => {
   const shippingInfo = product.countryPrices.find(
     (item) => item.country === selectedCountry
   );
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.productName,
+      text: `Check out this product: ${product?.productName}`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error("Share cancelled or failed:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard!");
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-premium-cream"
@@ -376,10 +428,20 @@ const ProductDetailPage = () => {
                 src={currentImage.url}
                 alt={currentImage.alt}
                 className="w-full h-full object-cover"
+                onClick={() => {
+                  setIsImageFull(true);
+                  setCurrentImageFull(currentImage.url);
+                }}
                 onError={(e) => {
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgdmlld0JveD0iMCAwIDgwMCA4MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iODAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjQwMCIgeT0iNDAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPC9zdmc+';
                 }}
               />
+              <button
+                onClick={handleShare}
+                className="absolute top-3 right-3 bg-white p-2 rounded-full shadow hover:bg-gray-100"
+              >
+                <Share2 className="w-5 h-5 text-gray-700" />
+              </button>
 
               {/* Navigation Arrows */}
               {hasMultipleImages && (
@@ -622,11 +684,7 @@ const ProductDetailPage = () => {
                     <Plus size={16} strokeWidth={2} />
                   </button>
                 </div>
-                {availableQuantity > 0 && (
-                  <span className="text-sm text-text-medium">
-                    {availableQuantity} available
-                  </span>
-                )}
+
               </div>
             </div>
 
@@ -659,7 +717,14 @@ const ProductDetailPage = () => {
                   </>
                 )}
               </button>
+      
 
+              <button
+                onClick={handleBuyNow}
+                className="px-6 py-3 bg-black text-white rounded-lg hover:bg-text-dark"
+              >
+                Buy Now
+              </button>
               <button
                 onClick={() => handleAddToWishlist(product.id)}
                 disabled={addingToWishlist}
@@ -679,7 +744,9 @@ const ProductDetailPage = () => {
                   />
                 )}
               </button>
+
             </div>
+
 
             {/* Shipping Info */}
             {shippingInfo && (
@@ -957,6 +1024,24 @@ const ProductDetailPage = () => {
         )}
       </div>
       {/* Product Variants */}
+      {isImageFull && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          onClick={() => setIsImageFull(false)}
+        >
+          <img
+            src={currentImageFull}
+            alt={product?.productName}
+            className="max-w-full max-h-full object-contain"
+          />
+          <button
+            className="absolute top-5 right-5 text-white text-3xl"
+            onClick={() => setIsImageFull(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
 
     </div>

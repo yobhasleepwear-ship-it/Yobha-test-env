@@ -6,6 +6,7 @@ import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
 import logoImage from "../../assets/yobhaLogo.png";
 import { useDispatch, useSelector } from "react-redux";
+import LanguageSwitcher from "../../LanguageSwitcher";
 
 const HeaderWithSidebar = () => {
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ const HeaderWithSidebar = () => {
   const navigate = useNavigate();
 
   const menuItems = ["Home", "Collections", "About", "Contact"];
-  const collectionItems = ["Sleepwear", "Loungewear", "Homewear", "Accessories","PetAccessories"];
+  const collectionItems = ["Sleepwear", "Loungewear", "Homewear", "Accessories", "PetAccessories"];
 
   // Check authentication status
   useEffect(() => {
@@ -94,6 +95,9 @@ const HeaderWithSidebar = () => {
         {/* Right Actions */}
         <div className="flex items-center gap-8 md:gap-10">
           {/* User Account Icon with Dropdown */}
+          <div className="hidden md:flex items-center gap-2">
+            <LanguageSwitcher />
+          </div>
           {isAuthenticated ? (
             <div className="relative group">
               <button
@@ -149,7 +153,7 @@ const HeaderWithSidebar = () => {
             <BsBag size={22} />
             {cartCount > 0 && (
               // <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-               <span> {cartCount}</span>
+              <span> {cartCount}</span>
               // </span>
             )}
           </Link>
@@ -166,6 +170,7 @@ const HeaderWithSidebar = () => {
           )}
 
           {/* Mobile menu toggle */}
+            
           <button
             className="md:hidden focus:outline-none text-black hover:text-gray-700 transition-colors duration-300"
             onClick={() => setSidebarOpen(true)}
@@ -224,6 +229,7 @@ const HeaderWithSidebar = () => {
                           {cat}
                         </Link>
                       ))}
+                      
                     </div>
                   )}
                 </div>
@@ -251,6 +257,9 @@ const HeaderWithSidebar = () => {
                     <span>Logout</span>
                   </button>
                 )}
+              </div>
+               <div className="pt-4 border-t border-gray-300 mt-2 md:hidden">
+                <LanguageSwitcher />
               </div>
             </nav>
           </div>

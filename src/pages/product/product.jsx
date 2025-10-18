@@ -49,7 +49,7 @@ const ProductsPage = () => {
   // TODO: Replace with API call to fetch dynamic filters from backend
   // Example: useEffect(() => { fetchFilterOptions().then(setFilterOptions); }, []);
   const [filterOptions] = useState({
-    segments: ["Women", "Men", "Kids", "Pets", "Couple", "Family","Scrunchies","Socks","Eyemasks","Headband","Cushions"],
+    segments: ["Women", "Men", "Kids", "Pets", "Couple", "Family", "Scrunchies", "Socks", "Eyemasks", "Headband", "Cushions"],
     categories: [
       { id: "Sleepwear", name: "Sleepwear" },
       { id: "Loungewear", name: "Loungewear" },
@@ -104,9 +104,9 @@ const ProductsPage = () => {
     setIsLoading(true);
     try {
       const payload = {
-        q:'',
-        category:category,
-        subCategory:filters.segment,
+        q: '',
+        category: category,
+        subCategory: filters.segment,
         minPrice: filters.minPrice || undefined,
         maxPrice: filters.maxPrice || undefined,
         pageNumber: null,
@@ -123,7 +123,7 @@ const ProductsPage = () => {
       const response = await getFilteredProducts(payload);
 
       if (response && response.success && response.data) {
-       
+
         setProducts(response.data.items);
 
 
@@ -142,7 +142,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [category, filters.categories, filters.sortBy, pagination.pageNumber, priceRange,filters.country , filters.subCategories,filters.segment]);
+  }, [category, filters.categories, filters.sortBy, pagination.pageNumber, priceRange, filters.country, filters.subCategories, filters.segment]);
 
   // Handle filter changes
   const updateFilter = (key, value) => {
@@ -447,7 +447,9 @@ const ProductsPage = () => {
         {/* Page Header */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-black uppercase tracking-wide mb-3">
-            {category ? `${category} Collection` : "All Products"}
+            {category
+              ? `${category.replace(/([A-Z])/g, " $1").trim()} Collection`
+              : "All Products"}
           </h1>
           <p className="text-text-medium text-base md:text-lg">
             Timeless essentials crafted for serene nights and refined comfort
