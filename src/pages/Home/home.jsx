@@ -7,32 +7,7 @@ import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import { useNavigate } from "react-router-dom";
 import * as localStorageService from "../../service/localStorageService";
 const HomePage = () => {
-   const navigate = useNavigate()
-  useEffect(() => {
-  console.log("🔍 Current URL:", window.location.href);
-
-  const hash = window.location.hash;
-  if (hash.includes("token=")) {
-    const token = hash.split("token=")[1];
-    console.log("✅ Token found:", token);
-
-    if (token) {
-      // Save token
-      localStorageService.setValue(LocalStorageKeys.AuthToken, token);
-      localStorageService.setValue(LocalStorageKeys.User, JSON.stringify({ provider: "Google" }));
-      console.log("💾 Token saved to localStorage");
-
-      // Remove hash from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-
-      // Optionally navigate to main page
-      // navigate("/"); 
-      console.log("➡️ Navigation complete");
-    }
-  } else {
-    console.log("⚠️ No token found in hash.");
-  }
-}, []);
+   
 
   return (
     <div className="relative min-h-screen bg-[#FAF6F2]">
