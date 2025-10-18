@@ -39,7 +39,7 @@ const LoginPage = () => {
       navigate("/");
     } catch (err) {
       console.error("Signup failed:", err);
-      alert("Signup failed. Try again.");
+      message.error("Signup failed. Try again.");
     }
   };
 
@@ -63,7 +63,7 @@ const LoginPage = () => {
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
-      alert(err.response?.data?.message || "Login failed. Try again.");
+      message.error(err.response?.data?.message || "Login failed. Try again.");
     }
   };
   const handlePhoneContinue = async (e) => {
@@ -78,7 +78,7 @@ const LoginPage = () => {
         message.error(err.response?.data?.message || "Failed to send OTP");
       }
     } else {
-      alert("Please enter phone number");
+      message.error("Please enter phone number");
     }
   };
   const handleGoogleLogin = () => {
@@ -399,7 +399,7 @@ const LoginPage = () => {
                     navigate("/");
                   } catch (err) {
                     console.error("OTP verification failed:", err);
-                    alert(err.response?.data?.message || "OTP verification failed");
+                    message.error(err.response?.data?.message || "OTP verification failed");
                   }
                 }}
               >
@@ -413,10 +413,10 @@ const LoginPage = () => {
                   onClick={async () => {
                     try {
                       await sendOtp(`${countryCode}${phoneNumber}`);
-                      alert("OTP resent successfully!");
+                      message.success("OTP resent successfully!");
                     } catch (error) {
                       console.error("Resend OTP error:", error);
-                      alert("Failed to resend OTP");
+                      message.error("Failed to resend OTP");
                     }
                   }}
                   className="text-black font-semibold hover:text-text-medium transition-colors underline"

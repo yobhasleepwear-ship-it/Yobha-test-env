@@ -80,7 +80,7 @@ const CheckoutPage = () => {
       const response = await getAddresses();
       const addresses = response.data || [];
       setUserAddresses(addresses);
-      
+
       // If addresses exist, use the first one by default
       if (addresses.length > 0) {
         setAddress(addresses[0]);
@@ -106,14 +106,14 @@ const CheckoutPage = () => {
       const subTotal = items.reduce((sum, item) => {
         const product = item?.product || {};
         const priceList = product?.priceList || [];
-        
+
         if (!priceList || priceList.length === 0) {
           return sum + (product?.unitPrice || 0) * item.quantity;
         }
 
         // Find matching price based on currency and size
-        const matchingPrice = priceList.find(price => 
-          price.currency === product.currency && 
+        const matchingPrice = priceList.find(price =>
+          price.currency === product.currency &&
           price.size === product.size
         );
 
@@ -161,21 +161,21 @@ const CheckoutPage = () => {
     // Validate required fields
     const requiredFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
     const errors = {};
-    
+
     requiredFields.forEach(field => {
       if (!address[field]) {
         errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
       }
     });
-    
+
     if (Object.keys(errors).length > 0) {
       setAddressErrors(errors);
       return;
     }
-    
+
     try {
       setIsAddingAddress(true);
-      
+
       // Map form fields to API expected fields
       const addressPayload = {
         fullName: address.fullName,
@@ -188,14 +188,14 @@ const CheckoutPage = () => {
         country: address.country,
         landmark: address.landmark || ''
       };
-      
+
       // Log the address object being sent
       console.log("Sending address data:", addressPayload);
-      
+
       const response = await addAddress(addressPayload);
-      
+
       console.log("Add address response:", response);
-      
+
       if (response.success) {
         message.success("Address added successfully!");
         // Refresh addresses list
@@ -235,21 +235,21 @@ const CheckoutPage = () => {
     // Validate required fields
     const requiredFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
     const errors = {};
-    
+
     requiredFields.forEach(field => {
       if (!address[field]) {
         errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
       }
     });
-    
+
     if (Object.keys(errors).length > 0) {
       setAddressErrors(errors);
       return;
     }
-    
+
     try {
       setIsAddingAddress(true);
-      
+
       // Map form fields to API expected fields
       const addressPayload = {
         fullName: address.fullName,
@@ -262,9 +262,9 @@ const CheckoutPage = () => {
         country: address.country,
         landmark: address.landmark || ''
       };
-      
+
       const response = await updateAddress(editingAddressId, addressPayload);
-      
+
       if (response.success) {
         message.success("Address updated successfully!");
         // Refresh addresses list
@@ -330,20 +330,20 @@ const CheckoutPage = () => {
     // const userId = user.id || "anonymous";
     // console.log(userId)
     const payload = {
-  "couponCode": "FIRST100",
-  "loyaltyDiscountAmount": 150,
-  "paymentMethod": "COD",
-  "shippingAddress": {
-    "fullName": "Samrat Sarotra",
-    "line1": "Flat 302, Yuhanns Empire",
-    "line2": "Murugeshpalya",
-    "city": "Bangalore",
-    "state": "Karnataka",
-    "zip": "560017",
-    "country": "India",
-    "isDefault": true
-  }
-};
+      "couponCode": "FIRST100",
+      "loyaltyDiscountAmount": 150,
+      "paymentMethod": "COD",
+      "shippingAddress": {
+        "fullName": "Samrat Sarotra",
+        "line1": "Flat 302, Yuhanns Empire",
+        "line2": "Murugeshpalya",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "zip": "560017",
+        "country": "India",
+        "isDefault": true
+      }
+    };
 
 
     console.log("Order Payload:", payload);
@@ -361,20 +361,20 @@ const CheckoutPage = () => {
       console.log(err)
       message.error("Please Try Again")
     }
-    finally{
+    finally {
       setIsProcessing(false)
     }
   };
 
-const CoupansUser = async()=>{
-  try{
-    const response =await getCoupons(1200);
+  const CoupansUser = async () => {
+    try {
+      const response = await getCoupons(1200);
 
+    }
+    catch (err) {
+      console.log(err)
+    }
   }
-  catch(err){
-    console.log(err)
-  }
-}
   const formatPrice = (price) => {
     return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
@@ -402,7 +402,7 @@ const CoupansUser = async()=>{
 
             {/* Delivery Address */}
             <div className="bg-white border border-text-light/20">
-              <div 
+              <div
                 className="px-4 md:px-6 py-4 md:py-5 border-b border-text-light/20 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => setIsDeliveryExpanded(!isDeliveryExpanded)}
               >
@@ -410,12 +410,11 @@ const CoupansUser = async()=>{
                   <MapPin size={20} strokeWidth={1.5} />
                   Delivery Address
                 </h2>
-                <ChevronDown 
-                  size={20} 
-                  className={`text-text-medium transition-transform duration-200 ${
-                    isDeliveryExpanded ? 'rotate-180' : ''
-                  }`} 
-                  strokeWidth={1.5} 
+                <ChevronDown
+                  size={20}
+                  className={`text-text-medium transition-transform duration-200 ${isDeliveryExpanded ? 'rotate-180' : ''
+                    }`}
+                  strokeWidth={1.5}
                 />
               </div>
 
@@ -451,13 +450,12 @@ const CoupansUser = async()=>{
                   {userAddresses.length > 0 && useSavedAddress ? (
                     <div className="space-y-3">
                       {userAddresses.map((addr, index) => (
-                        <div 
-                          key={addr.id} 
-                          className={`p-4 border-2  cursor-pointer transition-all ${
-                            address.id === addr.id 
-                              ? 'border-black bg-premium-beige' 
+                        <div
+                          key={addr.id}
+                          className={`p-4 border-2  cursor-pointer transition-all ${address.id === addr.id
+                              ? 'border-black bg-premium-beige'
                               : 'border-text-light/20 hover:border-text-dark bg-white'
-                          }`}
+                            }`}
                           onClick={() => setAddress(addr)}
                         >
                           <div className="flex items-start justify-between">
@@ -509,7 +507,7 @@ const CoupansUser = async()=>{
                           </button>
                         </div>
                       )}
-                      
+
                       {/* Form Fields */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
@@ -520,15 +518,14 @@ const CoupansUser = async()=>{
                             value={address.fullName}
                             onChange={handleInputChange}
                             placeholder="Enter your full name"
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
-                              addressErrors.fullName 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${addressErrors.fullName
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.fullName && <p className="text-xs text-red-500 mt-1">{addressErrors.fullName}</p>}
                         </div>
-                        
+
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
                           <input
@@ -537,15 +534,14 @@ const CoupansUser = async()=>{
                             value={address.phone}
                             onChange={handleInputChange}
                             placeholder="Enter your phone number"
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
-                              addressErrors.phone 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${addressErrors.phone
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.phone && <p className="text-xs text-red-500 mt-1">{addressErrors.phone}</p>}
                         </div>
-                        
+
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
                           <input
@@ -554,15 +550,14 @@ const CoupansUser = async()=>{
                             value={address.addressLine1}
                             onChange={handleInputChange}
                             placeholder="Street address, building, house number"
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
-                              addressErrors.addressLine1 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${addressErrors.addressLine1
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.addressLine1 && <p className="text-xs text-red-500 mt-1">{addressErrors.addressLine1}</p>}
                         </div>
-                        
+
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
                           <input
@@ -574,7 +569,7 @@ const CoupansUser = async()=>{
                             className="w-full px-4 py-3 border-2 border-gray-300 focus:border-black hover:border-gray-400 focus:outline-none text-sm  transition-colors"
                           />
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
                           <input
@@ -583,15 +578,14 @@ const CoupansUser = async()=>{
                             value={address.city}
                             onChange={handleInputChange}
                             placeholder="Enter city"
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
-                              addressErrors.city 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${addressErrors.city
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.city && <p className="text-xs text-red-500 mt-1">{addressErrors.city}</p>}
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
                           <input
@@ -600,15 +594,14 @@ const CoupansUser = async()=>{
                             value={address.state}
                             onChange={handleInputChange}
                             placeholder="Enter state"
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
-                              addressErrors.state 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${addressErrors.state
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.state && <p className="text-xs text-red-500 mt-1">{addressErrors.state}</p>}
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
                           <input
@@ -618,15 +611,14 @@ const CoupansUser = async()=>{
                             onChange={handleInputChange}
                             placeholder="Enter pincode"
                             maxLength={6}
-                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
-                              addressErrors.pincode 
-                                ? 'border-red-500 bg-red-50' 
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${addressErrors.pincode
+                                ? 'border-red-500 bg-red-50'
                                 : 'border-gray-300 focus:border-black hover:border-gray-400'
-                            }`}
+                              }`}
                           />
                           {addressErrors.pincode && <p className="text-xs text-red-500 mt-1">{addressErrors.pincode}</p>}
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
                           <input
@@ -640,42 +632,42 @@ const CoupansUser = async()=>{
                         </div>
                       </div>
                     </div>
-                )}
-                
-                {/* Action Buttons - Show when no addresses exist OR when in manual entry mode */}
-                {(userAddresses.length === 0 || !useSavedAddress) && (
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        onClick={isEditingAddress ? handleUpdateAddress : handleAddAddress}
-                        disabled={isAddingAddress}
-                        className="flex-1 bg-black text-white py-3 px-6 font-semibold hover:bg-gray-800 transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-gray-400 disabled:cursor-not-allowed "
-                      >
-                        {isAddingAddress ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span>{isEditingAddress ? 'Updating...' : 'Adding...'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin size={16} strokeWidth={1.5} />
-                            {isEditingAddress ? 'Update Address' : 'Add Address'}
-                          </>
-                        )}
-                      </button>
-                      
-                      {isEditingAddress && (
+                  )}
+
+                  {/* Action Buttons - Show when no addresses exist OR when in manual entry mode */}
+                  {(userAddresses.length === 0 || !useSavedAddress) && (
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <div className="flex flex-col sm:flex-row gap-3">
                         <button
-                          onClick={handleCancelEdit}
+                          onClick={isEditingAddress ? handleUpdateAddress : handleAddAddress}
                           disabled={isAddingAddress}
-                          className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed "
+                          className="flex-1 bg-black text-white py-3 px-6 font-semibold hover:bg-gray-800 transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-gray-400 disabled:cursor-not-allowed "
                         >
-                          Cancel
+                          {isAddingAddress ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>{isEditingAddress ? 'Updating...' : 'Adding...'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <MapPin size={16} strokeWidth={1.5} />
+                              {isEditingAddress ? 'Update Address' : 'Add Address'}
+                            </>
+                          )}
                         </button>
-                      )}
+
+                        {isEditingAddress && (
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={isAddingAddress}
+                            className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed "
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 </div>
               )}
             </div>
@@ -746,23 +738,23 @@ const CoupansUser = async()=>{
                   // Calculate correct price using same logic as cart page
                   const product = item?.product || {};
                   const priceList = product?.priceList || [];
-                  
+
                   let correctPrice = product?.unitPrice || 0;
-                  
+
                   if (priceList && priceList.length > 0) {
                     // Find matching price based on currency and size
-                    const matchingPrice = priceList.find(price => 
-                      price.currency === product.currency && 
+                    const matchingPrice = priceList.find(price =>
+                      price.currency === product.currency &&
                       price.size === product.size
                     );
-                    
+
                     if (matchingPrice) {
                       correctPrice = matchingPrice.priceAmount;
                     }
                   }
-                  
+
                   const itemTotal = correctPrice * item.quantity;
-                  
+
                   return (
                     <div key={item.id} className="flex items-center gap-3 border-b border-text-light/10 pb-3">
                       <img src={item.product.thumbnailUrl} alt={item.product.name} className="w-16 h-16 object-cover rounded" />
