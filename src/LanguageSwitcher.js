@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 
 const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
+//   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
 
@@ -14,12 +14,12 @@ const LanguageSwitcher = () => {
 
   // Set default language to English on mount
   useEffect(() => {
-    i18n.changeLanguage("en");
+    // i18n.changeLanguage("en");
     setCurrentLang("English");
-  }, [i18n]);
+  }, []);
 
   const handleLanguageChange = (code, label) => {
-    i18n.changeLanguage(code);
+    // i18n.changeLanguage(code);
     setCurrentLang(label);
     setOpen(false);
   };
