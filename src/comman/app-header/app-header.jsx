@@ -5,14 +5,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { LocalStorageKeys } from "../../constants/localStorageKeys";
 import * as localStorageService from "../../service/localStorageService";
 import logoImage from "../../assets/yobhaLogo.png";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import LanguageSwitcher from "../../LanguageSwitcher";
 
 const HeaderWithSidebar = () => {
-  const dispatch = useDispatch();
   const cartCount = useSelector(state => state.cart.count);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [cartAnimation, setCartAnimation] = useState(false);
   const navigate = useNavigate();
 
   const menuItems = ["Home", "Collections", "About", "Contact"];
@@ -29,6 +29,30 @@ const HeaderWithSidebar = () => {
     window.addEventListener("storage", checkAuth); // update if storage changes
     return () => window.removeEventListener("storage", checkAuth);
   }, []);
+
+  // Trigger cart animation only when cart count increases (product added)
+  const [prevCartCount, setPrevCartCount] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    // Initialize previous count on first load
+    if (!isInitialized) {
+      setPrevCartCount(cartCount);
+      setIsInitialized(true);
+      return;
+    }
+    
+    // Only animate if cart count increased (product was added)
+    if (cartCount > prevCartCount && cartCount > 0) {
+      setCartAnimation(true);
+      const timer = setTimeout(() => setCartAnimation(false), 600);
+      setPrevCartCount(cartCount);
+      return () => clearTimeout(timer);
+    } else if (cartCount !== prevCartCount) {
+      // Update previous count without animation for other changes
+      setPrevCartCount(cartCount);
+    }
+  }, [cartCount, prevCartCount, isInitialized]);
 
   // Logout function
   const handleLogout = () => {
@@ -147,14 +171,21 @@ const HeaderWithSidebar = () => {
           {/* Cart Icon - Always visible with unique design */}
           <Link
             to="/cart"
-            className="text-black hover:text-gray-700 flex items-center transition-colors duration-300"
+            className="text-black hover:text-gray-700 flex items-center transition-colors duration-300 relative"
             title="Shopping Cart"
           >
-            <BsBag size={22} />
+            <BsBag 
+              size={22} 
+              className={`transition-all duration-300 ${
+                cartAnimation ? "scale-110" : "scale-100"
+              }`} 
+            />
             {cartCount > 0 && (
-              // <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-              <span> {cartCount}</span>
-              // </span>
+              <span className={`absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg transition-all duration-300 ${
+                cartAnimation ? "scale-125" : "scale-100"
+              }`}>
+                {cartCount}
+              </span>
             )}
           </Link>
 

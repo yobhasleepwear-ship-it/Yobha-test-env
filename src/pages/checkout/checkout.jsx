@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, Banknote, Truck, RotateCcw, Shield } from "lucide-react";
-import { getAddresses } from "../../service/address";
+import { ArrowLeft, MapPin, CreditCard, Banknote, Truck, RotateCcw, Shield, ChevronDown, Pencil } from "lucide-react";
+import { getAddresses, addAddress, updateAddress } from "../../service/address";
 import { getCartDetails } from "../../service/productAPI";
 import { CreateOrder } from "../../service/order";
 import { message } from "../../comman/toster-message/ToastContainer";
@@ -25,6 +25,10 @@ const CheckoutPage = () => {
   const [addressErrors, setAddressErrors] = useState({});
   const [userAddresses, setUserAddresses] = useState([]);
   const [useSavedAddress, setUseSavedAddress] = useState(true);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [isDeliveryExpanded, setIsDeliveryExpanded] = useState(true);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
 
   // Payment State
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -74,12 +78,21 @@ const CheckoutPage = () => {
   const fetchAddresses = async () => {
     try {
       const response = await getAddresses();
-      setUserAddresses(response.data || []);
-      if (response.data?.length > 0) {
-        setAddress(response.data[0]);
+      const addresses = response.data || [];
+      setUserAddresses(addresses);
+      
+      // If addresses exist, use the first one by default
+      if (addresses.length > 0) {
+        setAddress(addresses[0]);
+        setUseSavedAddress(true);
+      } else {
+        // If no addresses exist, set to manual entry mode
+        setUseSavedAddress(false);
       }
     } catch (err) {
       console.log("Failed to fetch addresses");
+      // If API fails, default to manual entry
+      setUseSavedAddress(false);
     }
   };
 
@@ -89,18 +102,43 @@ const CheckoutPage = () => {
       const items = response.data.items || [];
       setCartItems(items);
 
-      // Calculate summary dynamically
-      const subTotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
-      const shipping = items.some(item => !item.product.freeShipping) ? 50 : 0;
+      // Calculate summary dynamically using same logic as cart page
+      const subTotal = items.reduce((sum, item) => {
+        const product = item?.product || {};
+        const priceList = product?.priceList || [];
+        
+        if (!priceList || priceList.length === 0) {
+          return sum + (product?.unitPrice || 0) * item.quantity;
+        }
+
+        // Find matching price based on currency and size
+        const matchingPrice = priceList.find(price => 
+          price.currency === product.currency && 
+          price.size === product.size
+        );
+
+        const correctPrice = matchingPrice ? matchingPrice.priceAmount : (product?.unitPrice || 0);
+        return sum + (correctPrice * item.quantity);
+      }, 0);
+
+      // Calculate shipping using countryPrice like cart page
+      let totalShipping = 0;
+      items.forEach(item => {
+        const countryPrice = item?.product?.countryPrice;
+        if (countryPrice && countryPrice.priceAmount !== undefined) {
+          totalShipping += countryPrice.priceAmount;
+        }
+      });
+
       const discount = 0;
       const tax = 0;
-      const grandTotal = subTotal + shipping + tax - discount;
+      const grandTotal = subTotal + totalShipping + tax - discount;
 
       setCartSummary({
         totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
         distinctItems: items.length,
         subTotal,
-        shipping,
+        shipping: totalShipping,
         tax,
         discount,
         grandTotal,
@@ -117,6 +155,150 @@ const CheckoutPage = () => {
     if (addressErrors[name]) {
       setAddressErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleAddAddress = async () => {
+    // Validate required fields
+    const requiredFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
+    const errors = {};
+    
+    requiredFields.forEach(field => {
+      if (!address[field]) {
+        errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      }
+    });
+    
+    if (Object.keys(errors).length > 0) {
+      setAddressErrors(errors);
+      return;
+    }
+    
+    try {
+      setIsAddingAddress(true);
+      
+      // Map form fields to API expected fields
+      const addressPayload = {
+        fullName: address.fullName,
+        phone: address.phone,
+        line1: address.addressLine1,
+        line2: address.addressLine2 || '',
+        city: address.city,
+        state: address.state,
+        zip: address.pincode,
+        country: address.country,
+        landmark: address.landmark || ''
+      };
+      
+      // Log the address object being sent
+      console.log("Sending address data:", addressPayload);
+      
+      const response = await addAddress(addressPayload);
+      
+      console.log("Add address response:", response);
+      
+      if (response.success) {
+        message.success("Address added successfully!");
+        // Refresh addresses list
+        await fetchAddresses();
+        // Switch to saved address mode and select the new address
+        setUseSavedAddress(true);
+        setAddress(response.data);
+      }
+    } catch (err) {
+      console.error("Failed to add address - Full error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      message.error(`Failed to add address: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsAddingAddress(false);
+    }
+  };
+
+  const handleEditAddress = (addressToEdit) => {
+    setIsEditingAddress(true);
+    setEditingAddressId(addressToEdit.id);
+    setAddress({
+      fullName: addressToEdit.fullName,
+      phone: addressToEdit.phone,
+      addressLine1: addressToEdit.line1,
+      addressLine2: addressToEdit.line2 || '',
+      city: addressToEdit.city,
+      state: addressToEdit.state,
+      pincode: addressToEdit.zip,
+      country: addressToEdit.country,
+      landmark: addressToEdit.landmark || ''
+    });
+    setUseSavedAddress(false);
+  };
+
+  const handleUpdateAddress = async () => {
+    // Validate required fields
+    const requiredFields = ['fullName', 'phone', 'addressLine1', 'city', 'state', 'pincode'];
+    const errors = {};
+    
+    requiredFields.forEach(field => {
+      if (!address[field]) {
+        errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      }
+    });
+    
+    if (Object.keys(errors).length > 0) {
+      setAddressErrors(errors);
+      return;
+    }
+    
+    try {
+      setIsAddingAddress(true);
+      
+      // Map form fields to API expected fields
+      const addressPayload = {
+        fullName: address.fullName,
+        phone: address.phone,
+        line1: address.addressLine1,
+        line2: address.addressLine2 || '',
+        city: address.city,
+        state: address.state,
+        zip: address.pincode,
+        country: address.country,
+        landmark: address.landmark || ''
+      };
+      
+      const response = await updateAddress(editingAddressId, addressPayload);
+      
+      if (response.success) {
+        message.success("Address updated successfully!");
+        // Refresh addresses list
+        await fetchAddresses();
+        // Reset edit state
+        setIsEditingAddress(false);
+        setEditingAddressId(null);
+        // Switch to saved address mode and select the updated address
+        setUseSavedAddress(true);
+        setAddress(response.data);
+      }
+    } catch (err) {
+      console.error("Failed to update address:", err);
+      message.error(`Failed to update address: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsAddingAddress(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingAddress(false);
+    setEditingAddressId(null);
+    setAddress({
+      fullName: '',
+      phone: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      pincode: '',
+      country: 'India',
+      landmark: '',
+    });
+    setAddressErrors({});
   };
 
   const validateAddress = (addr) => {
@@ -220,141 +402,282 @@ const CoupansUser = async()=>{
 
             {/* Delivery Address */}
             <div className="bg-white border border-text-light/20">
-              <div className="px-4 md:px-6 py-4 md:py-5 border-b border-text-light/20 flex justify-between items-center">
+              <div 
+                className="px-4 md:px-6 py-4 md:py-5 border-b border-text-light/20 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setIsDeliveryExpanded(!isDeliveryExpanded)}
+              >
                 <h2 className="text-base md:text-lg font-bold text-black uppercase tracking-wider flex items-center gap-2">
                   <MapPin size={20} strokeWidth={1.5} />
                   Delivery Address
                 </h2>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="radio"
-                      checked={useSavedAddress}
-                      onChange={() => setUseSavedAddress(true)}
-                      className="accent-black"
-                    />
-                    Use Saved
-                  </label>
-                  <label className="flex items-center gap-1 text-sm">
-                    <input
-                      type="radio"
-                      checked={!useSavedAddress}
-                      onChange={() => setUseSavedAddress(false)}
-                      className="accent-black"
-                    />
-                    Enter Manually
-                  </label>
-                </div>
+                <ChevronDown 
+                  size={20} 
+                  className={`text-text-medium transition-transform duration-200 ${
+                    isDeliveryExpanded ? 'rotate-180' : ''
+                  }`} 
+                  strokeWidth={1.5} 
+                />
               </div>
 
-              <div className="p-4 md:p-6">
-                {useSavedAddress ? (
-                  <select
-                    value={address.id || ""}
-                    onChange={(e) => {
-                      const selected = userAddresses.find(a => a.id === e.target.value);
-                      if (selected) setAddress(selected);
-                    }}
-                    className="w-full px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm"
-                  >
-                    {userAddresses.map(addr => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.fullName}, {addr.line1}, {addr.city} - {addr.zip}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-2">
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={address.fullName}
-                        onChange={handleInputChange}
-                        placeholder="Full Name"
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.fullName ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.fullName && <p className="text-xs text-red-500">{addressErrors.fullName}</p>}
+              {isDeliveryExpanded && (
+                <div className="p-4 md:p-6">
+                  {/* Radio Button Toggle - Only show when addresses exist */}
+                  {userAddresses.length > 0 && (
+                    <div className="mb-6 pb-4 border-b border-text-light/20">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={useSavedAddress}
+                            onChange={() => setUseSavedAddress(true)}
+                            className="accent-black"
+                          />
+                          <span className="font-medium">Use Saved Address</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={!useSavedAddress}
+                            onChange={() => setUseSavedAddress(false)}
+                            className="accent-black"
+                          />
+                          <span className="font-medium">Enter Manually</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="sm:col-span-2">
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={address.phone}
-                        onChange={handleInputChange}
-                        placeholder="Phone"
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.phone ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.phone && <p className="text-xs text-red-500">{addressErrors.phone}</p>}
+                  )}
+
+                  {/* Address Content */}
+                  {userAddresses.length > 0 && useSavedAddress ? (
+                    <div className="space-y-3">
+                      {userAddresses.map((addr, index) => (
+                        <div 
+                          key={addr.id} 
+                          className={`p-4 border-2  cursor-pointer transition-all ${
+                            address.id === addr.id 
+                              ? 'border-black bg-premium-beige' 
+                              : 'border-text-light/20 hover:border-text-dark bg-white'
+                          }`}
+                          onClick={() => setAddress(addr)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <input
+                                  type="radio"
+                                  checked={address.id === addr.id}
+                                  onChange={() => setAddress(addr)}
+                                  className="accent-black"
+                                />
+                                <h3 className="font-semibold text-black text-sm md:text-base">
+                                  {addr.fullName}
+                                </h3>
+                              </div>
+                              <div className="text-xs md:text-sm text-text-medium space-y-1 ml-6">
+                                <p>{addr.line1}</p>
+                                {addr.line2 && <p>{addr.line2}</p>}
+                                <p>{addr.city}, {addr.state} - {addr.zip}</p>
+                                <p>{addr.country}</p>
+                                {addr.landmark && <p>Landmark: {addr.landmark}</p>}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditAddress(addr);
+                              }}
+                              className="ml-3 px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors flex items-center gap-1"
+                            >
+                              <Pencil size={12} strokeWidth={1.5} />
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="sm:col-span-2">
-                      <input
-                        type="text"
-                        name="addressLine1"
-                        value={address.addressLine1}
-                        onChange={handleInputChange}
-                        placeholder="Address Line 1"
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.addressLine1 ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.addressLine1 && <p className="text-xs text-red-500">{addressErrors.addressLine1}</p>}
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Form Header */}
+                      {isEditingAddress && (
+                        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 ">
+                          <p className="text-sm text-blue-800 font-medium">Editing Address</p>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Cancel Edit
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Form Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                          <input
+                            type="text"
+                            name="fullName"
+                            value={address.fullName}
+                            onChange={handleInputChange}
+                            placeholder="Enter your full name"
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                              addressErrors.fullName 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.fullName && <p className="text-xs text-red-500 mt-1">{addressErrors.fullName}</p>}
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={address.phone}
+                            onChange={handleInputChange}
+                            placeholder="Enter your phone number"
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                              addressErrors.phone 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.phone && <p className="text-xs text-red-500 mt-1">{addressErrors.phone}</p>}
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                          <input
+                            type="text"
+                            name="addressLine1"
+                            value={address.addressLine1}
+                            onChange={handleInputChange}
+                            placeholder="Street address, building, house number"
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm transition-colors ${
+                              addressErrors.addressLine1 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.addressLine1 && <p className="text-xs text-red-500 mt-1">{addressErrors.addressLine1}</p>}
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                          <input
+                            type="text"
+                            name="addressLine2"
+                            value={address.addressLine2}
+                            onChange={handleInputChange}
+                            placeholder="Apartment, suite, unit, etc. (Optional)"
+                            className="w-full px-4 py-3 border-2 border-gray-300 focus:border-black hover:border-gray-400 focus:outline-none text-sm  transition-colors"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                          <input
+                            type="text"
+                            name="city"
+                            value={address.city}
+                            onChange={handleInputChange}
+                            placeholder="Enter city"
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
+                              addressErrors.city 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.city && <p className="text-xs text-red-500 mt-1">{addressErrors.city}</p>}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                          <input
+                            type="text"
+                            name="state"
+                            value={address.state}
+                            onChange={handleInputChange}
+                            placeholder="Enter state"
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
+                              addressErrors.state 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.state && <p className="text-xs text-red-500 mt-1">{addressErrors.state}</p>}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                          <input
+                            type="text"
+                            name="pincode"
+                            value={address.pincode}
+                            onChange={handleInputChange}
+                            placeholder="Enter pincode"
+                            maxLength={6}
+                            className={`w-full px-4 py-3 border-2 focus:outline-none text-sm  transition-colors ${
+                              addressErrors.pincode 
+                                ? 'border-red-500 bg-red-50' 
+                                : 'border-gray-300 focus:border-black hover:border-gray-400'
+                            }`}
+                          />
+                          {addressErrors.pincode && <p className="text-xs text-red-500 mt-1">{addressErrors.pincode}</p>}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
+                          <input
+                            type="text"
+                            name="landmark"
+                            value={address.landmark}
+                            onChange={handleInputChange}
+                            placeholder="Nearby landmark (Optional)"
+                            className="w-full px-4 py-3 border-2 border-gray-300 focus:border-black hover:border-gray-400 focus:outline-none text-sm  transition-colors"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="sm:col-span-2">
-                      <input
-                        type="text"
-                        name="addressLine2"
-                        value={address.addressLine2}
-                        onChange={handleInputChange}
-                        placeholder="Address Line 2 (Optional)"
-                        className="w-full px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm"
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        name="city"
-                        value={address.city}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.city ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.city && <p className="text-xs text-red-500">{addressErrors.city}</p>}
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        name="state"
-                        value={address.state}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.state ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.state && <p className="text-xs text-red-500">{addressErrors.state}</p>}
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        name="pincode"
-                        value={address.pincode}
-                        onChange={handleInputChange}
-                        placeholder="Pincode"
-                        maxLength={6}
-                        className={`w-full px-4 py-3 border-2 focus:outline-none text-sm ${addressErrors.pincode ? 'border-red-500' : 'border-text-light/30 focus:border-black'}`}
-                      />
-                      {addressErrors.pincode && <p className="text-xs text-red-500">{addressErrors.pincode}</p>}
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        name="landmark"
-                        value={address.landmark}
-                        onChange={handleInputChange}
-                        placeholder="Landmark (Optional)"
-                        className="w-full px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm"
-                      />
+                )}
+                
+                {/* Action Buttons - Show when no addresses exist OR when in manual entry mode */}
+                {(userAddresses.length === 0 || !useSavedAddress) && (
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={isEditingAddress ? handleUpdateAddress : handleAddAddress}
+                        disabled={isAddingAddress}
+                        className="flex-1 bg-black text-white py-3 px-6 font-semibold hover:bg-gray-800 transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-gray-400 disabled:cursor-not-allowed "
+                      >
+                        {isAddingAddress ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>{isEditingAddress ? 'Updating...' : 'Adding...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <MapPin size={16} strokeWidth={1.5} />
+                            {isEditingAddress ? 'Update Address' : 'Add Address'}
+                          </>
+                        )}
+                      </button>
+                      
+                      {isEditingAddress && (
+                        <button
+                          onClick={handleCancelEdit}
+                          disabled={isAddingAddress}
+                          className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors uppercase tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed "
+                        >
+                          Cancel
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Section */}
@@ -419,16 +742,38 @@ const CoupansUser = async()=>{
               </div>
 
               <div className="p-4 md:p-6 space-y-3">
-                {cartItems.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 border-b border-text-light/10 pb-3">
-                    <img src={item.product.thumbnailUrl} alt={item.product.name} className="w-16 h-16 object-cover rounded" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-black">{item.product.name}</p>
-                      <p className="text-xs text-text-medium">{item.quantity} × {formatPrice(item.product.unitPrice)}</p>
+                {cartItems.map(item => {
+                  // Calculate correct price using same logic as cart page
+                  const product = item?.product || {};
+                  const priceList = product?.priceList || [];
+                  
+                  let correctPrice = product?.unitPrice || 0;
+                  
+                  if (priceList && priceList.length > 0) {
+                    // Find matching price based on currency and size
+                    const matchingPrice = priceList.find(price => 
+                      price.currency === product.currency && 
+                      price.size === product.size
+                    );
+                    
+                    if (matchingPrice) {
+                      correctPrice = matchingPrice.priceAmount;
+                    }
+                  }
+                  
+                  const itemTotal = correctPrice * item.quantity;
+                  
+                  return (
+                    <div key={item.id} className="flex items-center gap-3 border-b border-text-light/10 pb-3">
+                      <img src={item.product.thumbnailUrl} alt={item.product.name} className="w-16 h-16 object-cover rounded" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-black">{item.product.name}</p>
+                        <p className="text-xs text-text-medium">{item.quantity} × {formatPrice(correctPrice)}</p>
+                      </div>
+                      <div className="text-sm font-semibold text-black">{formatPrice(itemTotal)}</div>
                     </div>
-                    <div className="text-sm font-semibold text-black">{formatPrice(item.lineTotal)}</div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="pt-4 border-t border-text-light/20 space-y-2">
                   <div className="flex justify-between text-xs md:text-sm">
@@ -462,22 +807,23 @@ const CoupansUser = async()=>{
                   <span className="text-xl md:text-2xl font-bold text-black">{formatPrice(cartSummary.grandTotal)}</span>
                 </div>
 
-                <div className="space-y-3 py-4 border-b border-text-light/20">
-                  <div className="flex items-start gap-3">
-                    <Truck size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs md:text-sm font-medium text-black">Free Shipping</p>
-                      <p className="text-xs text-text-medium">Delivery in 3-5 business days</p>
+                {cartSummary.shipping === 0 && (
+                  <div className="space-y-3 py-4 border-b border-text-light/20">
+                    <div className="flex items-start gap-3">
+                      <Truck size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-black">Free Shipping</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <RotateCcw size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
+                        <p className="text-xs text-text-medium">30-day return policy</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <RotateCcw size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
-                      <p className="text-xs text-text-medium">30-day return policy</p>
-                    </div>
-                  </div>
-                </div>
+                )}
 
                 <button
                   onClick={handlePlaceOrder}

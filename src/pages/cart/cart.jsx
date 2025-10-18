@@ -21,13 +21,6 @@ const formatPrice = (price, currency = 'INR') => {
   })}`;
 };
 
-/**
- * Calculate discount percentage
- */
-const calculateDiscountPercent = (originalPrice, currentPrice) => {
-  if (!originalPrice || !currentPrice || originalPrice <= currentPrice) return 0;
-  return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
-};
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -41,10 +34,6 @@ const CartPage = () => {
   // Button Loading States
   const [loadingButtons, setLoadingButtons] = useState({});
 
-  // Coupon State
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponError, setCouponError] = useState('');
 
   const fetchCart = useCallback(async () => {
     setIsLoading(true)
@@ -96,7 +85,7 @@ const CartPage = () => {
         return {
           ...item,
           quantity: finalQuantity,
-          lineTotal: item.product.unitPrice * finalQuantity
+          lineTotal: getCorrectPrice(item) * finalQuantity
         };
       }
       return item;
@@ -126,37 +115,41 @@ const handleDeleteCartItem = async (id) => {
     removeItem(itemId);
   };
 
-  // Apply coupon
-  const applyCoupon = () => {
-    setCouponError('');
 
-    if (!couponCode || couponCode.trim() === '') {
-      setCouponError('Please enter a coupon code');
-      return;
+  // Helper function to get correct price from priceList based on currency and size
+  const getCorrectPrice = (item) => {
+    const product = item?.product || {};
+    const priceList = product?.priceList || [];
+    
+    if (!priceList || priceList.length === 0) {
+      return product?.unitPrice || 0;
     }
 
-    const mockCoupons = [
-      { code: 'YOBHA10', discount: 10, type: 'percentage', description: '10% off on all products' },
-      { code: 'FIRST100', discount: 100, type: 'fixed', description: '₹100 off on first order' },
-      { code: 'LUXURY20', discount: 20, type: 'percentage', description: '20% off on premium collection' },
-    ];
+    // Find matching price based on currency and size
+    const matchingPrice = priceList.find(price => 
+      price.currency === product.currency && 
+      price.size === product.size
+    );
 
-    const validCoupon = mockCoupons.find(c => c.code === couponCode.toUpperCase());
-
-    if (validCoupon) {
-      setAppliedCoupon(validCoupon);
-      setCouponError('');
-    } else {
-      setCouponError('Invalid coupon code');
-    }
+    return matchingPrice ? matchingPrice.priceAmount : (product?.unitPrice || 0);
   };
 
-  // Remove coupon
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-    // TODO: Call API to remove coupon from cart
+  // Helper function to get shipping price based on countryPrice
+  const getShippingPrice = (cartItems) => {
+    if (!cartItems || cartItems.length === 0) return 0;
+    
+    // Calculate total shipping cost from all items
+    let totalShipping = 0;
+    
+    cartItems.forEach(item => {
+      const countryPrice = item?.product?.countryPrice;
+      if (countryPrice && countryPrice.priceAmount !== undefined) {
+        // Add shipping cost for this item (multiply by quantity)
+        totalShipping += countryPrice.priceAmount ;
+      }
+    });
+    
+    return totalShipping;
   };
 
   // Calculate totals from cart items (used when summary is not available)
@@ -173,34 +166,20 @@ const handleDeleteCartItem = async (id) => {
     }
 
     const subTotal = cartItems.reduce((sum, item) => {
-      const price = item?.product?.unitPrice || 0;
+      const correctPrice = getCorrectPrice(item);
       const qty = item?.quantity || 0;
-      return sum + (price * qty);
+      return sum + (correctPrice * qty);
     }, 0);
 
-    const totalSavings = cartItems.reduce((sum, item) => {
-      const comparePrice = item?.product?.compareAtPrice || 0;
-      const currentPrice = item?.product?.unitPrice || 0;
-      const qty = item?.quantity || 0;
-      return sum + ((comparePrice - currentPrice) * qty);
-    }, 0);
+    // Removed discount calculation
 
-    const shipping = subTotal > 1000 || cartItems.some(item => item?.product?.freeShipping) ? 0 : 99;
-
-    // Calculate coupon discount
-    let couponDiscount = 0;
-    if (appliedCoupon) {
-      if (appliedCoupon.type === 'percentage') {
-        couponDiscount = Math.round((subTotal * appliedCoupon.discount) / 100);
-      } else {
-        couponDiscount = appliedCoupon.discount;
-      }
-    }
+    // Shipping calculation based on countryPrice
+    const shipping = getShippingPrice(cartItems);
 
     const tax = 0; // Tax calculation can be added if needed
-    const grandTotal = subTotal - couponDiscount + shipping + tax;
+    const grandTotal = subTotal + shipping + tax;
 
-    return { subTotal, totalSavings, shipping, tax, couponDiscount, grandTotal };
+    return { subTotal,  shipping, tax, grandTotal };
   };
 
   // Use API summary if available, otherwise calculate
@@ -292,7 +271,6 @@ const handleDeleteCartItem = async (id) => {
               {cartItems.map((item) => {
                 const product = item?.product || {};
                 const availableStock = (product.stockQuantity || 0) - (product.reservedQuantity || 0);
-                const discountPercent = calculateDiscountPercent(product.compareAtPrice, product.unitPrice);
 
                 return (
                   <div
@@ -357,21 +335,11 @@ const handleDeleteCartItem = async (id) => {
                         <div className="mb-4">
                           <div className="flex flex-wrap items-baseline gap-2 mb-1">
                             <span className="text-xl md:text-2xl font-bold text-black">
-                              {formatPrice(product.unitPrice, product.currency)}
+                              {formatPrice(getCorrectPrice(item), product.currency)}
                             </span>
-                            {product.compareAtPrice && (
-                              <span className="text-sm md:text-base text-text-light line-through">
-                                {formatPrice(product.compareAtPrice, product.currency)}
-                              </span>
-                            )}
-                            {discountPercent > 0 && (
-                              <span className="text-xs bg-black text-white px-2 py-0.5 uppercase tracking-wider whitespace-nowrap">
-                                {discountPercent}% OFF
-                              </span>
-                            )}
                           </div>
                           <p className="text-xs md:text-sm text-text-medium">
-                            Line Total: <span className="font-bold text-black">{formatPrice(item.lineTotal, product.currency)}</span>
+                            {/* Line Total: <span className="font-bold text-black">{formatPrice(getCorrectPrice(item) * item.quantity, product.currency)}</span> */}
                           </p>
                         </div>
 
@@ -434,138 +402,6 @@ const handleDeleteCartItem = async (id) => {
                 );
               })}
 
-              {/* Coupon Section */}
-              <div className="bg-white border border-text-light/20 p-4 md:p-6">
-                <h3 className="text-base md:text-lg font-bold text-black uppercase tracking-wider mb-4">
-                  Apply Coupon
-                </h3>
-
-                {/* Coupon Input */}
-                <div className="flex gap-2 mb-4">
-                  <input
-                    type="text"
-                    placeholder="Enter coupon code"
-                    value={couponCode}
-                    onChange={(e) => {
-                      setCouponCode(e.target.value.toUpperCase());
-                      setCouponError('');
-                    }}
-                    className="flex-1 px-4 py-3 border-2 border-text-light/30 focus:border-black focus:outline-none text-sm uppercase font-medium tracking-wider transition-colors"
-                  />
-                  <button
-                    onClick={applyCoupon}
-                    className="bg-black text-white font-semibold px-6 md:px-8 py-3 hover:bg-text-dark transition-colors uppercase tracking-wider text-xs md:text-sm whitespace-nowrap"
-                  >
-                    Apply
-                  </button>
-                </div>
-
-                {/* Error Message */}
-                {couponError && (
-                  <p className="text-xs text-red-500 mb-4">{couponError}</p>
-                )}
-
-                {/* Applied Coupon */}
-                {appliedCoupon && (
-                  <div className="bg-premium-beige border-2 border-black p-4 mb-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-black uppercase tracking-wider">
-                        {appliedCoupon.code}
-                      </p>
-                      <p className="text-xs text-text-medium mt-1">
-                        {appliedCoupon.description}
-                      </p>
-                      <p className="text-xs text-luxury-rose-gold font-semibold mt-1">
-                        You saved{' '}
-                        {appliedCoupon.type === 'percentage'
-                          ? `${appliedCoupon.discount}%`
-                          : formatPrice(appliedCoupon.discount)}!
-                      </p>
-                    </div>
-                    <button
-                      onClick={removeCoupon}
-                      className="text-text-medium hover:text-black transition-colors p-2"
-                      aria-label="Remove coupon"
-                    >
-                      <Trash2 size={18} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Available Coupons */}
-                {!appliedCoupon && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-text-medium uppercase tracking-wider mb-3">
-                      Available Coupons
-                    </p>
-                    <button
-                      onClick={() => {
-                        setCouponCode('YOBHA10');
-                        setCouponError('');
-                      }}
-                      className="w-full p-3 md:p-4 border border-text-light/20 hover:border-black hover:bg-premium-cream transition-all text-left group"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-black uppercase tracking-wider mb-1">
-                            YOBHA10
-                          </p>
-                          <p className="text-xs text-text-medium">
-                            10% off on all products
-                          </p>
-                        </div>
-                        <span className="text-xs text-text-medium uppercase tracking-wider group-hover:text-black transition-colors whitespace-nowrap">
-                          Apply
-                        </span>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setCouponCode('FIRST100');
-                        setCouponError('');
-                      }}
-                      className="w-full p-3 md:p-4 border border-text-light/20 hover:border-black hover:bg-premium-cream transition-all text-left group"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-black uppercase tracking-wider mb-1">
-                            FIRST100
-                          </p>
-                          <p className="text-xs text-text-medium">
-                            ₹100 off on first order
-                          </p>
-                        </div>
-                        <span className="text-xs text-text-medium uppercase tracking-wider group-hover:text-black transition-colors whitespace-nowrap">
-                          Apply
-                        </span>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setCouponCode('LUXURY20');
-                        setCouponError('');
-                      }}
-                      className="w-full p-3 md:p-4 border border-text-light/20 hover:border-black hover:bg-premium-cream transition-all text-left group"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-black uppercase tracking-wider mb-1">
-                            LUXURY20
-                          </p>
-                          <p className="text-xs text-text-medium">
-                            20% off on premium collection
-                          </p>
-                        </div>
-                        <span className="text-xs text-text-medium uppercase tracking-wider group-hover:text-black transition-colors whitespace-nowrap">
-                          Apply
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Right Column - Order Summary */}
@@ -590,25 +426,7 @@ const handleDeleteCartItem = async (id) => {
                       </span>
                     </div>
 
-                    {(cartSummary?.discount || totals.totalSavings) > 0 && (
-                      <div className="flex justify-between text-xs md:text-sm">
-                        <span className="text-text-medium">Product Savings</span>
-                        <span className="text-luxury-rose-gold font-semibold">
-                          -{formatPrice(cartSummary?.discount || totals.totalSavings)}
-                        </span>
-                      </div>
-                    )}
 
-                    {(totals.couponDiscount || 0) > 0 && (
-                      <div className="flex justify-between text-xs md:text-sm bg-premium-beige -mx-4 md:-mx-6 px-4 md:px-6 py-2">
-                        <span className="text-text-dark font-medium">
-                          Coupon ({appliedCoupon?.code})
-                        </span>
-                        <span className="text-luxury-rose-gold font-bold">
-                          -{formatPrice(totals.couponDiscount)}
-                        </span>
-                      </div>
-                    )}
 
                     <div className="flex justify-between text-xs md:text-sm">
                       <span className="text-text-medium">Shipping</span>
@@ -641,23 +459,24 @@ const handleDeleteCartItem = async (id) => {
                     </span>
                   </div>
 
-                  {/* Shipping Info */}
-                  <div className="space-y-3 py-4 border-b border-text-light/20">
-                    <div className="flex items-start gap-3">
-                      <Truck size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs md:text-sm font-medium text-black">Free Shipping</p>
-                        <p className="text-xs text-text-medium">Delivery in 3-5 business days</p>
+                  {/* Shipping Info - Only show when shipping is free */}
+                  {(cartSummary?.shipping || totals.shipping) === 0 && (
+                    <div className="space-y-3 py-4 border-b border-text-light/20">
+                      <div className="flex items-start gap-3">
+                        <Truck size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs md:text-sm font-medium text-black">Free Shipping</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <RotateCcw size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
+                          <p className="text-xs text-text-medium">30-day return policy</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <RotateCcw size={16} className="text-text-medium mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs md:text-sm font-medium text-black">Easy Returns</p>
-                        <p className="text-xs text-text-medium">30-day return policy</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Checkout Button */}
                   <button

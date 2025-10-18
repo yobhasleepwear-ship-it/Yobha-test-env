@@ -61,6 +61,7 @@ const ProductDetailPage = () => {
   // Button Loading States
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
+  const [itemAddedToCart, setItemAddedToCart] = useState(false);
   // API State
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -210,12 +211,14 @@ const ProductDetailPage = () => {
   const handleIncrement = () => {
     if (quantity < availableQuantity) {
       setQuantity(prev => prev + 1);
+      setItemAddedToCart(false);
     }
   };
 
   const handleDecrement = () => {
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
+      setItemAddedToCart(false);
     }
   };
 
@@ -257,6 +260,7 @@ const ProductDetailPage = () => {
       const response = await addToCart(payload);
       console.log("Added to cart:", response);
       message.success("Product added to cart successfully!");
+      setItemAddedToCart(true);
       fetchCart()
     } catch (err) {
       console.error("Error adding to cart:", err);
@@ -264,6 +268,10 @@ const ProductDetailPage = () => {
     } finally {
       setAddingToCart(false);
     }
+  };
+
+  const handleGoToCart = () => {
+    navigate("/cart");
   };
 
   const handleBuyNow = async () => {
@@ -621,7 +629,10 @@ const ProductDetailPage = () => {
                   {product?.availableColors.map((color) => (
                     <button
                       key={color}
-                      onClick={() => setSelectedColor(color)}
+                      onClick={() => {
+                        setSelectedColor(color);
+                        setItemAddedToCart(false);
+                      }}
                       className={`px-6 py-3 border-2 transition-all uppercase text-sm tracking-wider ${selectedColor === color
                         ? 'border-black bg-black text-white'
                         : 'border-text-light/30 text-black hover:border-text-dark'
@@ -644,7 +655,10 @@ const ProductDetailPage = () => {
                   {product.sizeOfProduct.map((size) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        setItemAddedToCart(false);
+                      }}
                       className={`py-3 border-2 transition-all uppercase text-sm tracking-wider font-medium ${selectedSize === size
                         ? 'border-black bg-black text-white'
                         : 'border-text-light/30 text-black hover:border-text-dark'
@@ -691,7 +705,7 @@ const ProductDetailPage = () => {
             {/* Action Buttons */}
             <div className="flex gap-4">
               <button
-                onClick={handleAddToCart}
+                onClick={itemAddedToCart ? handleGoToCart : handleAddToCart}
                 disabled={
                   availableQuantity === 0 ||
                   !selectedColor ||
@@ -713,7 +727,9 @@ const ProductDetailPage = () => {
                       ? 'Out of Stock'
                       : !matchedPrice
                         ? 'Price Not Available'
-                        : 'Add to Cart'}
+                        : itemAddedToCart
+                          ? 'Go to Cart'
+                          : 'Add to Cart'}
                   </>
                 )}
               </button>
@@ -721,9 +737,30 @@ const ProductDetailPage = () => {
 
               <button
                 onClick={handleBuyNow}
-                className="px-6 py-3 bg-black text-white rounded-lg hover:bg-text-dark"
+                disabled={
+                  availableQuantity === 0 ||
+                  !selectedColor ||
+                  !selectedSize ||
+                  !matchedPrice ||
+                  addingToCart
+                }
+                className="flex-1 bg-black text-white py-4 px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
               >
-                Buy Now
+                {addingToCart ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag size={20} strokeWidth={1.5} />
+                    {availableQuantity === 0
+                      ? 'Out of Stock'
+                      : !matchedPrice
+                        ? 'Price Not Available'
+                        : 'Buy Now'}
+                  </>
+                )}
               </button>
               <button
                 onClick={() => handleAddToWishlist(product.id)}
