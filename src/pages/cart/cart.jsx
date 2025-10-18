@@ -15,7 +15,7 @@ import { setCartCount } from "../../redux/cartSlice";
 const formatPrice = (price, currency = 'INR') => {
   if (typeof price !== 'number') return '₹0';
   const symbol = currency === 'INR' ? '₹' : currency;
-  return `${symbol}${price.toLocaleString('en-IN', {
+  return `${symbol} ${price.toLocaleString('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   })}`;
@@ -299,7 +299,7 @@ const handleDeleteCartItem = async (id) => {
                           <div className="flex-1 min-w-0">
                             <h3
                               className="font-semibold text-black text-base md:text-lg mb-2 line-clamp-2 hover:underline cursor-pointer uppercase tracking-tight"
-                              onClick={() => navigate(`/productDetail/${product.productId}`)}
+                              onClick={() => navigate(`/productDetail/${product.productObjectId}`)}
                             >
                               {product.name}
                             </h3>

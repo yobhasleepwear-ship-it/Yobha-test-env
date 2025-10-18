@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { contactUs } from "../../service/login";
+import { message } from "../../comman/toster-message/ToastContainer";
 
 const Contact = () => {
   const whatsappNumber = "+916200830664";
   const whatsappText = "Hello, I'd like to get in touch regarding your products.";
-  
+
   // Contact form state
   const [formData, setFormData] = useState({
     name: '',
@@ -17,7 +19,7 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState(null);
-  
+
   const handleWhatsAppRedirect = () => {
     const url = `https://wa.me/${whatsappNumber.replace("+", "")}?text=${encodeURIComponent(whatsappText)}`;
     window.open(url, "_blank");
@@ -92,18 +94,24 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
-    
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+    const payload = {
+      "fullName": formData.name,
+      "email": formData.email,
+      "subject": formData.subject,
+      "phoneNumber": formData.phone,
+      "message": formData.message.trim()
+    }
     try {
+      const response = await contactUs(payload)
       // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsSubmitted(true);
+      message.success("Thanks for contacting us! Our team will contact you soon.");
       setFormData({
         name: '',
         email: '',
@@ -111,6 +119,8 @@ const Contact = () => {
         subject: '',
         message: ''
       });
+
+
     } catch (error) {
       console.error('Form submission error:', error);
     } finally {
@@ -140,10 +150,10 @@ const Contact = () => {
       </section>
 
       {/* Main Contact Section */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+      <section className=" mx-auto px-4 sm:px-6 py-8 sm:py-16">
         <div className="bg-white p-6 sm:p-12 shadow-xl border border-text-light/10 relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
-          
+
           {isSubmitted ? (
             <div className="text-center py-12 sm:py-16">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -186,11 +196,10 @@ const Contact = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
-                        formErrors.name 
-                          ? 'border-red-500 bg-red-50' 
-                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
-                      }`}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${formErrors.name
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                        }`}
                       placeholder="Enter your full name"
                     />
                     {formErrors.name && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.name}</p>}
@@ -205,11 +214,10 @@ const Contact = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
-                        formErrors.email 
-                          ? 'border-red-500 bg-red-50' 
-                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
-                      }`}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${formErrors.email
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                        }`}
                       placeholder="Enter your email"
                     />
                     {formErrors.email && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.email}</p>}
@@ -240,11 +248,10 @@ const Contact = () => {
                       name="subject"
                       value={formData.subject}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
-                        formErrors.subject 
-                          ? 'border-red-500 bg-red-50' 
-                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
-                      }`}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${formErrors.subject
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                        }`}
                       placeholder="What is this about?"
                     />
                     {formErrors.subject && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.subject}</p>}
@@ -260,11 +267,10 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleInputChange}
                     rows={6}
-                    className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors resize-none ${
-                      formErrors.message 
-                        ? 'border-red-500 bg-red-50' 
-                        : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
-                    }`}
+                    className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors resize-none ${formErrors.message
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                      }`}
                     placeholder="Tell us how we can help you..."
                   />
                   {formErrors.message && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.message}</p>}
@@ -297,7 +303,7 @@ const Contact = () => {
                     className="flex-1 bg-black text-white font-semibold uppercase tracking-wider hover:bg-text-dark transition-colors flex items-center justify-center gap-3 text-sm sm:text-base py-3 sm:py-4 px-6 sm:px-8"
                   >
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
                     </svg>
                     WhatsApp
                   </button>
@@ -325,21 +331,19 @@ const Contact = () => {
           {/* FAQ Accordion */}
           <div className="space-y-4 sm:space-y-6">
             {faqData.map((faq, index) => (
-              <div 
-                key={index} 
-                className={`bg-white border shadow-sm transition-all duration-300 ${
-                  expandedFaq === index 
-                    ? 'border-luxury-gold shadow-lg' 
-                    : 'border-text-light/10 hover:border-luxury-gold/30'
-                }`}
+              <div
+                key={index}
+                className={`bg-white border shadow-sm transition-all duration-300 ${expandedFaq === index
+                  ? 'border-luxury-gold shadow-lg'
+                  : 'border-text-light/10 hover:border-luxury-gold/30'
+                  }`}
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className={`w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-left flex items-center justify-between transition-all duration-300 ${
-                    expandedFaq === index 
-                      ? 'bg-luxury-gold/5' 
-                      : 'hover:bg-premium-beige/20'
-                  }`}
+                  className={`w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-left flex items-center justify-between transition-all duration-300 ${expandedFaq === index
+                    ? 'bg-luxury-gold/5'
+                    : 'hover:bg-premium-beige/20'
+                    }`}
                 >
                   <h3 className="text-base sm:text-lg md:text-xl font-semibold text-black uppercase tracking-wide pr-3 sm:pr-4 md:pr-6 leading-tight">
                     {faq.question}
@@ -352,7 +356,7 @@ const Contact = () => {
                     )}
                   </div>
                 </button>
-                
+
                 {expandedFaq === index && (
                   <div className="px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8 border-t border-luxury-gold/20 bg-luxury-gold/5">
                     <p className="text-text-dark leading-relaxed pt-4 sm:pt-6 text-sm sm:text-base">

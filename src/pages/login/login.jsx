@@ -239,13 +239,13 @@ const LoginPage = () => {
                 </div>
 
                 {/* Google Login */}
-                {/* <button
+                <button
                   onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 py-4 border-2 border-text-light/30 hover:border-black transition-colors text-black font-medium text-sm"
                 >
                   <FcGoogle size={22} />
                   Continue with Google
-                </button> */}
+                </button>
 
                 {/* Signup Link */}
                 <p className="text-center text-text-medium mt-6 md:mt-8 text-sm">

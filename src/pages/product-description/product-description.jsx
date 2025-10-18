@@ -32,7 +32,7 @@ const getAvailableQuantity = (priceList, selectedCountry, selectedSize) => {
 
 
 
-const formatPrice = (price, currency = 'INR') => {
+const formatPrice = (price, currency ) => {
   if (typeof price !== 'number') return '0';
 
   return price.toLocaleString(undefined, {
@@ -259,7 +259,13 @@ const ProductDetailPage = () => {
     try {
       const response = await addToCart(payload);
       console.log("Added to cart:", response);
-      message.success("Product added to cart successfully!");
+      console.log(response.data.success)
+      if (response.data.success === 'true') {
+        message.success("Product added to cart successfully!");
+      }
+      else {
+        message.error(response.data.message)
+      }
       setItemAddedToCart(true);
       fetchCart()
     } catch (err) {
@@ -275,35 +281,9 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = async () => {
-    if (!selectedColor || !selectedSize || availableQuantity === 0) {
-      message.error('Please select color and size');
-      return;
-    }
-
-    setAddingToCart(true);
-
-    const payload = {
-      productId: product.productId,
-      size: selectedSize,
-      quantity: quantity,
-      currency: product?.priceList?.find(
-        (item) => item.country === selectedCountry && item.size === selectedSize
-      ).currency,
-      note: ""
-    };
-
-    try {
-      const response = await addToCart(payload);
-      console.log("Added to cart:", response);
-      message.success("Product added to cart successfully!");
-      fetchCart()
+ 
       navigate("/checkout")
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      message.error("Failed to add product to cart. Please try again.");
-    } finally {
-      setAddingToCart(false);
-    }
+   
   }
 
   // Wishlist toggle
@@ -603,7 +583,7 @@ const ProductDetailPage = () => {
                   return matchedPrice ? (
                     <>
                       <span className="text-4xl font-bold text-black">
-                        {formatPrice(matchedPrice.priceAmount)}
+                        {formatPrice(matchedPrice.priceAmount , matchedPrice.currency)}
                       </span>
 
                       {/* Uncomment below if compareAtPrice exists in data */}
@@ -795,7 +775,7 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
               )}
-              
+
               <button
                 onClick={() => handleAddToWishlist(product.id)}
                 disabled={addingToWishlist}

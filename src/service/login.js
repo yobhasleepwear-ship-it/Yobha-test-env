@@ -42,3 +42,13 @@ export const verifyOtp = async (phoneNumber, otp) => {
         throw err;
     }
 };
+
+export const contactUs = async (payload) => {
+    try {
+        const response = await axiosService.Post("/SendUsAMessage", payload)
+        return response.data
+    }
+    catch (err) {
+        console.log(err)
+    }
+}

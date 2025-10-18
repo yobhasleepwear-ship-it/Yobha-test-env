@@ -107,8 +107,8 @@ const ProductCard = ({ product }) => {
               src={img}
               alt={`${productName} - ${index + 1}`}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${index === currentImageIndex
-                  ? 'opacity-100'
-                  : 'opacity-0'
+                ? 'opacity-100'
+                : 'opacity-0'
                 } group-hover:scale-105`}
               onError={(e) => {
                 e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPC9zdmc+';
@@ -163,8 +163,8 @@ const ProductCard = ({ product }) => {
                 key={index}
                 onClick={(e) => goToImage(index, e)}
                 className={`h-1 rounded-full transition-all duration-300 ${index === currentImageIndex
-                    ? 'w-6 bg-black'
-                    : 'w-1 bg-black/30 hover:bg-black/60'
+                  ? 'w-6 bg-black'
+                  : 'w-1 bg-black/30 hover:bg-black/60'
                   }`}
                 aria-label={`Go to image ${index + 1}`}
               />
@@ -174,33 +174,36 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1 bg-white">
-        {/* Product Name */}
-        <h3 className="text-text-dark font-semibold text-base mb-2 line-clamp-2 group-hover:text-black transition-colors uppercase tracking-tight">
-          {productName}
-        </h3>
+    <div className="p-5 flex flex-col flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out font-['Helvetica_Neue','Helvetica',sans-serif]">
 
-        {/* Available Options */}
-        <div className="mb-3 space-y-1">
-          {availableColors.length > 0 && (
-            <p className="text-text-light text-xs uppercase tracking-wider">
-              {availableColors.length} Color{availableColors.length !== 1 ? 's' : ''}
-            </p>
-          )}
-          {availableSizes.length > 0 && (
-            <p className="text-text-light text-xs uppercase tracking-wider">
-              Sizes: {availableSizes.join(', ')}
-            </p>
-          )}
-        </div>
+  {/* Product Name */}
+  <h3 className="text-gray-900 font-semibold text-lg mb-3 line-clamp-2 tracking-tight uppercase group-hover:text-[#ea5430] transition-colors duration-300">
+    {productName}
+  </h3>
 
-        {/* Price */}
-        <div className="mt-auto pt-3 border-t border-text-light/20">
-          <span className="text-black font-bold text-xl">
-            {formattedPrice}
-          </span>
-        </div>
-      </div>
+  {/* Available Options */}
+  <div className="mb-4 space-y-1">
+    {availableColors.length > 0 && (
+      <p className="text-gray-500 text-xs tracking-wider uppercase">
+        {availableColors.length} Color{availableColors.length !== 1 ? 's' : ''}
+      </p>
+    )}
+    {availableSizes.length > 0 && (
+      <p className="text-gray-500 text-xs tracking-wider uppercase">
+        Sizes: <span className="text-gray-700 font-medium">{availableSizes.join(', ')}</span>
+      </p>
+    )}
+  </div>
+
+  {/* Description */}
+  <div className="mt-auto pt-4 border-t border-gray-200">
+    <p className="text-gray-700 text-sm leading-relaxed line-clamp-3 transition-all duration-300 hover:text-[#ea5430] hover:translate-x-1">
+      {product.description}
+    </p>
+  </div>
+
+</div>
+
     </div>
   );
 };
