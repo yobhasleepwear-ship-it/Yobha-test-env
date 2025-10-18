@@ -1,18 +1,127 @@
-import React from "react";
+import React, { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const Contact = () => {
   const whatsappNumber = "+916200830664";
-  const whatsappText = "Hello, I’d like to get in touch regarding your products.";
+  const whatsappText = "Hello, I'd like to get in touch regarding your products.";
+  
+  // Contact form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState(null);
   
   const handleWhatsAppRedirect = () => {
     const url = `https://wa.me/${whatsappNumber.replace("+", "")}?text=${encodeURIComponent(whatsappText)}`;
     window.open(url, "_blank");
   };
 
+  const toggleFaq = (index) => {
+    setExpandedFaq(expandedFaq === index ? null : index);
+  };
+
+
+  const faqData = [
+    {
+      question: "What does YOBHA stand for?",
+      answer: "YOBHA is a sanctuary of stillness — where modern comfort meets timeless craftsmanship. Born from a desire to reimagine the essence of home, YOBHA creates loungewear, homewear, and sleepwear that transcend generations."
+    },
+    {
+      question: "What makes YOBHA different from other brands?",
+      answer: "Every YOBHA creation is a dialogue between comfort and art. We embody quiet luxury — crafted not to impress but to express presence, grace, and ease across our collections for men, women, children, and pets."
+    },
+    {
+      question: "Do you offer matching sets for families?",
+      answer: "Yes. YOBHA celebrates togetherness through matching sets for couples, children, and even pets — designed to reflect harmony, comfort, and timeless connection."
+    },
+    {
+      question: "Where are YOBHA pieces made?",
+      answer: "Crafted in select ateliers that embody excellence and integrity, each piece is handled by artisans who master the poetry of precision — made with devotion and calm."
+    },
+    {
+      question: "What materials do you use?",
+      answer: "We use premium, sustainable fabrics such as organic cotton, bamboo blends, and plant-based silks — ensuring softness, breathability, and harmony with nature."
+    },
+    {
+      question: "Is YOBHA a seasonal brand?",
+      answer: "Our creations are timeless, not seasonal. YOBHA believes in slow creation and the beauty of continuity — fashion that transcends trends and time."
+    },
+    {
+      question: "Do you offer worldwide shipping?",
+      answer: "Yes. We ship globally with utmost care, each order wrapped with intention and delivered with the serenity that defines YOBHA."
+    },
+    {
+      question: "What is your return and exchange policy?",
+      answer: "Our Client Care Team ensures every return or exchange is handled with discretion and grace, provided the item is in its original condition and packaging."
+    },
+    {
+      question: "Does YOBHA offer a restoration or buyback program?",
+      answer: "Yes. Select collections qualify for restoration or buyback — reflecting our commitment to conscious luxury and circular craftsmanship."
+    },
+    {
+      question: "How do I care for my YOBHA pieces?",
+      answer: "Gentle washing, air drying, and mindful storage preserve each piece's softness and balance. Every item includes care guidance for longevity."
+    }
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'Name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    if (!formData.subject.trim()) errors.subject = 'Subject is required';
+    if (!formData.message.trim()) errors.message = 'Message is required';
+    return errors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errors = validateForm();
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsSubmitted(true);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-premium-cream">
       {/* Hero Section */}
-      <section className="relative py-8 bg-gradient-to-br from-premium-beige via-premium-cream to-premium-warm-white overflow-hidden">
+      <section className="relative py-2 bg-gradient-to-br from-premium-beige via-premium-cream to-premium-warm-white overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-10 left-10 w-20 h-20 border border-luxury-gold/30 rotate-45"></div>
           <div className="absolute top-20 right-16 w-16 h-16 border border-luxury-gold/30 rotate-12"></div>
@@ -31,237 +140,231 @@ const Contact = () => {
       </section>
 
       {/* Main Contact Section */}
-      <section className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Contact Information */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white p-6 shadow-xl border border-text-light/10 relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
-              <h2 className="text-xl font-bold text-black uppercase tracking-wide mb-6">
-                Get in Touch
-              </h2>
-
-              <div className="space-y-5">
-                {/* Email */}
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 border-2 border-luxury-gold rounded-full flex items-center justify-center bg-luxury-gold/10">
-                    <svg className="w-4 h-4 text-luxury-gold" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-black uppercase tracking-wide mb-1">
-                      Email
-                    </h3>
-                    <p className="text-text-dark text-sm">hello@yobha.com</p>
-                    <p className="text-text-dark text-sm">support@yobha.com</p>
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 border-2 border-luxury-gold rounded-full flex items-center justify-center bg-luxury-gold/10">
-                    <svg className="w-4 h-4 text-luxury-gold" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-black uppercase tracking-wide mb-1">
-                      Phone
-                    </h3>
-                    <p className="text-text-dark text-sm">+91 6200830664</p>
-                    <p className="text-text-dark text-sm">Mon-Fri 9AM-6PM IST</p>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 border-2 border-luxury-gold rounded-full flex items-center justify-center bg-luxury-gold/10">
-                    <svg className="w-4 h-4 text-luxury-gold" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-black uppercase tracking-wide mb-1">
-                      Address
-                    </h3>
-                    <p className="text-text-dark text-sm">
-                      123 Luxury Avenue<br />
-                      Fashion District<br />
-                      New York, NY 10001
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Business Hours */}
-            <div className="bg-premium-beige p-6 border border-text-light/10 relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
-              <h3 className="text-lg font-bold text-black uppercase tracking-wide mb-4">
-                Business Hours
-              </h3>
-
-              <div className="space-y-3">
-                <div className="flex justify-between border-b border-text-light/20 py-1">
-                  <span className="text-text-dark text-sm font-medium">Monday - Friday</span>
-                  <span className="text-text-dark text-sm">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between border-b border-text-light/20 py-1">
-                  <span className="text-text-dark text-sm font-medium">Saturday</span>
-                  <span className="text-text-dark text-sm">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-text-dark text-sm font-medium">Sunday</span>
-                  <span className="text-text-dark text-sm">Closed</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* WhatsApp Redirect Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white p-10 shadow-xl border border-text-light/10 relative h-full flex flex-col items-center justify-center text-center">
-              <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
-              <h2 className="text-3xl font-bold text-black uppercase tracking-wide mb-4">
-                Chat With Us on WhatsApp
-              </h2>
-              <p className="text-text-dark text-base max-w-lg mb-8 leading-relaxed">
-                Have a question or need quick assistance? Our support team is available on WhatsApp to help you with your orders, product details, or any luxury inquiries.
-              </p>
-
-              <button
-                onClick={handleWhatsAppRedirect}
-                className="px-10 py-4 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold text-lg uppercase tracking-widest rounded-none hover:from-green-700 hover:to-green-600 transition-all duration-500 transform hover:scale-105 shadow-xl flex items-center space-x-3"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M16.7 14.1c-.3-.1-1.6-.8-1.9-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-1 .9s-.5 0-.8-.3c-.4-.2-1.4-.6-2.7-1.9-1-1-1.7-2.1-1.9-2.4-.2-.3 0-.5.2-.7.2-.2.3-.5.4-.6.1-.1.2-.3.3-.5.1-.2 0-.4 0-.6-.1-.1-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.3 2.1 3.2 5.1 4.5.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.8-1.3.2-.6.2-1.2.1-1.3-.1-.2-.3-.2-.6-.3z" />
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+        <div className="bg-white p-6 sm:p-12 shadow-xl border border-text-light/10 relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-luxury-gold"></div>
+          
+          {isSubmitted ? (
+            <div className="text-center py-12 sm:py-16">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Message on WhatsApp</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-black uppercase tracking-wide mb-4 sm:mb-6">
+                Message Sent Successfully!
+              </h2>
+              <p className="text-text-dark text-base sm:text-lg mb-6 sm:mb-8 max-w-md mx-auto px-4">
+                Thank you for reaching out. We'll get back to you within 24 hours.
+              </p>
+              <button
+                onClick={() => setIsSubmitted(false)}
+                className="bg-black text-white py-3 sm:py-4 px-6 sm:px-8 font-semibold uppercase tracking-wider hover:bg-text-dark transition-colors text-sm sm:text-base"
+              >
+                Send Another Message
               </button>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="mb-8 sm:mb-12">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black uppercase tracking-widest mb-3 sm:mb-4">
+                  Send Us a Message
+                </h2>
+                <p className="text-text-dark text-base sm:text-lg leading-relaxed max-w-2xl">
+                  Have a question or need assistance? Fill out the form below and we'll get back to you within 24 hours.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                  <div>
+                    <label className="block text-sm font-semibold text-black uppercase tracking-wide mb-2 sm:mb-3">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
+                        formErrors.name 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                      }`}
+                      placeholder="Enter your full name"
+                    />
+                    {formErrors.name && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.name}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-black uppercase tracking-wide mb-2 sm:mb-3">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
+                        formErrors.email 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                      }`}
+                      placeholder="Enter your email"
+                    />
+                    {formErrors.email && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.email}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                  <div>
+                    <label className="block text-sm font-semibold text-black uppercase tracking-wide mb-2 sm:mb-3">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 sm:py-4 border-2 border-gray-300 focus:border-luxury-gold hover:border-gray-400 focus:outline-none text-sm sm:text-base transition-colors"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-black uppercase tracking-wide mb-2 sm:mb-3">
+                      Subject *
+                    </label>
+                    <input
+                      type="text"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors ${
+                        formErrors.subject 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                      }`}
+                      placeholder="What is this about?"
+                    />
+                    {formErrors.subject && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.subject}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-black uppercase tracking-wide mb-2 sm:mb-3">
+                    Message *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    rows={6}
+                    className={`w-full px-4 py-3 sm:py-4 border-2 focus:outline-none text-sm sm:text-base transition-colors resize-none ${
+                      formErrors.message 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-gray-300 focus:border-luxury-gold hover:border-gray-400'
+                    }`}
+                    placeholder="Tell us how we can help you..."
+                  />
+                  {formErrors.message && <p className="text-xs sm:text-sm text-red-500 mt-1 sm:mt-2">{formErrors.message}</p>}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-2 sm:pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-black text-white py-3 sm:py-4 px-6 sm:px-8 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm sm:text-base flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        Send Message
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleWhatsAppRedirect}
+                    className="flex-1 bg-black text-white font-semibold uppercase tracking-wider hover:bg-text-dark transition-colors flex items-center justify-center gap-3 text-sm sm:text-base py-3 sm:py-4 px-6 sm:px-8"
+                  >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                    </svg>
+                    WhatsApp
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-20 font-['Helvetica Neue','Helvetica',sans-serif]">
-  <div className="max-w-6xl mx-auto px-6">
-    {/* Heading */}
-    <div className="text-center mb-16">
-      <h2 className="text-4xl md:text-5xl font-bold text-black uppercase tracking-widest mb-5">
-        Frequently Asked Questions
-      </h2>
-      <div className="w-24 h-1.5 bg-gradient-to-r from-[#c1a15b] to-[#e4c988] mx-auto rounded-full"></div>
-      <p className="mt-4 text-text-dark text-sm tracking-wide uppercase">
-        Calm • Connection • Conscious Living
-      </p>
-    </div>
+      <section className="bg-white py-12 sm:py-20 font-['Helvetica Neue','Helvetica',sans-serif]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Heading */}
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black uppercase tracking-widest mb-4 sm:mb-5">
+              Frequently Asked Questions
+            </h2>
+            <div className="w-20 sm:w-24 h-1 sm:h-1.5 bg-gradient-to-r from-luxury-gold to-[#e4c988] mx-auto rounded-full"></div>
+            <p className="mt-3 sm:mt-4 text-text-dark text-xs sm:text-sm tracking-wide uppercase">
+              Calm • Connection • Conscious Living
+            </p>
+          </div>
 
-    {/* FAQ Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-      {/* Column 1 */}
-      <div className="space-y-10">
-        <div className="group border-l-4 border-[#d4af37] pl-6 transition-all duration-300 hover:pl-8">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            What does YOBHA stand for?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            YOBHA is a sanctuary of stillness — where modern comfort meets timeless craftsmanship. Born from a desire to reimagine the essence of home, YOBHA creates loungewear, homewear, and sleepwear that transcend generations.
-          </p>
+          {/* FAQ Accordion */}
+          <div className="space-y-4 sm:space-y-6">
+            {faqData.map((faq, index) => (
+              <div 
+                key={index} 
+                className={`bg-white border shadow-sm transition-all duration-300 ${
+                  expandedFaq === index 
+                    ? 'border-luxury-gold shadow-lg' 
+                    : 'border-text-light/10 hover:border-luxury-gold/30'
+                }`}
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className={`w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-left flex items-center justify-between transition-all duration-300 ${
+                    expandedFaq === index 
+                      ? 'bg-luxury-gold/5' 
+                      : 'hover:bg-premium-beige/20'
+                  }`}
+                >
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-black uppercase tracking-wide pr-3 sm:pr-4 md:pr-6 leading-tight">
+                    {faq.question}
+                  </h3>
+                  <div className="flex-shrink-0">
+                    {expandedFaq === index ? (
+                      <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-luxury-gold transition-transform duration-300" strokeWidth={1.5} />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-luxury-gold transition-transform duration-300" strokeWidth={1.5} />
+                    )}
+                  </div>
+                </button>
+                
+                {expandedFaq === index && (
+                  <div className="px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8 border-t border-luxury-gold/20 bg-luxury-gold/5">
+                    <p className="text-text-dark leading-relaxed pt-4 sm:pt-6 text-sm sm:text-base">
+                      {faq.answer}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            What makes YOBHA different from other brands?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Every YOBHA creation is a dialogue between comfort and art. We embody quiet luxury — crafted not to impress but to express presence, grace, and ease across our collections for men, women, children, and pets.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            Do you offer matching sets for families?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Yes. YOBHA celebrates togetherness through matching sets for couples, children, and even pets — designed to reflect harmony, comfort, and timeless connection.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            Where are YOBHA pieces made?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Crafted in select ateliers that embody excellence and integrity, each piece is handled by artisans who master the poetry of precision — made with devotion and calm.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            What materials do you use?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            We use premium, sustainable fabrics such as organic cotton, bamboo blends, and plant-based silks — ensuring softness, breathability, and harmony with nature.
-          </p>
-        </div>
-      </div>
-
-      {/* Column 2 */}
-      <div className="space-y-10">
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            Is YOBHA a seasonal brand?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Our creations are timeless, not seasonal. YOBHA believes in slow creation and the beauty of continuity — fashion that transcends trends and time.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            Do you offer worldwide shipping?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Yes. We ship globally with utmost care, each order wrapped with intention and delivered with the serenity that defines YOBHA.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            What is your return and exchange policy?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Our Client Care Team ensures every return or exchange is handled with discretion and grace, provided the item is in its original condition and packaging.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            Does YOBHA offer a restoration or buyback program?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Yes. Select collections qualify for restoration or buyback — reflecting our commitment to conscious luxury and circular craftsmanship.
-          </p>
-        </div>
-
-        <div className="group border-l-4 border-[#d4af37] pl-6 hover:pl-8 transition-all duration-300">
-          <h3 className="text-xl font-semibold text-black uppercase tracking-wide mb-3 group-hover:text-[#b9935a]">
-            How do I care for my YOBHA pieces?
-          </h3>
-          <p className="text-gray-700 leading-relaxed">
-            Gentle washing, air drying, and mindful storage preserve each piece’s softness and balance. Every item includes care guidance for longevity.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
     </div>
   );

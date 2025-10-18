@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Facebook, Twitter, Instagram } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoImage from "../../assets/yobhaLogo.png";
 import { SubscribeNewsletter } from "../../service/notification";
@@ -13,7 +13,7 @@ const [newsletter , setNewsletter]=useState("")
       "phoneNumber": ""
     }
     try {
-      const response = SubscribeNewsletter(payload)
+      SubscribeNewsletter(payload)
       message.success("Subscribed successfully")
     }
     catch {
@@ -166,14 +166,20 @@ const [newsletter , setNewsletter]=useState("")
                   <Facebook size={22} strokeWidth={1.5} />
                 </a>
                 <a
-                  href="#!"
-                  aria-label="Twitter"
+                  href="https://x.com/yobha_world"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="X (formerly Twitter)"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >
-                  <Twitter size={22} strokeWidth={1.5} />
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
                 </a>
                 <a
-                  href="#!"
+                  href="https://www.instagram.com/yobha.world"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="Instagram"
                   className="text-text-medium hover:text-black transition-colors duration-300"
                 >

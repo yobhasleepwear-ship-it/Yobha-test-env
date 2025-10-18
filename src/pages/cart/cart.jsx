@@ -281,7 +281,7 @@ const handleDeleteCartItem = async (id) => {
                       {/* Product Image */}
                       <div
                         className="w-full sm:w-28 md:w-32 h-32 flex-shrink-0 bg-premium-beige overflow-hidden cursor-pointer"
-                        onClick={() => navigate(`/productDetail/${product.productId}`)}
+                        onClick={() => navigate(`/productDetail/${product.productObjectId}`)}
                       >
                         <img
                           src={product.thumbnailUrl}

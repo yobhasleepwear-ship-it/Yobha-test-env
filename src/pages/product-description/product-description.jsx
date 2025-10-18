@@ -621,11 +621,16 @@ const ProductDetailPage = () => {
             </div>
             {/* Color Selection */}
             {product?.availableColors?.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
-                  Color: <span className="font-normal text-text-medium">{selectedColor}</span>
-                </h3>
-                <div className="flex gap-3 flex-wrap">
+              <div className="bg-white border border-text-light/10 p-4 sm:p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-black uppercase tracking-widest">
+                    Color
+                  </h3>
+                  <span className="text-sm text-text-medium font-medium">
+                    {selectedColor}
+                  </span>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-3 pt-3 scrollbar-hide px-1 -mx-1">
                   {product?.availableColors.map((color) => (
                     <button
                       key={color}
@@ -633,11 +638,16 @@ const ProductDetailPage = () => {
                         setSelectedColor(color);
                         setItemAddedToCart(false);
                       }}
-                      className={`px-6 py-3 border-2 transition-all uppercase text-sm tracking-wider ${selectedColor === color
-                        ? 'border-black bg-black text-white'
-                        : 'border-text-light/30 text-black hover:border-text-dark'
+                      className={`flex-shrink-0 px-6 py-3 border-2 transition-all duration-300 uppercase text-xs tracking-wider font-medium rounded-full relative group min-h-[44px] flex items-center justify-center ${selectedColor === color
+                        ? 'border-black bg-black text-white  transform scale-105'
+                        : 'border-text-light/20 text-black hover:border-black/30 hover:bg-black/5'
                         }`}
                     >
+                      {selectedColor === color && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-black rounded-full border-2 border-white flex items-center justify-center">
+                          <div className="w-1 h-1 bg-white rounded-full"></div>
+                        </div>
+                      )}
                       {color}
                     </button>
                   ))}
@@ -647,11 +657,16 @@ const ProductDetailPage = () => {
 
             {/* Size Selection */}
             {product.sizeOfProduct.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-black mb-4 uppercase tracking-widest">
-                  Size: <span className="font-normal text-text-medium">{selectedSize}</span>
-                </h3>
-                <div className="grid grid-cols-4 gap-3">
+              <div className="bg-white border border-text-light/10 p-4 sm:p-6 rounded-lg ">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-black uppercase tracking-widest">
+                    Size
+                  </h3>
+                  <span className="text-sm text-text-medium font-medium">
+                    {selectedSize}
+                  </span>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-3 pt-2 scrollbar-hide px-1 -mx-1">
                   {product.sizeOfProduct.map((size) => (
                     <button
                       key={size}
@@ -659,11 +674,16 @@ const ProductDetailPage = () => {
                         setSelectedSize(size);
                         setItemAddedToCart(false);
                       }}
-                      className={`py-3 border-2 transition-all uppercase text-sm tracking-wider font-medium ${selectedSize === size
-                        ? 'border-black bg-black text-white'
-                        : 'border-text-light/30 text-black hover:border-text-dark'
+                      className={`flex-shrink-0 w-14 h-14 border-2 transition-all duration-300 uppercase text-sm tracking-wider font-bold rounded-lg relative group flex items-center justify-center min-h-[44px] ${selectedSize === size
+                        ? 'border-black bg-black text-white shadow-lg transform scale-105'
+                        : 'border-text-light/20 text-black hover:border-black/30 hover:bg-black/5'
                         }`}
                     >
+                      {selectedSize === size && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-black rounded-full border-2 border-white flex items-center justify-center">
+                          <div className="w-1 h-1 bg-white rounded-full"></div>
+                        </div>
+                      )}
                       {size}
                     </button>
                   ))}
