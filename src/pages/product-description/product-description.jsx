@@ -723,69 +723,75 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <button
-                onClick={itemAddedToCart ? handleGoToCart : handleAddToCart}
-                disabled={
-                  availableQuantity === 0 ||
-                  !selectedColor ||
-                  !selectedSize ||
-                  !matchedPrice ||
-                  addingToCart
-                }
-                className="flex-1 bg-black text-white py-4 px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
-              >
-                {addingToCart ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Adding...</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag size={20} strokeWidth={1.5} />
-                    {availableQuantity === 0
-                      ? 'Out of Stock'
-                      : !matchedPrice
-                        ? 'Price Not Available'
-                        : itemAddedToCart
-                          ? 'Go to Cart'
-                          : 'Add to Cart'}
-                  </>
-                )}
-              </button>
-      
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex gap-3 sm:gap-4 flex-1">
+                <button
+                  onClick={itemAddedToCart ? handleGoToCart : handleAddToCart}
+                  disabled={
+                    availableQuantity === 0 ||
+                    !selectedColor ||
+                    !selectedSize ||
+                    !matchedPrice ||
+                    addingToCart
+                  }
+                  className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
+                >
+                  {addingToCart ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs sm:text-sm">Adding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
+                      <span className="text-xs sm:text-sm">
+                        {availableQuantity === 0
+                          ? 'Out of Stock'
+                          : !matchedPrice
+                            ? 'Price Not Available'
+                            : itemAddedToCart
+                              ? 'Go to Cart'
+                              : 'Add to Cart'}
+                      </span>
+                    </>
+                  )}
+                </button>
 
-              <button
-                onClick={handleBuyNow}
-                disabled={
-                  availableQuantity === 0 ||
-                  !selectedColor ||
-                  !selectedSize ||
-                  !matchedPrice ||
-                  addingToCart
-                }
-                className="flex-1 bg-black text-white py-4 px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-sm flex items-center justify-center gap-3 disabled:bg-text-light disabled:cursor-not-allowed"
-              >
-                {addingToCart ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag size={20} strokeWidth={1.5} />
-                    {availableQuantity === 0
-                      ? 'Out of Stock'
-                      : !matchedPrice
-                        ? 'Price Not Available'
-                        : 'Buy Now'}
-                  </>
-                )}
-              </button>
+                <button
+                  onClick={handleBuyNow}
+                  disabled={
+                    availableQuantity === 0 ||
+                    !selectedColor ||
+                    !selectedSize ||
+                    !matchedPrice ||
+                    addingToCart
+                  }
+                  className="flex-1 bg-black text-white py-3 sm:py-4 px-4 sm:px-6 font-semibold hover:bg-text-dark transition-colors uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3 disabled:bg-text-light disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px]"
+                >
+                  {addingToCart ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs sm:text-sm">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={18} strokeWidth={1.5} className="sm:w-5 sm:h-5" />
+                      <span className="text-xs sm:text-sm">
+                        {availableQuantity === 0
+                          ? 'Out of Stock'
+                          : !matchedPrice
+                            ? 'Price Not Available'
+                            : 'Buy Now'}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+              
               <button
                 onClick={() => handleAddToWishlist(product.id)}
                 disabled={addingToWishlist}
-                className={`p-4 border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isWishlisted
+                className={`p-3 sm:p-4 border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-[56px] flex items-center justify-center ${isWishlisted
                   ? 'border-black bg-black'
                   : 'border-text-light/30 hover:border-black'
                   }`}
@@ -795,13 +801,12 @@ const ProductDetailPage = () => {
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <Heart
-                    size={20}
+                    size={18}
                     strokeWidth={1.5}
-                    className={isWishlisted ? 'fill-white text-white' : 'text-black'}
+                    className={`sm:w-5 sm:h-5 ${isWishlisted ? 'fill-white text-white' : 'text-black'}`}
                   />
                 )}
               </button>
-
             </div>
 
 
